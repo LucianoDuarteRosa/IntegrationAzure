@@ -1,0 +1,182 @@
+import { useState } from 'react';
+import {
+    Box,
+    Paper,
+    Typography,
+    TextField,
+    Button,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    IconButton,
+    Checkbox,
+    FormControlLabel,
+    Stack,
+    Divider,
+    FormGroup,
+    Grid,
+} from '@mui/material';
+import {
+    Delete as DeleteIcon,
+    Add as AddIcon,
+    AttachFile as AttachFileIcon,
+    Visibility as VisibilityIcon,
+} from '@mui/icons-material';
+import { useForm, Controller } from 'react-hook-form';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+
+const schema = yup.object().shape({
+    demandNumber: yup.string().required('Número da demanda é obrigatório'),
+    title: yup.string().required('Título é obrigatório'),
+});
+
+// Simulação de demandas disponíveis
+const demandas = [
+    { id: 'DEM-001', title: 'Demanda 1' },
+    { id: 'DEM-002', title: 'Demanda 2' },
+    { id: 'DEM-003', title: 'Demanda 3' },
+];
+
+const Section = ({ title, children, notApplicable, onNotApplicableChange, isFirst }) => {
+    return (
+        <Box sx={{ mb: 4, minWidth: '900px' }}>
+            {!isFirst && (
+                <Box sx={{ mb: 4, mx: 'auto', width: '80%' }}>
+                    <Divider sx={{ 
+                        opacity: 0.4,
+                        borderColor: 'text.secondary'
+                    }} />
+                </Box>
+            )}
+            <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 2,
+                justifyContent: 'space-between'
+            }}>
+                <Typography 
+                    variant="h6" 
+                    component="h2" 
+                    sx={{ 
+                        fontSize: '1.5rem',
+                        fontWeight: 500
+                    }}
+                >
+                    {title}
+                </Typography>
+                {notApplicable !== undefined && (
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={notApplicable}
+                                onChange={(e) => onNotApplicableChange(e.target.checked)}
+                            />
+                        }
+                        label="Não se aplica"
+                        sx={{ ml: 2 }}
+                    />
+                )}
+            </Box>
+            {!notApplicable && children}
+        </Box>
+    );
+};
+
+const DynamicFields = ({ fields, onAdd, onRemove, onFieldChange, disabled }) => {
+    return (
+        <Stack spacing={2}>
+            {fields.map((field, index) => (
+                <Box key={index} sx={{ display: 'flex', gap: 1 }}>
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        value={field.content}
+                        onChange={(e) => onFieldChange(index, e.target.value)}
+                        disabled={disabled}
+                    />
+                    <IconButton
+                        onClick={() => onRemove(index)}
+                        disabled={fields.length === 1 || disabled}
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+                </Box>
+            ))}
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <Button
+                    startIcon={<AddIcon />}
+                    onClick={onAdd}
+                    variant="outlined"
+                    disabled={disabled}
+                    sx={{ width: '50%' }}
+                >
+                    Adicionar
+                </Button>
+            </Box>
+        </Stack>
+    );
+};
+
+const FieldDefinition = ({ field, onChange, onRemove }) => (
+    <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid item xs={12} sm={3}>
+            <TextField
+                fullWidth
+                label="Nome do Campo"
+                value={field.name}
+                onChange={(e) => onChange(field.id, { ...field, name: e.target.value })}
+            />
+        </Grid>
+        <Grid item xs={12} sm={2}>
+            <FormControl fullWidth>
+                <InputLabel>Tipo</InputLabel>
+                <Select
+                    value={field.type}
+                    label="Tipo"
+                    onChange={(e) => {
+                        const newType = e.target.value;
+                        const newSize = ['boolean', 'date', 'datetime', 'select'].includes(newType) ? '' : field.size;
+                        onChange(field.id, { ...field, type: newType, size: newSize });
+                    }}
+                >
+                    <MenuItem value="text">Campo de Texto</MenuItem>
+                    <MenuItem value="number">Número (Inteiro/Decimal)</MenuItem>
+                    <MenuItem value="date">Data</MenuItem>
+                    <MenuItem value="datetime">Data e Hora</MenuItem>
+                    <MenuItem value="boolean">Sim/Não</MenuItem>
+                    <MenuItem value="select">Lista de Opções</MenuItem>
+                </Select>
+            </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={2}>
+            {!['boolean', 'date', 'datetime', 'select'].includes(field.type) && (
+                <TextField
+                    fullWidth
+                    label={field.type === 'number' ? 'Dígitos (total.decimais)' : 'Tamanho máximo'}
+                    placeholder={field.type === 'number' ? 'Ex: 10.2' : 'Ex: 100'}
+                    value={field.size}
+                    onChange={(e) => onChange(field.id, { ...field, size: e.target.value })}
+                />
+            )}
+        </Grid>
+        <Grid item xs={12} sm={3}>
+            <FormControlLabel
+                control={
+                    <Checkbox
+                        checked={field.required}
+                        onChange={(e) => onChange(field.id, { ...field, required: e.target.checked })}
+                    />
+                }
+                label="Obrigatório"
+            />
+        </Grid>
+        <Grid item xs={12} sm={2}>
+            <IconButton onClick={() => onRemove(field.id)}>
+                <DeleteIcon />
+            </IconButton>
+        </Grid>
+    </Grid>
+);
