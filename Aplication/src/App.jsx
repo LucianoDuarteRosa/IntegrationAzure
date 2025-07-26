@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { CustomThemeProvider } from './contexts/ThemeContext';
 import { Login } from './pages/Login';
 import { Home } from './components/Home';
 import { UserStoryForm } from './components/UserStoryForm';
-import { CssBaseline, CircularProgress, Box } from '@mui/material';
+import { CircularProgress, Box } from '@mui/material';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,70 +35,71 @@ function PrivateRoute({ children }) {
 
 function App() {
   return (
-    <BrowserRouter>
-      <CssBaseline />
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Home />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/nova-historia"
-            element={
-              <PrivateRoute>
-                <UserStoryForm />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/nova-issue"
-            element={
-              <PrivateRoute>
-                <div>Em desenvolvimento</div>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/nova-falha"
-            element={
-              <PrivateRoute>
-                <div>Em desenvolvimento</div>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/usuarios"
-            element={
-              <PrivateRoute>
-                <div>Em desenvolvimento</div>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/configuracoes"
-            element={
-              <PrivateRoute>
-                <div>Em desenvolvimento</div>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/logs"
-            element={
-              <PrivateRoute>
-                <div>Em desenvolvimento</div>
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+    <CustomThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Home />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/nova-historia"
+              element={
+                <PrivateRoute>
+                  <UserStoryForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/nova-issue"
+              element={
+                <PrivateRoute>
+                  <div>Em desenvolvimento</div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/nova-falha"
+              element={
+                <PrivateRoute>
+                  <div>Em desenvolvimento</div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/usuarios"
+              element={
+                <PrivateRoute>
+                  <div>Em desenvolvimento</div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/configuracoes"
+              element={
+                <PrivateRoute>
+                  <div>Em desenvolvimento</div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/logs"
+              element={
+                <PrivateRoute>
+                  <div>Em desenvolvimento</div>
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </CustomThemeProvider>
   );
 }
 
