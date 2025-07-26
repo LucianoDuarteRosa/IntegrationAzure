@@ -96,7 +96,7 @@ export function AuthProvider({ children }) {
     const login = (email, password) => {
         // Aqui você implementará a lógica de autenticação com sua API
         // Por enquanto, vamos apenas simular um login
-        if (email === 'user@example.com' && password === '123456') {
+        if (email === 'user@user' && password === '123') {
             const userData = {
                 email,
                 loginTime: new Date().toISOString(),

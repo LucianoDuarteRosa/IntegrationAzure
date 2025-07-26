@@ -3,6 +3,7 @@ import { Logout as LogoutIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
+import { IntegrationLogo } from './IntegrationLogo';
 
 export function Navbar() {
     const { logout } = useAuth();
@@ -16,9 +17,9 @@ export function Navbar() {
     return (
         <AppBar position="fixed">
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                    Azure DevOps Stories
-                </Typography>
+                <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+                    <IntegrationLogo size="small" isNavbar={true} />
+                </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <ThemeToggle />
                     <IconButton

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
+import { ModernBackground } from './ModernBackground';
 import {
     Box,
     Container,
@@ -195,16 +196,20 @@ export function UserStoryForm() {
         notApplicable: false,
         items: []
     });
-    const [userStory, setUserStory] = useState([{
-        id: 1,
+    const [userStory, setUserStory] = useState({
         como: '',
         quero: '',
         para: ''
-    }]);
+    });
     const [impact, setImpact] = useState({
         notApplicable: false,
-        current: [{ id: 1, content: '' }],
-        expected: [{ id: 1, content: '' }],
+        items: [
+            {
+                id: 1,
+                current: '',
+                expected: '',
+            },
+        ],
     });
     const [objective, setObjective] = useState({
         notApplicable: false,
@@ -278,7 +283,7 @@ export function UserStoryForm() {
     };
 
     return (
-        <>
+        <ModernBackground intensity="subtle">
             <Navbar />
             <Container
                 component="main"
@@ -363,94 +368,37 @@ export function UserStoryForm() {
                             </Stack>
 
                             <Section title="História do Usuário" isFirst>
-                                <Stack spacing={4}>
-                                    {userStory.map((story, index) => (
-                                        <Box key={story.id} sx={{
-                                            display: 'flex',
-                                            gap: 2,
-                                            alignItems: 'center'
-                                        }}>
-                                            <Stack spacing={3} sx={{ flex: 1 }}>
-                                                <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.secondary' }}>
-                                                    História do Usuário {index + 1}
-                                                </Typography>
-                                                <TextField
-                                                    fullWidth
-                                                    label="Como"
-                                                    value={story.como}
-                                                    onChange={(e) => {
-                                                        const newStories = [...userStory];
-                                                        newStories[index] = { ...story, como: e.target.value };
-                                                        setUserStory(newStories);
-                                                    }}
-                                                    multiline
-                                                    rows={3}
-                                                    placeholder="Ex: Como um usuário do sistema..."
-                                                />
-                                                <TextField
-                                                    fullWidth
-                                                    label="Quero"
-                                                    value={story.quero}
-                                                    onChange={(e) => {
-                                                        const newStories = [...userStory];
-                                                        newStories[index] = { ...story, quero: e.target.value };
-                                                        setUserStory(newStories);
-                                                    }}
-                                                    multiline
-                                                    rows={3}
-                                                    placeholder="Ex: Quero poder realizar..."
-                                                />
-                                                <TextField
-                                                    fullWidth
-                                                    label="Para"
-                                                    value={story.para}
-                                                    onChange={(e) => {
-                                                        const newStories = [...userStory];
-                                                        newStories[index] = { ...story, para: e.target.value };
-                                                        setUserStory(newStories);
-                                                    }}
-                                                    multiline
-                                                    rows={3}
-                                                    placeholder="Ex: Para que eu possa..."
-                                                />
-                                            </Stack>
-                                            {userStory.length > 1 && (
-                                                <IconButton
-                                                    sx={{
-                                                        alignSelf: 'center',
-                                                        mr: 1
-                                                    }}
-                                                    onClick={() => {
-                                                        const newStories = userStory.filter((_, i) => i !== index);
-                                                        setUserStory(newStories);
-                                                    }}
-                                                    color="error"
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            )}
-                                        </Box>
-                                    ))}
-                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                                        <Button
-                                            startIcon={<AddIcon />}
-                                            onClick={() => {
-                                                setUserStory([
-                                                    ...userStory,
-                                                    {
-                                                        id: userStory.length + 1,
-                                                        como: '',
-                                                        quero: '',
-                                                        para: ''
-                                                    }
-                                                ]);
-                                            }}
-                                            variant="outlined"
-                                            sx={{ width: '50%' }}
-                                        >
-                                            Adicionar História do Usuário
-                                        </Button>
-                                    </Box>
+                                <Stack spacing={3}>
+                                    <TextField
+                                        fullWidth
+                                        label="Como"
+                                        value={userStory.como}
+                                        onChange={(e) => setUserStory({ ...userStory, como: e.target.value })}
+                                        multiline
+                                        rows={3}
+                                        placeholder="Ex: Como um usuário do sistema..."
+                                        required
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Quero"
+                                        value={userStory.quero}
+                                        onChange={(e) => setUserStory({ ...userStory, quero: e.target.value })}
+                                        multiline
+                                        rows={3}
+                                        placeholder="Ex: Quero poder realizar..."
+                                        required
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Para"
+                                        value={userStory.para}
+                                        onChange={(e) => setUserStory({ ...userStory, para: e.target.value })}
+                                        multiline
+                                        rows={3}
+                                        placeholder="Ex: Para que eu possa..."
+                                        required
+                                    />
                                 </Stack>
                             </Section>
 
@@ -459,50 +407,86 @@ export function UserStoryForm() {
                                 notApplicable={impact.notApplicable}
                                 onNotApplicableChange={(checked) => setImpact({ ...impact, notApplicable: checked })}
                             >
-                                <Stack spacing={3}>
-                                    <Box>
-                                        <Typography variant="subtitle1" gutterBottom>Processo Atual:</Typography>
-                                        <DynamicFields
-                                            fields={impact.current}
-                                            onAdd={() => setImpact({
-                                                ...impact,
-                                                current: [...impact.current, { id: impact.current.length + 1, content: '' }]
-                                            })}
-                                            onRemove={(index) => setImpact({
-                                                ...impact,
-                                                current: impact.current.filter((_, i) => i !== index)
-                                            })}
-                                            onFieldChange={(index, value) => setImpact({
-                                                ...impact,
-                                                current: impact.current.map((item, i) =>
-                                                    i === index ? { ...item, content: value } : item
-                                                )
-                                            })}
-                                            disabled={impact.notApplicable}
-                                        />
+                                {impact.items.map((item, index) => (
+                                    <Box key={item.id} sx={{
+                                        display: 'flex',
+                                        gap: 2,
+                                        alignItems: 'center',
+                                        mb: 4
+                                    }}>
+                                        <Stack spacing={3} sx={{ flex: 1 }}>
+                                            <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.secondary' }}>
+                                                Impacto {index + 1}
+                                            </Typography>
+                                            <TextField
+                                                fullWidth
+                                                label="Processo Atual"
+                                                value={item.current}
+                                                onChange={(e) => setImpact({
+                                                    ...impact,
+                                                    items: impact.items.map((i) =>
+                                                        i.id === item.id
+                                                            ? { ...i, current: e.target.value }
+                                                            : i
+                                                    )
+                                                })}
+                                                disabled={impact.notApplicable}
+                                                multiline
+                                                rows={3}
+                                                placeholder="Ex: Atualmente o processo é realizado de forma manual..."
+                                            />
+                                            <TextField
+                                                fullWidth
+                                                label="Melhoria Esperada"
+                                                value={item.expected}
+                                                onChange={(e) => setImpact({
+                                                    ...impact,
+                                                    items: impact.items.map((i) =>
+                                                        i.id === item.id
+                                                            ? { ...i, expected: e.target.value }
+                                                            : i
+                                                    )
+                                                })}
+                                                disabled={impact.notApplicable}
+                                                multiline
+                                                rows={3}
+                                                placeholder="Ex: Com a automação, esperamos que..."
+                                            />
+                                        </Stack>
+                                        {impact.items.length > 1 && (
+                                            <IconButton
+                                                onClick={() => setImpact({
+                                                    ...impact,
+                                                    items: impact.items.filter(i => i.id !== item.id)
+                                                })}
+                                                disabled={impact.notApplicable}
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        )}
                                     </Box>
-                                    <Box>
-                                        <Typography variant="subtitle1" gutterBottom>Melhoria Esperada:</Typography>
-                                        <DynamicFields
-                                            fields={impact.expected}
-                                            onAdd={() => setImpact({
-                                                ...impact,
-                                                expected: [...impact.expected, { id: impact.expected.length + 1, content: '' }]
-                                            })}
-                                            onRemove={(index) => setImpact({
-                                                ...impact,
-                                                expected: impact.expected.filter((_, i) => i !== index)
-                                            })}
-                                            onFieldChange={(index, value) => setImpact({
-                                                ...impact,
-                                                expected: impact.expected.map((item, i) =>
-                                                    i === index ? { ...item, content: value } : item
-                                                )
-                                            })}
-                                            disabled={impact.notApplicable}
-                                        />
-                                    </Box>
-                                </Stack>
+                                ))}
+                                <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                    <Button
+                                        startIcon={<AddIcon />}
+                                        onClick={() => setImpact({
+                                            ...impact,
+                                            items: [
+                                                ...impact.items,
+                                                {
+                                                    id: impact.items.length + 1,
+                                                    current: '',
+                                                    expected: '',
+                                                }
+                                            ]
+                                        })}
+                                        variant="outlined"
+                                        disabled={impact.notApplicable}
+                                        sx={{ width: '50%' }}
+                                    >
+                                        Adicionar
+                                    </Button>
+                                </Box>
                             </Section>
 
                             <Section
@@ -928,6 +912,6 @@ export function UserStoryForm() {
                     </Paper>
                 </Box>
             </Container>
-        </>
+        </ModernBackground>
     );
 }
