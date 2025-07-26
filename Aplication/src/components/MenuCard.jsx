@@ -3,10 +3,10 @@ import { Box, Paper, Typography } from '@mui/material';
 export function MenuCard({ icon: Icon, title, onClick }) {
     return (
         <Paper
-            elevation={2}
+            elevation={4}
             sx={{
-                width: 200,
-                height: 200,
+                width: 250,
+                height: 250,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',

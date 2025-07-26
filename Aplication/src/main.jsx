@@ -1,5 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import './styles/reset.css'  // Reset CSS deve vir primeiro
+import './styles/fonts.css'  // Fontes personalizadas
 import './index.css'
 import App from './App.jsx'
 

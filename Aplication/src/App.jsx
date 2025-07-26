@@ -3,13 +3,30 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Login } from './pages/Login';
 import { Home } from './components/Home';
 import { UserStoryForm } from './components/UserStoryForm';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, CircularProgress, Box } from '@mui/material';
 
 function PrivateRoute({ children }) {
-  const { user } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  if (!user) {
-    return <Navigate to="/" />;
+  // Mostra loading enquanto verifica a sessão
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Redireciona para login se não autenticado
+  if (!isAuthenticated()) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
