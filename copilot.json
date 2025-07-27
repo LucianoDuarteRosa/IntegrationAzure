@@ -1,0 +1,26 @@
+{
+    "default": {
+        "context": [
+            "Sempre use Material UI ao criar componentes React.",
+            "Na pasta Application, use JSX com padrão funcional moderno.",
+            "Na pasta API, sempre use .NET 8 ou superior.",
+            "Siga o padrão RESTful para criação de endpoints.",
+            "Evite o uso de classes onde funções são mais apropriadas.",
+            "Priorize legibilidade e boas práticas em todos os arquivos.",
+            "Sempre use nomes de variáveis e funções descritivos.",
+            "Mantenha a consistência no estilo de código em todo o projeto.",
+            "Use comentários para explicar lógicas complexas.",
+            "Evite duplicação de código, extraindo funções reutilizáveis.",
+            "Tenha sempre a preocupação com a performance e otimização do código.",
+            "Utilize hooks do React para gerenciar estado e efeitos colaterais.",
+            "Preocupe-se com segurança, especialmente em endpoints da API.",
+            "Preocupe-se com vazamentos de memória e gerenciamento de recursos.",
+            "Use React Hook Form com Yup para validação de formulários.",
+            "Implemente responsividade mobile-first com breakpoints do MUI.",
+            "Use sx prop do Material-UI para estilos customizados.",
+            "Aplique Context API para gerenciamento de estado global.",
+            "Siga arquitetura DDD quando aplicável, separando domínios claramente.",
+            "Implemente loading states e tratamento de erros em todas as operações assíncronas."
+        ]
+    }
+}

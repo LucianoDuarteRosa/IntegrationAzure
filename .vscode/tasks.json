@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Executar API Integration Azure",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"run"
+			],
+			"group": "build",
+			"isBackground": true,
+			"options": {
+				"cwd": "${workspaceFolder}/Api/IntegrationAzure.Api"
+			},
+			"problemMatcher": [
+				"$msCompile"
+			]
+		}
+	]
+}

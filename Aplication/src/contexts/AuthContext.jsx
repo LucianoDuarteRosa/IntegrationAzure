@@ -1,66 +1,7 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-
-// Constantes para gerenciamento de sessão
-const SESSION_STORAGE_KEY = 'userSession';
-const SESSION_EXPIRY_KEY = 'sessionExpiry';
-const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 horas em millisegundos
+import { authService } from '../services';
 
 const AuthContext = createContext({});
-
-// Utilitários para gerenciar sessão
-const sessionUtils = {
-    // Salva sessão no localStorage
-    saveSession(userData) {
-        const expiryTime = Date.now() + SESSION_DURATION;
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(userData));
-        localStorage.setItem(SESSION_EXPIRY_KEY, expiryTime.toString());
-    },
-
-    // Carrega sessão do localStorage
-    loadSession() {
-        try {
-            const userData = localStorage.getItem(SESSION_STORAGE_KEY);
-            const expiryTime = localStorage.getItem(SESSION_EXPIRY_KEY);
-
-            if (!userData || !expiryTime) {
-                return null;
-            }
-
-            // Verifica se a sessão expirou
-            if (Date.now() > parseInt(expiryTime)) {
-                this.clearSession();
-                return null;
-            }
-
-            return JSON.parse(userData);
-        } catch (error) {
-            console.error('Erro ao carregar sessão:', error);
-            this.clearSession();
-            return null;
-        }
-    },
-
-    // Remove sessão do localStorage
-    clearSession() {
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        localStorage.removeItem(SESSION_EXPIRY_KEY);
-    },
-
-    // Verifica se sessão ainda é válida
-    isSessionValid() {
-        const expiryTime = localStorage.getItem(SESSION_EXPIRY_KEY);
-        if (!expiryTime) return false;
-        return Date.now() < parseInt(expiryTime);
-    },
-
-    // Renova o tempo de expiração da sessão
-    renewSession() {
-        if (this.isSessionValid()) {
-            const expiryTime = Date.now() + SESSION_DURATION;
-            localStorage.setItem(SESSION_EXPIRY_KEY, expiryTime.toString());
-        }
-    }
-};
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
@@ -68,65 +9,58 @@ export function AuthProvider({ children }) {
 
     // Carrega sessão salva ao inicializar o app
     useEffect(() => {
-        const savedUser = sessionUtils.loadSession();
-        if (savedUser) {
-            setUser(savedUser);
-            // Renova a sessão se ainda válida
-            sessionUtils.renewSession();
-        }
-        setIsLoading(false);
+        const checkExistingSession = async () => {
+            try {
+                const isValid = await authService.checkSession();
+                if (isValid) {
+                    const userData = authService.getCurrentUser();
+                    setUser(userData);
+                }
+            } catch (error) {
+                console.error('Erro ao verificar sessão:', error);
+            }
+            setIsLoading(false);
+        };
+
+        checkExistingSession();
     }, []);
 
-    // Auto-renovação de sessão (verifica a cada 5 minutos)
-    useEffect(() => {
-        if (!user) return;
+    // Função de login integrada com o serviço
+    const login = async (email, password) => {
+        try {
+            const result = await authService.login(email, password);
 
-        const interval = setInterval(() => {
-            if (sessionUtils.isSessionValid()) {
-                sessionUtils.renewSession();
+            if (result.success) {
+                setUser(result.data);
+                return { success: true, message: result.message };
             } else {
-                // Sessão expirou, faz logout automático
-                handleLogout();
+                return { success: false, message: result.message, errors: result.errors };
             }
-        }, 5 * 60 * 1000); // 5 minutos
-
-        return () => clearInterval(interval);
-    }, [user]);
-
-    const login = (email, password) => {
-        // Aqui você implementará a lógica de autenticação com sua API
-        // Por enquanto, vamos apenas simular um login
-        if (email === 'user@user' && password === '123') {
-            const userData = {
-                email,
-                loginTime: new Date().toISOString(),
-                id: Date.now() // Simula um ID único
+        } catch (error) {
+            console.error('Erro no login:', error);
+            return {
+                success: false,
+                message: 'Erro interno. Tente novamente.',
+                errors: [error.message]
             };
-
-            setUser(userData);
-            sessionUtils.saveSession(userData);
-            return true;
         }
-        return false;
     };
 
+    // Função de logout
     const handleLogout = () => {
+        const result = authService.logout();
         setUser(null);
-        sessionUtils.clearSession();
+        return result;
     };
 
     // Função para verificar se usuário está autenticado
     const isAuthenticated = () => {
-        return user !== null && sessionUtils.isSessionValid();
+        return authService.isAuthenticated() && user !== null;
     };
 
-    // Função para obter tempo restante da sessão
-    const getSessionTimeRemaining = () => {
-        const expiryTime = localStorage.getItem(SESSION_EXPIRY_KEY);
-        if (!expiryTime) return 0;
-
-        const remaining = parseInt(expiryTime) - Date.now();
-        return Math.max(0, remaining);
+    // Função para obter dados do usuário atual
+    const getCurrentUser = () => {
+        return authService.getCurrentUser();
     };
 
     return (
@@ -136,7 +70,7 @@ export function AuthProvider({ children }) {
             logout: handleLogout,
             isLoading,
             isAuthenticated,
-            getSessionTimeRemaining
+            getCurrentUser
         }}>
             {children}
         </AuthContext.Provider>

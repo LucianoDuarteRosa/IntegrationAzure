@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { ModernBackground } from './ModernBackground';
+import { userStoryService } from '../services/userStoryService';
 import {
     Box,
     Container,
@@ -20,6 +21,8 @@ import {
     Divider,
     FormGroup,
     Grid,
+    Alert,
+    CircularProgress,
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
@@ -251,6 +254,10 @@ export function UserStoryForm() {
         content: '',
     });
 
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
+
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(schema)
     });
@@ -265,21 +272,34 @@ export function UserStoryForm() {
         }
     };
 
-    const onSubmit = (data) => {
-        const formData = {
-            ...data,
-            userStory,
-            impact,
-            objective,
-            fields,
-            messages,
-            rules,
-            scenarios,
-            acceptanceCriteria,
-            screenshots,
-            files,
-        };
-        console.log('Dados do formulário:', formData);
+    const onSubmit = async (data) => {
+        setLoading(true);
+        setError('');
+
+        try {
+            // Preparar os dados para enviar para a API
+            const userStoryData = {
+                demandNumber: data.demandNumber,
+                title: data.title,
+                description: `Como: ${userStory.como}\nQuero: ${userStory.quero}\nPara: ${userStory.para}`,
+                // Mapear outros campos conforme necessário
+                priority: 'Medium', // valor padrão por enquanto
+                status: 'New'
+            };
+
+            await userStoryService.create(userStoryData);
+            setSuccess(true);
+
+            // Redirecionar para dashboard após 2 segundos
+            setTimeout(() => {
+                navigate('/dashboard');
+            }, 2000);
+
+        } catch (err) {
+            setError(err.message || 'Erro ao criar história do usuário');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -327,6 +347,18 @@ export function UserStoryForm() {
                                 Nova História
                             </Typography>
                         </Box>
+
+                        {error && (
+                            <Alert severity="error" sx={{ mb: 3 }}>
+                                {error}
+                            </Alert>
+                        )}
+
+                        {success && (
+                            <Alert severity="success" sx={{ mb: 3 }}>
+                                História criada com sucesso! Redirecionando...
+                            </Alert>
+                        )}
 
                         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
                             <Stack spacing={3} sx={{ mb: 4 }}>
@@ -904,8 +936,10 @@ export function UserStoryForm() {
                                     variant="contained"
                                     color="primary"
                                     size="large"
+                                    disabled={loading}
+                                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
                                 >
-                                    Salvar História
+                                    {loading ? 'Salvando...' : 'Salvar História'}
                                 </Button>
                             </Box>
                         </Box>

@@ -10,24 +10,39 @@ import {
     Button,
     Typography,
     Paper,
+    CircularProgress,
+    Alert
 } from '@mui/material';
 
 export function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
 
-        const success = login(email, password);
-        if (success) {
-            navigate('/dashboard');
-        } else {
-            setError('Email ou senha inválidos');
+        try {
+            const result = await login(email, password);
+
+            if (result.success) {
+                navigate('/dashboard');
+            } else {
+                setError(result.message || 'Erro ao fazer login');
+                if (result.errors && result.errors.length > 0) {
+                    setError(result.errors.join(', '));
+                }
+            }
+        } catch (error) {
+            console.error('Erro no login:', error);
+            setError('Erro interno. Tente novamente.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -88,18 +103,26 @@ export function Login() {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                             {error && (
-                                <Typography color="error" align="center" sx={{ mt: 2 }}>
+                                <Alert severity="error" sx={{ mt: 2 }}>
                                     {error}
-                                </Typography>
+                                </Alert>
                             )}
                             <Button
                                 type="submit"
                                 fullWidth
                                 variant="contained"
+                                disabled={isLoading}
                                 sx={{ mt: 3, mb: 2 }}
                             >
-                                Entrar
-                            </Button>
+                                {isLoading ? (
+                                    <>
+                                        <CircularProgress size={20} sx={{ mr: 1 }} />
+                                        Entrando...
+                                    </>
+                                ) : (
+                                    'Entrar'
+                                )}
+                            </Button>  
                         </Box>
                     </Paper>
                 </Box>
