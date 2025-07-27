@@ -1,6 +1,5 @@
 import { Box, Container, Grid } from '@mui/material';
 import { Navbar } from './Navbar';
-import { ModernBackground } from './ModernBackground';
 import { useNavigate } from 'react-router-dom';
 import { MenuCard } from './MenuCard';
 import {
@@ -54,7 +53,7 @@ export function Home() {
     ];
 
     return (
-        <ModernBackground intensity="subtle">
+        <>
             <Navbar />
             <Container
                 component="main"
@@ -106,6 +105,6 @@ export function Home() {
                     </Grid>
                 </Box>
             </Container>
-        </ModernBackground>
+        </>
     );
 }

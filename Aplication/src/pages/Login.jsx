@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ModernBackground } from '../components/ModernBackground';
 import { IntegrationLogo } from '../components/IntegrationLogo';
 import {
     Container,
@@ -47,7 +46,7 @@ export function Login() {
     };
 
     return (
-        <ModernBackground intensity="medium">
+        <>
             <Container
                 component="main"
                 maxWidth={false}
@@ -122,11 +121,11 @@ export function Login() {
                                 ) : (
                                     'Entrar'
                                 )}
-                            </Button>  
+                            </Button>
                         </Box>
                     </Paper>
                 </Box>
             </Container>
-        </ModernBackground>
+        </>
     );
 }

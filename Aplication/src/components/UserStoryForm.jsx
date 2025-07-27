@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
-import { ModernBackground } from './ModernBackground';
 import { userStoryService } from '../services/userStoryService';
 import {
     Box,
@@ -303,36 +302,38 @@ export function UserStoryForm() {
     };
 
     return (
-        <ModernBackground intensity="subtle">
+        <>
             <Navbar />
             <Container
                 component="main"
                 maxWidth={false}
                 sx={{
                     display: 'flex',
-                    width: '100vw',
-                    minHeight: 'calc(100vh - 64px)', // altura total menos navbar
+                    width: '99vw',
+                    minHeight: 'calc(100vh - 64px)',
                     alignItems: 'flex-start',
                     justifyContent: 'center',
+                    mt: 8,
                     pt: 2,
                     pb: 4,
-                    px: 2,
-                    mt: 8 // margin-top para compensar a navbar
+                    px: 2
                 }}
             >
                 <Box
                     sx={{
                         display: 'flex',
                         flexDirection: 'column',
+                        alignItems: 'center',
                         width: '100%',
-                        maxWidth: '1000px'
+                        maxWidth: '1200px'
                     }}
                 >
                     <Paper
                         elevation={3}
                         sx={{
                             p: 4,
-                            width: '100%'
+                            width: '100%',
+                            maxWidth: '1000px'
                         }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
@@ -946,6 +947,6 @@ export function UserStoryForm() {
                     </Paper>
                 </Box>
             </Container>
-        </ModernBackground>
+        </>
     );
 }
