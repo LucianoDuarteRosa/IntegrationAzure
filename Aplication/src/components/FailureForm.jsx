@@ -39,13 +39,22 @@ const schema = yup.object().shape({
     title: yup.string().required('Título é obrigatório'),
     severity: yup.string().required('Severidade é obrigatória'),
     environment: yup.string().required('Ambiente é obrigatório'),
+    observations: yup.string(),
     givenWhenThen: yup.array().of(
         yup.object().shape({
-            given: yup.string().required('Campo "Dado que" é obrigatório'),
-            when: yup.string().required('Campo "Quando" é obrigatório'),
-            then: yup.string().required('Campo "Então" é obrigatório'),
+            given: yup.string().trim().required('Campo "Dado que" é obrigatório'),
+            when: yup.string().trim().required('Campo "Quando" é obrigatório'),
+            then: yup.string().trim().required('Campo "Então" é obrigatório'),
         })
-    ).min(1, 'Pelo menos um cenário é obrigatório'),
+    ).min(1, 'Pelo menos um cenário completo é obrigatório')
+        .test('at-least-one-complete', 'Pelo menos um cenário completo é obrigatório', function (value) {
+            if (!value || value.length === 0) return false;
+            return value.some(scenario =>
+                scenario.given?.trim() &&
+                scenario.when?.trim() &&
+                scenario.then?.trim()
+            );
+        }),
 });
 
 // Dados simulados para demandas e histórias
@@ -123,7 +132,7 @@ const Section = ({ title, children, icon, isFirst }) => {
     );
 };
 
-const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, disabled }) => {
+const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, disabled, errors }) => {
     return (
         <Stack spacing={3}>
             {scenarios.map((scenario, index) => (
@@ -159,6 +168,9 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                             onChange={(e) => onScenarioChange(index, 'given', e.target.value)}
                             disabled={disabled}
                             placeholder="Descreva o contexto inicial da falha"
+                            error={!!(errors?.givenWhenThen?.[index]?.given)}
+                            helperText={errors?.givenWhenThen?.[index]?.given?.message}
+                            required
                         />
                         <TextField
                             fullWidth
@@ -169,6 +181,9 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                             onChange={(e) => onScenarioChange(index, 'when', e.target.value)}
                             disabled={disabled}
                             placeholder="Descreva a ação que causou a falha"
+                            error={!!(errors?.givenWhenThen?.[index]?.when)}
+                            helperText={errors?.givenWhenThen?.[index]?.when?.message}
+                            required
                         />
                         <TextField
                             fullWidth
@@ -179,6 +194,9 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                             onChange={(e) => onScenarioChange(index, 'then', e.target.value)}
                             disabled={disabled}
                             placeholder="Descreva o comportamento incorreto observado"
+                            error={!!(errors?.givenWhenThen?.[index]?.then)}
+                            helperText={errors?.givenWhenThen?.[index]?.then?.message}
+                            required
                         />
                     </Stack>
                 </Paper>
@@ -195,6 +213,13 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                     Adicionar Cenário
                 </Button>
             </Box>
+
+            {/* Exibe erro geral dos cenários */}
+            {errors?.givenWhenThen?.message && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                    {errors.givenWhenThen.message}
+                </Alert>
+            )}
         </Stack>
     );
 };
@@ -215,6 +240,8 @@ export function FailureForm() {
         handleSubmit,
         watch,
         setValue,
+        setError,
+        clearErrors,
         formState: { errors }
     } = useForm({
         resolver: yupResolver(schema),
@@ -225,6 +252,7 @@ export function FailureForm() {
             severity: 'Medium',
             environment: 'Production',
             observations: '',
+            givenWhenThen: [{ given: '', when: '', then: '' }],
         }
     });
 
@@ -242,13 +270,16 @@ export function FailureForm() {
     }, [watchedDemand, setValue]);
 
     const handleAddScenario = () => {
-        setGivenWhenThen([...givenWhenThen, { given: '', when: '', then: '' }]);
+        const newScenarios = [...givenWhenThen, { given: '', when: '', then: '' }];
+        setGivenWhenThen(newScenarios);
+        setValue('givenWhenThen', newScenarios);
     };
 
     const handleRemoveScenario = (index) => {
         if (givenWhenThen.length > 1) {
             const newScenarios = givenWhenThen.filter((_, i) => i !== index);
             setGivenWhenThen(newScenarios);
+            setValue('givenWhenThen', newScenarios);
         }
     };
 
@@ -256,6 +287,12 @@ export function FailureForm() {
         const newScenarios = [...givenWhenThen];
         newScenarios[index][field] = value;
         setGivenWhenThen(newScenarios);
+        setValue('givenWhenThen', newScenarios);
+
+        // Limpa erros quando o usuário começa a digitar
+        if (value.trim()) {
+            clearErrors(`givenWhenThen.${index}.${field}`);
+        }
     };
 
     const handleFileUpload = (event) => {
@@ -278,16 +315,10 @@ export function FailureForm() {
         setIsSubmitting(true);
 
         try {
-            // Valida cenários
-            const validScenarios = givenWhenThen.filter(scenario =>
+            // Os cenários já foram validados pelo schema do Yup
+            const validScenarios = data.givenWhenThen.filter(scenario =>
                 scenario.given.trim() && scenario.when.trim() && scenario.then.trim()
             );
-
-            if (validScenarios.length === 0) {
-                showError('Pelo menos um cenário completo é obrigatório');
-                setIsSubmitting(false);
-                return;
-            }
 
             const failureData = {
                 ...data,
@@ -300,6 +331,7 @@ export function FailureForm() {
                     `Então: ${scenario.then}`
                 ).join('\n\n'),
                 reportedBy: 'usuario.atual@example.com', // Seria obtido do contexto de auth
+                attachments: attachments,
             };
 
             console.log('Dados da falha a serem enviados:', failureData);
@@ -390,12 +422,13 @@ export function FailureForm() {
                                             name="demandNumber"
                                             control={control}
                                             render={({ field }) => (
-                                                <FormControl fullWidth error={!!errors.demandNumber}>
+                                                <FormControl fullWidth error={!!errors.demandNumber} required>
                                                     <InputLabel>Demanda</InputLabel>
                                                     <Select
                                                         {...field}
                                                         label="Demanda"
                                                         disabled={isSubmitting}
+                                                        required
                                                     >
                                                         {demandas.map((demanda) => (
                                                             <MenuItem key={demanda.id} value={demanda.id}>
@@ -420,12 +453,14 @@ export function FailureForm() {
                                                     fullWidth
                                                     error={!!errors.userStoryId}
                                                     disabled={!selectedDemand}
+                                                    required
                                                 >
                                                     <InputLabel>História do Usuário</InputLabel>
                                                     <Select
                                                         {...field}
                                                         label="História do Usuário"
                                                         disabled={isSubmitting || !selectedDemand}
+                                                        required
                                                     >
                                                         {availableStories.map((story) => (
                                                             <MenuItem key={story.id} value={story.id}>
@@ -457,6 +492,7 @@ export function FailureForm() {
                                                     helperText={errors.title?.message}
                                                     disabled={isSubmitting}
                                                     placeholder="Descreva brevemente a falha encontrada"
+                                                    required
                                                 />
                                             )}
                                         />
@@ -465,12 +501,13 @@ export function FailureForm() {
                                             name="severity"
                                             control={control}
                                             render={({ field }) => (
-                                                <FormControl fullWidth error={!!errors.severity}>
+                                                <FormControl fullWidth error={!!errors.severity} required>
                                                     <InputLabel>Severidade</InputLabel>
                                                     <Select
                                                         {...field}
                                                         label="Severidade"
                                                         disabled={isSubmitting}
+                                                        required
                                                         renderValue={(value) => (
                                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                                 <Chip
@@ -512,12 +549,13 @@ export function FailureForm() {
                                             name="environment"
                                             control={control}
                                             render={({ field }) => (
-                                                <FormControl fullWidth error={!!errors.environment}>
+                                                <FormControl fullWidth error={!!errors.environment} required>
                                                     <InputLabel>Ambiente</InputLabel>
                                                     <Select
                                                         {...field}
                                                         label="Ambiente"
                                                         disabled={isSubmitting}
+                                                        required
                                                     >
                                                         {ambientes.map((ambiente) => (
                                                             <MenuItem key={ambiente.value} value={ambiente.value}>
@@ -547,6 +585,7 @@ export function FailureForm() {
                                     onRemove={handleRemoveScenario}
                                     onScenarioChange={handleScenarioChange}
                                     disabled={isSubmitting}
+                                    errors={errors}
                                 />
                             </Section>
 

@@ -93,24 +93,39 @@ const Section = ({ title, children, notApplicable, onNotApplicableChange, isFirs
 
 const DynamicFields = ({ fields, onAdd, onRemove, onFieldChange, disabled }) => {
     return (
-        <Stack spacing={2}>
+        <Stack spacing={3}>
             {fields.map((field, index) => (
-                <Box key={index} sx={{ display: 'flex', gap: 1 }}>
+                <Paper
+                    key={index}
+                    sx={{
+                        p: 3,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        backgroundColor: 'background.default'
+                    }}
+                >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="subtitle1" fontWeight="medium">
+                            Item {index + 1}
+                        </Typography>
+                        <IconButton
+                            onClick={() => onRemove(index)}
+                            disabled={fields.length === 1 || disabled}
+                            size="small"
+                        >
+                            <DeleteIcon />
+                        </IconButton>
+                    </Box>
                     <TextField
                         fullWidth
                         multiline
-                        rows={2}
+                        rows={3}
                         value={field.content}
                         onChange={(e) => onFieldChange(index, e.target.value)}
                         disabled={disabled}
+                        placeholder="Digite o conteúdo aqui..."
                     />
-                    <IconButton
-                        onClick={() => onRemove(index)}
-                        disabled={fields.length === 1 || disabled}
-                    >
-                        <DeleteIcon />
-                    </IconButton>
-                </Box>
+                </Paper>
             ))}
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                 <Button
@@ -121,6 +136,148 @@ const DynamicFields = ({ fields, onAdd, onRemove, onFieldChange, disabled }) => 
                     sx={{ width: '50%' }}
                 >
                     Adicionar
+                </Button>
+            </Box>
+        </Stack>
+    );
+};
+
+const ImpactFields = ({ items, onAdd, onRemove, onFieldChange, disabled }) => {
+    return (
+        <Stack spacing={3}>
+            {items.map((item, index) => (
+                <Paper
+                    key={item.id}
+                    sx={{
+                        p: 3,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        backgroundColor: 'background.default'
+                    }}
+                >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="subtitle1" fontWeight="medium">
+                            Impacto {index + 1}
+                        </Typography>
+                        {items.length > 1 && (
+                            <IconButton
+                                onClick={() => onRemove(item.id)}
+                                disabled={disabled}
+                                size="small"
+                            >
+                                <DeleteIcon />
+                            </IconButton>
+                        )}
+                    </Box>
+                    <Stack spacing={2}>
+                        <TextField
+                            fullWidth
+                            label="Processo Atual"
+                            value={item.current}
+                            onChange={(e) => onFieldChange(item.id, 'current', e.target.value)}
+                            disabled={disabled}
+                            multiline
+                            rows={3}
+                            placeholder="Ex: Atualmente o processo é realizado de forma manual..."
+                        />
+                        <TextField
+                            fullWidth
+                            label="Melhoria Esperada"
+                            value={item.expected}
+                            onChange={(e) => onFieldChange(item.id, 'expected', e.target.value)}
+                            disabled={disabled}
+                            multiline
+                            rows={3}
+                            placeholder="Ex: Com a automação, esperamos que..."
+                        />
+                    </Stack>
+                </Paper>
+            ))}
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <Button
+                    startIcon={<AddIcon />}
+                    onClick={onAdd}
+                    variant="outlined"
+                    disabled={disabled}
+                    sx={{ width: '50%' }}
+                >
+                    Adicionar Impacto
+                </Button>
+            </Box>
+        </Stack>
+    );
+};
+
+const ScenariosFields = ({ scenarios, onAdd, onRemove, onFieldChange, disabled }) => {
+    return (
+        <Stack spacing={3}>
+            {scenarios.map((scenario, index) => (
+                <Paper
+                    key={scenario.id}
+                    sx={{
+                        p: 3,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        backgroundColor: 'background.default'
+                    }}
+                >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="subtitle1" fontWeight="medium">
+                            Cenário {index + 1}
+                        </Typography>
+                        {scenarios.length > 1 && (
+                            <IconButton
+                                onClick={() => onRemove(scenario.id)}
+                                disabled={disabled}
+                                size="small"
+                            >
+                                <DeleteIcon />
+                            </IconButton>
+                        )}
+                    </Box>
+                    <Stack spacing={2}>
+                        <TextField
+                            fullWidth
+                            label="Dado que"
+                            value={scenario.given}
+                            onChange={(e) => onFieldChange(scenario.id, 'given', e.target.value)}
+                            disabled={disabled}
+                            multiline
+                            rows={2}
+                            placeholder="Ex: Dado que estou na tela de cadastro..."
+                        />
+                        <TextField
+                            fullWidth
+                            label="Quando"
+                            value={scenario.when}
+                            onChange={(e) => onFieldChange(scenario.id, 'when', e.target.value)}
+                            disabled={disabled}
+                            multiline
+                            rows={2}
+                            placeholder="Ex: Quando preencho todos os campos..."
+                        />
+                        <TextField
+                            fullWidth
+                            label="Então"
+                            value={scenario.then}
+                            onChange={(e) => onFieldChange(scenario.id, 'then', e.target.value)}
+                            disabled={disabled}
+                            multiline
+                            rows={2}
+                            placeholder="Ex: Então o sistema deve..."
+                        />
+                    </Stack>
+                </Paper>
+            ))}
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <Button
+                    startIcon={<AddIcon />}
+                    onClick={onAdd}
+                    variant="outlined"
+                    disabled={disabled}
+                    sx={{ width: '50%' }}
+                >
+                    Adicionar Cenário
                 </Button>
             </Box>
         </Stack>
@@ -445,67 +602,80 @@ export function UserStoryForm() {
                         }}
                     >
                         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-                            <Stack spacing={3} sx={{ mb: 4 }}>
-                                <Controller
-                                    name="demandNumber"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <FormControl error={!!errors.demandNumber}>
-                                            <InputLabel>Número da Demanda</InputLabel>
-                                            <Select
+                            {/* Informações Básicas */}
+                            <Box sx={{ mb: 4 }}>
+                                <Typography variant="h5" component="h2" sx={{ mb: 3, fontWeight: 'bold' }}>
+                                    Informações Básicas
+                                </Typography>
+                                <Box sx={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '2fr 3fr 1fr',
+                                    gap: 3,
+                                    '@media (max-width: 900px)': {
+                                        gridTemplateColumns: '1fr',
+                                        gap: 2
+                                    }
+                                }}>
+                                    <Controller
+                                        name="demandNumber"
+                                        control={control}
+                                        defaultValue=""
+                                        render={({ field }) => (
+                                            <FormControl fullWidth error={!!errors.demandNumber}>
+                                                <InputLabel>Demanda</InputLabel>
+                                                <Select
+                                                    {...field}
+                                                    label="Demanda"
+                                                >
+                                                    {demandas.map((demanda) => (
+                                                        <MenuItem key={demanda.id} value={demanda.id}>
+                                                            {demanda.id} - {demanda.title}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        )}
+                                    />
+                                    <Controller
+                                        name="title"
+                                        control={control}
+                                        defaultValue=""
+                                        render={({ field }) => (
+                                            <TextField
                                                 {...field}
-                                                label="Número da Demanda"
-                                                sx={{ minWidth: 300 }}
-                                            >
-                                                {demandas.map((demanda) => (
-                                                    <MenuItem key={demanda.id} value={demanda.id}>
-                                                        {demanda.id} - {demanda.title}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    )}
-                                />
-                                <Controller
-                                    name="title"
-                                    control={control}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <TextField
-                                            {...field}
-                                            fullWidth
-                                            label="Título"
-                                            error={!!errors.title}
-                                            helperText={errors.title?.message}
-                                        />
-                                    )}
-                                />
-                                <Controller
-                                    name="priority"
-                                    control={control}
-                                    defaultValue="Medium"
-                                    render={({ field }) => (
-                                        <FormControl error={!!errors.priority} fullWidth>
-                                            <InputLabel>Prioridade</InputLabel>
-                                            <Select
-                                                {...field}
-                                                label="Prioridade"
-                                            >
-                                                <MenuItem value="Low">Baixa</MenuItem>
-                                                <MenuItem value="Medium">Média</MenuItem>
-                                                <MenuItem value="High">Alta</MenuItem>
-                                                <MenuItem value="Critical">Crítica</MenuItem>
-                                            </Select>
-                                            {errors.priority && (
-                                                <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
-                                                    {errors.priority?.message}
-                                                </Typography>
-                                            )}
-                                        </FormControl>
-                                    )}
-                                />
-                            </Stack>
+                                                fullWidth
+                                                label="Título"
+                                                error={!!errors.title}
+                                                helperText={errors.title?.message}
+                                            />
+                                        )}
+                                    />
+                                    <Controller
+                                        name="priority"
+                                        control={control}
+                                        defaultValue="Medium"
+                                        render={({ field }) => (
+                                            <FormControl fullWidth error={!!errors.priority}>
+                                                <InputLabel>Prioridade</InputLabel>
+                                                <Select
+                                                    {...field}
+                                                    label="Prioridade"
+                                                >
+                                                    <MenuItem value="Low">Baixa</MenuItem>
+                                                    <MenuItem value="Medium">Média</MenuItem>
+                                                    <MenuItem value="High">Alta</MenuItem>
+                                                    <MenuItem value="Critical">Crítica</MenuItem>
+                                                </Select>
+                                                {errors.priority && (
+                                                    <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
+                                                        {errors.priority?.message}
+                                                    </Typography>
+                                                )}
+                                            </FormControl>
+                                        )}
+                                    />
+                                </Box>
+                            </Box>
 
                             <Section title="História do Usuário" isFirst>
                                 <Stack spacing={3}>
@@ -547,86 +717,94 @@ export function UserStoryForm() {
                                 notApplicable={impact.notApplicable}
                                 onNotApplicableChange={(checked) => setImpact({ ...impact, notApplicable: checked })}
                             >
-                                {impact.items.map((item, index) => (
-                                    <Box key={item.id} sx={{
-                                        display: 'flex',
-                                        gap: 2,
-                                        alignItems: 'center',
-                                        mb: 4
-                                    }}>
-                                        <Stack spacing={3} sx={{ flex: 1 }}>
-                                            <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.secondary' }}>
-                                                Impacto {index + 1}
-                                            </Typography>
-                                            <TextField
-                                                fullWidth
-                                                label="Processo Atual"
-                                                value={item.current}
-                                                onChange={(e) => setImpact({
-                                                    ...impact,
-                                                    items: impact.items.map((i) =>
-                                                        i.id === item.id
-                                                            ? { ...i, current: e.target.value }
-                                                            : i
-                                                    )
-                                                })}
-                                                disabled={impact.notApplicable}
-                                                multiline
-                                                rows={3}
-                                                placeholder="Ex: Atualmente o processo é realizado de forma manual..."
-                                            />
-                                            <TextField
-                                                fullWidth
-                                                label="Melhoria Esperada"
-                                                value={item.expected}
-                                                onChange={(e) => setImpact({
-                                                    ...impact,
-                                                    items: impact.items.map((i) =>
-                                                        i.id === item.id
-                                                            ? { ...i, expected: e.target.value }
-                                                            : i
-                                                    )
-                                                })}
-                                                disabled={impact.notApplicable}
-                                                multiline
-                                                rows={3}
-                                                placeholder="Ex: Com a automação, esperamos que..."
-                                            />
-                                        </Stack>
-                                        {impact.items.length > 1 && (
-                                            <IconButton
-                                                onClick={() => setImpact({
-                                                    ...impact,
-                                                    items: impact.items.filter(i => i.id !== item.id)
-                                                })}
-                                                disabled={impact.notApplicable}
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        )}
+                                <Stack spacing={3}>
+                                    {impact.items.map((item, index) => (
+                                        <Paper
+                                            key={item.id}
+                                            sx={{
+                                                p: 3,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                backgroundColor: 'background.default'
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                <Typography variant="subtitle1" fontWeight="medium">
+                                                    Impacto {index + 1}
+                                                </Typography>
+                                                {impact.items.length > 1 && (
+                                                    <IconButton
+                                                        onClick={() => setImpact({
+                                                            ...impact,
+                                                            items: impact.items.filter(i => i.id !== item.id)
+                                                        })}
+                                                        disabled={impact.notApplicable}
+                                                        size="small"
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                )}
+                                            </Box>
+                                            <Stack spacing={2}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Processo Atual"
+                                                    value={item.current}
+                                                    onChange={(e) => setImpact({
+                                                        ...impact,
+                                                        items: impact.items.map((i) =>
+                                                            i.id === item.id
+                                                                ? { ...i, current: e.target.value }
+                                                                : i
+                                                        )
+                                                    })}
+                                                    disabled={impact.notApplicable}
+                                                    multiline
+                                                    rows={3}
+                                                    placeholder="Ex: Atualmente o processo é realizado de forma manual..."
+                                                />
+                                                <TextField
+                                                    fullWidth
+                                                    label="Melhoria Esperada"
+                                                    value={item.expected}
+                                                    onChange={(e) => setImpact({
+                                                        ...impact,
+                                                        items: impact.items.map((i) =>
+                                                            i.id === item.id
+                                                                ? { ...i, expected: e.target.value }
+                                                                : i
+                                                        )
+                                                    })}
+                                                    disabled={impact.notApplicable}
+                                                    multiline
+                                                    rows={3}
+                                                    placeholder="Ex: Com a automação, esperamos que..."
+                                                />
+                                            </Stack>
+                                        </Paper>
+                                    ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                        <Button
+                                            startIcon={<AddIcon />}
+                                            onClick={() => setImpact({
+                                                ...impact,
+                                                items: [
+                                                    ...impact.items,
+                                                    {
+                                                        id: Date.now(),
+                                                        current: '',
+                                                        expected: '',
+                                                    }
+                                                ]
+                                            })}
+                                            variant="outlined"
+                                            disabled={impact.notApplicable}
+                                            sx={{ width: '50%' }}
+                                        >
+                                            Adicionar Impacto
+                                        </Button>
                                     </Box>
-                                ))}
-                                <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                                    <Button
-                                        startIcon={<AddIcon />}
-                                        onClick={() => setImpact({
-                                            ...impact,
-                                            items: [
-                                                ...impact.items,
-                                                {
-                                                    id: impact.items.length + 1,
-                                                    current: '',
-                                                    expected: '',
-                                                }
-                                            ]
-                                        })}
-                                        variant="outlined"
-                                        disabled={impact.notApplicable}
-                                        sx={{ width: '50%' }}
-                                    >
-                                        Adicionar
-                                    </Button>
-                                </Box>
+                                </Stack>
                             </Section>
 
                             <Section
@@ -634,23 +812,468 @@ export function UserStoryForm() {
                                 notApplicable={objective.notApplicable}
                                 onNotApplicableChange={(checked) => setObjective({ ...objective, notApplicable: checked })}
                             >
-                                <DynamicFields
-                                    fields={objective.fields}
-                                    onAdd={() => setObjective({
-                                        ...objective,
-                                        fields: [...objective.fields, { id: objective.fields.length + 1, content: '' }]
+                                <Stack spacing={3}>
+                                    {objective.fields.map((field, index) => (
+                                        <Paper
+                                            key={field.id}
+                                            sx={{
+                                                p: 3,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                backgroundColor: 'background.default'
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                <Typography variant="subtitle1" fontWeight="medium">
+                                                    Objetivo {index + 1}
+                                                </Typography>
+                                                {objective.fields.length > 1 && (
+                                                    <IconButton
+                                                        onClick={() => setObjective({
+                                                            ...objective,
+                                                            fields: objective.fields.filter((_, i) => i !== index)
+                                                        })}
+                                                        disabled={objective.notApplicable}
+                                                        size="small"
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                )}
+                                            </Box>
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                value={field.content}
+                                                onChange={(e) => setObjective({
+                                                    ...objective,
+                                                    fields: objective.fields.map((item, i) =>
+                                                        i === index ? { ...item, content: e.target.value } : item
+                                                    )
+                                                })}
+                                                disabled={objective.notApplicable}
+                                                placeholder="Digite o objetivo aqui..."
+                                            />
+                                        </Paper>
+                                    ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                        <Button
+                                            startIcon={<AddIcon />}
+                                            onClick={() => setObjective({
+                                                ...objective,
+                                                fields: [...objective.fields, { id: objective.fields.length + 1, content: '' }]
+                                            })}
+                                            variant="outlined"
+                                            disabled={objective.notApplicable}
+                                            sx={{ width: '50%' }}
+                                        >
+                                            Adicionar Objetivo
+                                        </Button>
+                                    </Box>
+                                </Stack>
+                            </Section>
+
+                            <Section
+                                title="Campos de Preenchimento"
+                                notApplicable={fields.notApplicable}
+                                onNotApplicableChange={(checked) => setFields({ ...fields, notApplicable: checked })}
+                            >
+                                <Stack spacing={3}>
+                                    {fields.items.map((field, index) => (
+                                        <Paper
+                                            key={field.id}
+                                            sx={{
+                                                p: 3,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                backgroundColor: 'background.default'
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                <Typography variant="subtitle1" fontWeight="medium">
+                                                    Campo {index + 1}
+                                                </Typography>
+                                                {fields.items.length > 1 && (
+                                                    <IconButton
+                                                        onClick={() => setFields({
+                                                            ...fields,
+                                                            items: fields.items.filter((f) => f.id !== field.id)
+                                                        })}
+                                                        disabled={fields.notApplicable}
+                                                        size="small"
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                )}
+                                            </Box>
+                                            <Grid container spacing={2}>
+                                                <Grid item xs={12} sm={3}>
+                                                    <TextField
+                                                        fullWidth
+                                                        label="Nome do Campo"
+                                                        value={field.name}
+                                                        onChange={(e) => setFields({
+                                                            ...fields,
+                                                            items: fields.items.map((f) =>
+                                                                f.id === field.id ? { ...f, name: e.target.value } : f
+                                                            )
+                                                        })}
+                                                        disabled={fields.notApplicable}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={2}>
+                                                    <FormControl fullWidth disabled={fields.notApplicable}>
+                                                        <InputLabel>Tipo</InputLabel>
+                                                        <Select
+                                                            value={field.type}
+                                                            label="Tipo"
+                                                            onChange={(e) => {
+                                                                const newType = e.target.value;
+                                                                const newSize = ['boolean', 'date', 'datetime'].includes(newType) ? '' : field.size;
+                                                                setFields({
+                                                                    ...fields,
+                                                                    items: fields.items.map((f) =>
+                                                                        f.id === field.id ? { ...f, type: newType, size: newSize } : f
+                                                                    )
+                                                                });
+                                                            }}
+                                                        >
+                                                            <MenuItem value="text">Campo de Texto</MenuItem>
+                                                            <MenuItem value="number">Número (Inteiro/Decimal)</MenuItem>
+                                                            <MenuItem value="date">Data</MenuItem>
+                                                            <MenuItem value="datetime">Data e Hora</MenuItem>
+                                                            <MenuItem value="boolean">Sim/Não</MenuItem>
+                                                            <MenuItem value="select">Lista de Opções</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </Grid>
+                                                <Grid item xs={12} sm={2}>
+                                                    {!['boolean', 'date', 'datetime', 'select'].includes(field.type) && (
+                                                        <TextField
+                                                            fullWidth
+                                                            label={field.type === 'number' ? 'Dígitos (total.decimais)' : 'Tamanho máximo'}
+                                                            placeholder={field.type === 'number' ? 'Ex: 10.2' : 'Ex: 100'}
+                                                            value={field.size}
+                                                            onChange={(e) => setFields({
+                                                                ...fields,
+                                                                items: fields.items.map((f) =>
+                                                                    f.id === field.id ? { ...f, size: e.target.value } : f
+                                                                )
+                                                            })}
+                                                            disabled={fields.notApplicable}
+                                                        />
+                                                    )}
+                                                </Grid>
+                                                <Grid item xs={12} sm={3}>
+                                                    <FormControlLabel
+                                                        control={
+                                                            <Checkbox
+                                                                checked={field.required}
+                                                                onChange={(e) => setFields({
+                                                                    ...fields,
+                                                                    items: fields.items.map((f) =>
+                                                                        f.id === field.id ? { ...f, required: e.target.checked } : f
+                                                                    )
+                                                                })}
+                                                                disabled={fields.notApplicable}
+                                                            />
+                                                        }
+                                                        label="Obrigatório"
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        </Paper>
+                                    ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                        <Button
+                                            startIcon={<AddIcon />}
+                                            onClick={() => setFields({
+                                                ...fields,
+                                                items: [
+                                                    ...fields.items,
+                                                    {
+                                                        id: Date.now(),
+                                                        name: '',
+                                                        type: 'text',
+                                                        size: '',
+                                                        required: false,
+                                                    }
+                                                ]
+                                            })}
+                                            variant="outlined"
+                                            disabled={fields.notApplicable}
+                                            sx={{ width: '50%' }}
+                                        >
+                                            Adicionar Campo
+                                        </Button>
+                                    </Box>
+                                </Stack>
+                            </Section>
+
+                            <Section
+                                title="Mensagens Informativas"
+                                notApplicable={messages.notApplicable}
+                                onNotApplicableChange={(checked) => setMessages({ ...messages, notApplicable: checked })}
+                            >
+                                <Stack spacing={3}>
+                                    {messages.items.map((message, index) => (
+                                        <Paper
+                                            key={message.id}
+                                            sx={{
+                                                p: 3,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                backgroundColor: 'background.default'
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                <Typography variant="subtitle1" fontWeight="medium">
+                                                    Mensagem Informativa {index + 1}
+                                                </Typography>
+                                                {messages.items.length > 1 && (
+                                                    <IconButton
+                                                        onClick={() => setMessages({
+                                                            ...messages,
+                                                            items: messages.items.filter((_, i) => i !== index)
+                                                        })}
+                                                        disabled={messages.notApplicable}
+                                                        size="small"
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                )}
+                                            </Box>
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                value={message.content}
+                                                onChange={(e) => setMessages({
+                                                    ...messages,
+                                                    items: messages.items.map((item, i) =>
+                                                        i === index ? { ...item, content: e.target.value } : item
+                                                    )
+                                                })}
+                                                disabled={messages.notApplicable}
+                                                placeholder="Digite a mensagem informativa aqui..."
+                                            />
+                                        </Paper>
+                                    ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                        <Button
+                                            startIcon={<AddIcon />}
+                                            onClick={() => setMessages({
+                                                ...messages,
+                                                items: [...messages.items, { id: messages.items.length + 1, content: '' }]
+                                            })}
+                                            variant="outlined"
+                                            disabled={messages.notApplicable}
+                                            sx={{ width: '50%' }}
+                                        >
+                                            Adicionar Mensagem
+                                        </Button>
+                                    </Box>
+                                </Stack>
+                            </Section>
+
+                            <Section
+                                title="Regras de Negócio"
+                                notApplicable={rules.notApplicable}
+                                onNotApplicableChange={(checked) => setRules({ ...rules, notApplicable: checked })}
+                            >
+                                <Stack spacing={3}>
+                                    {rules.items.map((rule, index) => (
+                                        <Paper
+                                            key={rule.id}
+                                            sx={{
+                                                p: 3,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                backgroundColor: 'background.default'
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                <Typography variant="subtitle1" fontWeight="medium">
+                                                    Regra de Negócio {index + 1}
+                                                </Typography>
+                                                {rules.items.length > 1 && (
+                                                    <IconButton
+                                                        onClick={() => setRules({
+                                                            ...rules,
+                                                            items: rules.items.filter((_, i) => i !== index)
+                                                        })}
+                                                        disabled={rules.notApplicable}
+                                                        size="small"
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                )}
+                                            </Box>
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                value={rule.content}
+                                                onChange={(e) => setRules({
+                                                    ...rules,
+                                                    items: rules.items.map((item, i) =>
+                                                        i === index ? { ...item, content: e.target.value } : item
+                                                    )
+                                                })}
+                                                disabled={rules.notApplicable}
+                                                placeholder="Digite a regra de negócio aqui..."
+                                            />
+                                        </Paper>
+                                    ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                        <Button
+                                            startIcon={<AddIcon />}
+                                            onClick={() => setRules({
+                                                ...rules,
+                                                items: [...rules.items, { id: rules.items.length + 1, content: '' }]
+                                            })}
+                                            variant="outlined"
+                                            disabled={rules.notApplicable}
+                                            sx={{ width: '50%' }}
+                                        >
+                                            Adicionar Regra
+                                        </Button>
+                                    </Box>
+                                </Stack>
+                            </Section>
+
+                            <Section
+                                title="Cenários"
+                                notApplicable={scenarios.notApplicable}
+                                onNotApplicableChange={(checked) => setScenarios({ ...scenarios, notApplicable: checked })}
+                            >
+                                <Stack spacing={3}>
+                                    {scenarios.items.map((scenario, index) => (
+                                        <Paper
+                                            key={scenario.id}
+                                            sx={{
+                                                p: 3,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                backgroundColor: 'background.default'
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                <Typography variant="subtitle1" fontWeight="medium">
+                                                    Cenário {index + 1}
+                                                </Typography>
+                                                {scenarios.items.length > 1 && (
+                                                    <IconButton
+                                                        onClick={() => setScenarios({
+                                                            ...scenarios,
+                                                            items: scenarios.items.filter((s) => s.id !== scenario.id)
+                                                        })}
+                                                        disabled={scenarios.notApplicable}
+                                                        size="small"
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                )}
+                                            </Box>
+                                            <Stack spacing={2}>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Dado que"
+                                                    value={scenario.given}
+                                                    onChange={(e) => setScenarios({
+                                                        ...scenarios,
+                                                        items: scenarios.items.map((s) =>
+                                                            s.id === scenario.id
+                                                                ? { ...s, given: e.target.value }
+                                                                : s
+                                                        )
+                                                    })}
+                                                    disabled={scenarios.notApplicable}
+                                                    multiline
+                                                    rows={2}
+                                                    placeholder="Ex: Dado que estou na tela de cadastro..."
+                                                />
+                                                <TextField
+                                                    fullWidth
+                                                    label="Quando"
+                                                    value={scenario.when}
+                                                    onChange={(e) => setScenarios({
+                                                        ...scenarios,
+                                                        items: scenarios.items.map((s) =>
+                                                            s.id === scenario.id
+                                                                ? { ...s, when: e.target.value }
+                                                                : s
+                                                        )
+                                                    })}
+                                                    disabled={scenarios.notApplicable}
+                                                    multiline
+                                                    rows={2}
+                                                    placeholder="Ex: Quando preencho todos os campos..."
+                                                />
+                                                <TextField
+                                                    fullWidth
+                                                    label="Então"
+                                                    value={scenario.then}
+                                                    onChange={(e) => setScenarios({
+                                                        ...scenarios,
+                                                        items: scenarios.items.map((s) =>
+                                                            s.id === scenario.id
+                                                                ? { ...s, then: e.target.value }
+                                                                : s
+                                                        )
+                                                    })}
+                                                    disabled={scenarios.notApplicable}
+                                                    multiline
+                                                    rows={2}
+                                                    placeholder="Ex: Então o sistema deve..."
+                                                />
+                                            </Stack>
+                                        </Paper>
+                                    ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                        <Button
+                                            startIcon={<AddIcon />}
+                                            onClick={() => setScenarios({
+                                                ...scenarios,
+                                                items: [
+                                                    ...scenarios.items,
+                                                    {
+                                                        id: Date.now(),
+                                                        given: '',
+                                                        when: '',
+                                                        then: '',
+                                                    }
+                                                ]
+                                            })}
+                                            variant="outlined"
+                                            disabled={scenarios.notApplicable}
+                                            sx={{ width: '50%' }}
+                                        >
+                                            Adicionar Cenário
+                                        </Button>
+                                    </Box>
+                                </Stack>
+                            </Section>
+
+                            <Section
+                                title="Critérios de Aceite"
+                                notApplicable={acceptanceCriteria.notApplicable}
+                                onNotApplicableChange={(checked) => setAcceptanceCriteria({
+                                    ...acceptanceCriteria,
+                                    notApplicable: checked
+                                })}
+                            >
+                                <TextField
+                                    fullWidth
+                                    multiline
+                                    rows={4}
+                                    value={acceptanceCriteria.content}
+                                    onChange={(e) => setAcceptanceCriteria({
+                                        ...acceptanceCriteria,
+                                        content: e.target.value
                                     })}
-                                    onRemove={(index) => setObjective({
-                                        ...objective,
-                                        fields: objective.fields.filter((_, i) => i !== index)
-                                    })}
-                                    onFieldChange={(index, value) => setObjective({
-                                        ...objective,
-                                        fields: objective.fields.map((item, i) =>
-                                            i === index ? { ...item, content: value } : item
-                                        )
-                                    })}
-                                    disabled={objective.notApplicable}
+                                    disabled={acceptanceCriteria.notApplicable}
+                                    required
                                 />
                             </Section>
 
@@ -675,24 +1298,22 @@ export function UserStoryForm() {
                                         style={{ display: 'none' }}
                                         id="screenshots-input"
                                     />
-                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                                        <Box sx={{ width: '50%' }}>
-                                            <label htmlFor="screenshots-input" style={{ width: '100%', display: 'block' }}>
-                                                <Button
-                                                    variant="outlined"
-                                                    component="span"
-                                                    startIcon={<AttachFileIcon />}
-                                                    disabled={screenshots.notApplicable}
-                                                    sx={{
-                                                        width: '100%',
-                                                        whiteSpace: 'nowrap'
-                                                    }}
-                                                >
-                                                    Adicionar Telas
-                                                </Button>
-                                            </label>
-                                        </Box>
+                                    <Box sx={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+                                        <label htmlFor="screenshots-input">
+                                            <Button
+                                                variant="outlined"
+                                                component="span"
+                                                startIcon={<AttachFileIcon />}
+                                                disabled={screenshots.notApplicable}
+                                                sx={{ minWidth: '200px' }}
+                                            >
+                                                Anexar Imagens
+                                            </Button>
+                                        </label>
                                     </Box>
+                                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                        Anexe imagens das telas relacionadas à história (mockups, wireframes, etc.)
+                                    </Typography>
 
                                     {screenshots.items.length > 0 && !screenshots.notApplicable && (
                                         <Box sx={{ mt: 2 }}>
@@ -740,230 +1361,6 @@ export function UserStoryForm() {
                             </Section>
 
                             <Section
-                                title="Campos de Preenchimento"
-                                notApplicable={fields.notApplicable}
-                                onNotApplicableChange={(checked) => setFields({ ...fields, notApplicable: checked })}
-                            >
-                                {fields.items.map((field) => (
-                                    <FieldDefinition
-                                        key={field.id}
-                                        field={field}
-                                        onChange={(id, updatedField) => setFields({
-                                            ...fields,
-                                            items: fields.items.map((f) =>
-                                                f.id === id ? updatedField : f
-                                            )
-                                        })}
-                                        onRemove={(id) => setFields({
-                                            ...fields,
-                                            items: fields.items.filter((f) => f.id !== id)
-                                        })}
-                                    />
-                                ))}
-                                <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                                    <Button
-                                        startIcon={<AddIcon />}
-                                        onClick={() => setFields({
-                                            ...fields,
-                                            items: [
-                                                ...fields.items,
-                                                {
-                                                    id: fields.items.length + 1,
-                                                    name: '',
-                                                    type: 'text',
-                                                    size: '',
-                                                    required: false,
-                                                }
-                                            ]
-                                        })}
-                                        variant="outlined"
-                                        disabled={fields.notApplicable}
-                                        sx={{ width: '50%' }}
-                                    >
-                                        Adicionar Campo
-                                    </Button>
-                                </Box>
-                            </Section>
-
-                            <Section
-                                title="Mensagens Informativas"
-                                notApplicable={messages.notApplicable}
-                                onNotApplicableChange={(checked) => setMessages({ ...messages, notApplicable: checked })}
-                            >
-                                <DynamicFields
-                                    fields={messages.items}
-                                    onAdd={() => setMessages({
-                                        ...messages,
-                                        items: [...messages.items, { id: messages.items.length + 1, content: '' }]
-                                    })}
-                                    onRemove={(index) => setMessages({
-                                        ...messages,
-                                        items: messages.items.filter((_, i) => i !== index)
-                                    })}
-                                    onFieldChange={(index, value) => setMessages({
-                                        ...messages,
-                                        items: messages.items.map((item, i) =>
-                                            i === index ? { ...item, content: value } : item
-                                        )
-                                    })}
-                                    disabled={messages.notApplicable}
-                                />
-                            </Section>
-
-                            <Section
-                                title="Regras de Negócio"
-                                notApplicable={rules.notApplicable}
-                                onNotApplicableChange={(checked) => setRules({ ...rules, notApplicable: checked })}
-                            >
-                                <DynamicFields
-                                    fields={rules.items}
-                                    onAdd={() => setRules({
-                                        ...rules,
-                                        items: [...rules.items, { id: rules.items.length + 1, content: '' }]
-                                    })}
-                                    onRemove={(index) => setRules({
-                                        ...rules,
-                                        items: rules.items.filter((_, i) => i !== index)
-                                    })}
-                                    onFieldChange={(index, value) => setRules({
-                                        ...rules,
-                                        items: rules.items.map((item, i) =>
-                                            i === index ? { ...item, content: value } : item
-                                        )
-                                    })}
-                                    disabled={rules.notApplicable}
-                                />
-                            </Section>
-
-                            <Section
-                                title="Cenários"
-                                notApplicable={scenarios.notApplicable}
-                                onNotApplicableChange={(checked) => setScenarios({ ...scenarios, notApplicable: checked })}
-                            >
-                                {scenarios.items.map((scenario, index) => (
-                                    <Box key={scenario.id} sx={{
-                                        display: 'flex',
-                                        gap: 2,
-                                        alignItems: 'center',
-                                        mb: 4
-                                    }}>
-                                        <Stack spacing={3} sx={{ flex: 1 }}>
-                                            <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.secondary' }}>
-                                                Cenário {index + 1}
-                                            </Typography>
-                                            <TextField
-                                                fullWidth
-                                                label="Dado que"
-                                                value={scenario.given}
-                                                onChange={(e) => setScenarios({
-                                                    ...scenarios,
-                                                    items: scenarios.items.map((s) =>
-                                                        s.id === scenario.id
-                                                            ? { ...s, given: e.target.value }
-                                                            : s
-                                                    )
-                                                })}
-                                                disabled={scenarios.notApplicable}
-                                                multiline
-                                                rows={3}
-                                                placeholder="Ex: Dado que estou na tela de cadastro..."
-                                            />
-                                            <TextField
-                                                fullWidth
-                                                label="Quando"
-                                                value={scenario.when}
-                                                onChange={(e) => setScenarios({
-                                                    ...scenarios,
-                                                    items: scenarios.items.map((s) =>
-                                                        s.id === scenario.id
-                                                            ? { ...s, when: e.target.value }
-                                                            : s
-                                                    )
-                                                })}
-                                                disabled={scenarios.notApplicable}
-                                                multiline
-                                                rows={3}
-                                                placeholder="Ex: Quando preencho todos os campos..."
-                                            />
-                                            <TextField
-                                                fullWidth
-                                                label="Então"
-                                                value={scenario.then}
-                                                onChange={(e) => setScenarios({
-                                                    ...scenarios,
-                                                    items: scenarios.items.map((s) =>
-                                                        s.id === scenario.id
-                                                            ? { ...s, then: e.target.value }
-                                                            : s
-                                                    )
-                                                })}
-                                                disabled={scenarios.notApplicable}
-                                                multiline
-                                                rows={3}
-                                                placeholder="Ex: Então o sistema deve..."
-                                            />
-                                        </Stack>
-                                        {scenarios.items.length > 1 && (
-                                            <IconButton
-                                                onClick={() => setScenarios({
-                                                    ...scenarios,
-                                                    items: scenarios.items.filter((s) => s.id !== scenario.id)
-                                                })}
-                                                disabled={scenarios.notApplicable}
-                                                color="error"
-                                                sx={{ alignSelf: 'center', mr: 1 }}
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        )}
-                                    </Box>
-                                ))}
-                                <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                                    <Button
-                                        startIcon={<AddIcon />}
-                                        onClick={() => setScenarios({
-                                            ...scenarios,
-                                            items: [
-                                                ...scenarios.items,
-                                                {
-                                                    id: scenarios.items.length + 1,
-                                                    given: '',
-                                                    when: '',
-                                                    then: '',
-                                                }
-                                            ]
-                                        })}
-                                        variant="outlined"
-                                        disabled={scenarios.notApplicable}
-                                        sx={{ width: '50%' }}
-                                    >
-                                        Adicionar Cenário
-                                    </Button>
-                                </Box>
-                            </Section>
-
-                            <Section
-                                title="Critérios de Aceite"
-                                notApplicable={acceptanceCriteria.notApplicable}
-                                onNotApplicableChange={(checked) => setAcceptanceCriteria({
-                                    ...acceptanceCriteria,
-                                    notApplicable: checked
-                                })}
-                            >
-                                <TextField
-                                    fullWidth
-                                    multiline
-                                    rows={4}
-                                    value={acceptanceCriteria.content}
-                                    onChange={(e) => setAcceptanceCriteria({
-                                        ...acceptanceCriteria,
-                                        content: e.target.value
-                                    })}
-                                    disabled={acceptanceCriteria.notApplicable}
-                                />
-                            </Section>
-
-                            <Section
                                 title="Anexos"
                                 notApplicable={files.notApplicable}
                                 onNotApplicableChange={(checked) => setFiles({ ...files, notApplicable: checked })}
@@ -976,24 +1373,22 @@ export function UserStoryForm() {
                                     id="file-input"
                                     disabled={files.notApplicable}
                                 />
-                                <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                                    <Box sx={{ width: '50%' }}>
-                                        <label htmlFor="file-input" style={{ width: '100%', display: 'block' }}>
-                                            <Button
-                                                variant="outlined"
-                                                component="span"
-                                                startIcon={<AttachFileIcon />}
-                                                disabled={files.notApplicable}
-                                                sx={{
-                                                    width: '100%',
-                                                    whiteSpace: 'nowrap'
-                                                }}
-                                            >
-                                                Adicionar Anexos
-                                            </Button>
-                                        </label>
-                                    </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+                                    <label htmlFor="file-input">
+                                        <Button
+                                            variant="outlined"
+                                            component="span"
+                                            startIcon={<AttachFileIcon />}
+                                            disabled={files.notApplicable}
+                                            sx={{ minWidth: '200px' }}
+                                        >
+                                            Anexar Arquivos
+                                        </Button>
+                                    </label>
                                 </Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                    Anexe documentos complementares (PDFs, planilhas, documentos de requisitos, etc.)
+                                </Typography>
 
                                 {files.items.length > 0 && !files.notApplicable && (
                                     <Box sx={{ mt: 2 }}>
@@ -1030,12 +1425,22 @@ export function UserStoryForm() {
                                 )}
                             </Section>
 
-                            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                            {/* Botões de Ação */}
+                            <Box sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                gap: 2,
+                                mt: 4,
+                                pt: 3,
+                                borderTop: '1px solid',
+                                borderColor: 'divider'
+                            }}>
                                 <Button
                                     variant="contained"
                                     onClick={() => navigate('/dashboard')}
                                     size="large"
                                     color="warning"
+                                    sx={{ minWidth: 120 }}
                                 >
                                     Cancelar
                                 </Button>
@@ -1045,7 +1450,8 @@ export function UserStoryForm() {
                                     color="primary"
                                     size="large"
                                     disabled={loading}
-                                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+                                    sx={{ minWidth: 120 }}
+                                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <AssignmentIcon />}
                                 >
                                     {loading ? 'Criando...' : 'Criar História'}
                                 </Button>
