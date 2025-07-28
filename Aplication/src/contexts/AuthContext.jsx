@@ -63,6 +63,11 @@ export function AuthProvider({ children }) {
         return authService.getCurrentUser();
     };
 
+    // Função para obter tempo restante da sessão
+    const getSessionTimeRemaining = () => {
+        return authService.getSessionTimeRemaining();
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -70,7 +75,8 @@ export function AuthProvider({ children }) {
             logout: handleLogout,
             isLoading,
             isAuthenticated,
-            getCurrentUser
+            getCurrentUser,
+            getSessionTimeRemaining
         }}>
             {children}
         </AuthContext.Provider>

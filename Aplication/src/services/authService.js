@@ -114,5 +114,28 @@ export const authService = {
             this.logout(); // Remove tokens inválidos
             return false;
         }
+    },
+
+    /**
+     * Obtém tempo restante da sessão (em milissegundos)
+     * Por enquanto retorna um valor fixo simulado
+     */
+    getSessionTimeRemaining() {
+        try {
+            const userData = this.getCurrentUser();
+            if (!userData) return 0;
+
+            // Simula uma sessão de 8 horas
+            const sessionDuration = 8 * 60 * 60 * 1000; // 8 horas em milissegundos
+            const loginTime = parseInt(userData.token.split('-').pop());
+            const currentTime = Date.now();
+            const elapsed = currentTime - loginTime;
+            const remaining = sessionDuration - elapsed;
+
+            return remaining > 0 ? remaining : 0;
+        } catch (error) {
+            console.error('Erro ao calcular tempo de sessão:', error);
+            return 0;
+        }
     }
 };

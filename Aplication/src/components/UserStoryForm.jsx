@@ -1037,7 +1037,7 @@ export function UserStoryForm() {
                                     size="large"
                                     color="warning"
                                 >
-                                    Voltar
+                                    Cancelar
                                 </Button>
                                 <Button
                                     type="submit"
@@ -1047,7 +1047,7 @@ export function UserStoryForm() {
                                     disabled={loading}
                                     startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
                                 >
-                                    {loading ? 'Salvando...' : 'Salvar História'}
+                                    {loading ? 'Criando...' : 'Criar História'}
                                 </Button>
                             </Box>
                         </Box>

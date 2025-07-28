@@ -6,6 +6,7 @@ import { NotificationModal } from './components/NotificationModal';
 import { Login } from './pages/Login';
 import { Home } from './components/Home';
 import { UserStoryForm } from './components/UserStoryForm';
+import { FailureForm } from './components/FailureForm';
 import { LogsPage } from './pages/LogsPage';
 import { ConfigurationsPage } from './pages/ConfigurationsPage';
 import { CircularProgress, Box } from '@mui/material';
@@ -73,7 +74,7 @@ function App() {
                 path="/nova-falha"
                 element={
                   <PrivateRoute>
-                    <div>Em desenvolvimento</div>
+                    <FailureForm />
                   </PrivateRoute>
                 }
               />
