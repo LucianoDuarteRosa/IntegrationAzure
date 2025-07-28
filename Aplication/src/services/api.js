@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuração base do axios
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api', // URL da API .NET
+    baseURL: 'http://localhost:5066/api', // URL da API .NET
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',

@@ -21,9 +21,6 @@ public class UserStory : BaseEntity
 
     public string? Description { get; set; }
 
-    // Relacionamento com casos de uso
-    public virtual ICollection<TestCase> TestCases { get; set; } = new List<TestCase>();
-
     // Relacionamento com anexos
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 

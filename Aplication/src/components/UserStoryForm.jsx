@@ -36,6 +36,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 const schema = yup.object().shape({
     demandNumber: yup.string().required('Número da demanda é obrigatório'),
     title: yup.string().required('Título é obrigatório'),
+    priority: yup.string().required('Prioridade é obrigatória'),
 });
 
 // Simulação de demandas disponíveis
@@ -281,9 +282,8 @@ export function UserStoryForm() {
                 demandNumber: data.demandNumber,
                 title: data.title,
                 description: `Como: ${userStory.como}\nQuero: ${userStory.quero}\nPara: ${userStory.para}`,
-                // Mapear outros campos conforme necessário
-                priority: 'Medium', // valor padrão por enquanto
-                status: 'New'
+                priority: data.priority,
+                acceptanceCriteria: acceptanceCriteria.content || 'Não especificado'
             };
 
             await userStoryService.create(userStoryData);
@@ -396,6 +396,30 @@ export function UserStoryForm() {
                                             error={!!errors.title}
                                             helperText={errors.title?.message}
                                         />
+                                    )}
+                                />
+                                <Controller
+                                    name="priority"
+                                    control={control}
+                                    defaultValue="Medium"
+                                    render={({ field }) => (
+                                        <FormControl error={!!errors.priority} fullWidth>
+                                            <InputLabel>Prioridade</InputLabel>
+                                            <Select
+                                                {...field}
+                                                label="Prioridade"
+                                            >
+                                                <MenuItem value="Low">Baixa</MenuItem>
+                                                <MenuItem value="Medium">Média</MenuItem>
+                                                <MenuItem value="High">Alta</MenuItem>
+                                                <MenuItem value="Critical">Crítica</MenuItem>
+                                            </Select>
+                                            {errors.priority && (
+                                                <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
+                                                    {errors.priority?.message}
+                                                </Typography>
+                                            )}
+                                        </FormControl>
                                     )}
                                 />
                             </Stack>

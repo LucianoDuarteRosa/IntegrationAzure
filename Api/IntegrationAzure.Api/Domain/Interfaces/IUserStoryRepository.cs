@@ -11,7 +11,6 @@ public interface IUserStoryRepository : IRepository<UserStory>
     Task<IEnumerable<UserStory>> GetByDemandNumberAsync(string demandNumber);
     Task<IEnumerable<UserStory>> GetByStatusAsync(UserStoryStatus status);
     Task<IEnumerable<UserStory>> GetByPriorityAsync(Priority priority);
-    Task<UserStory?> GetWithTestCasesAsync(Guid id);
     Task<UserStory?> GetWithAttachmentsAsync(Guid id);
     Task<UserStory?> GetCompleteAsync(Guid id);
 }

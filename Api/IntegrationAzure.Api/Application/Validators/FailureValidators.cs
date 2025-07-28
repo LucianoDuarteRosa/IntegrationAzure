@@ -114,24 +114,3 @@ public class UpdateFailureDtoValidator : AbstractValidator<UpdateFailureDto>
             .When(x => x.DowntimeDuration.HasValue);
     }
 }
-
-/// <summary>
-/// Validador para criação de casos de teste
-/// </summary>
-public class CreateTestCaseDtoValidator : AbstractValidator<CreateTestCaseDto>
-{
-    public CreateTestCaseDtoValidator()
-    {
-        RuleFor(x => x.Description)
-            .NotEmpty()
-            .WithMessage("Descrição do caso de teste é obrigatória")
-            .MinimumLength(5)
-            .WithMessage("Descrição deve ter pelo menos 5 caracteres")
-            .MaximumLength(500)
-            .WithMessage("Descrição deve ter no máximo 500 caracteres");
-
-        RuleFor(x => x.OrderIndex)
-            .GreaterThan(0)
-            .WithMessage("Índice de ordem deve ser maior que zero");
-    }
-}

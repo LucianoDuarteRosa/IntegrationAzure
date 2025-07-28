@@ -397,7 +397,6 @@ public class FailureService
                 Priority = failure.UserStory.Priority,
                 CreatedAt = failure.UserStory.CreatedAt,
                 CreatedBy = failure.UserStory.CreatedBy,
-                TestCasesCount = failure.UserStory.TestCases.Count,
                 AttachmentsCount = failure.UserStory.Attachments.Count
             };
         }

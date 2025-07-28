@@ -11,18 +11,15 @@ namespace IntegrationAzure.Api.Application.Services;
 public class UserStoryService
 {
     private readonly IUserStoryRepository _userStoryRepository;
-    private readonly IRepository<TestCase> _testCaseRepository;
 
     public UserStoryService(
-        IUserStoryRepository userStoryRepository,
-        IRepository<TestCase> testCaseRepository)
+        IUserStoryRepository userStoryRepository)
     {
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
-        _testCaseRepository = testCaseRepository ?? throw new ArgumentNullException(nameof(testCaseRepository));
     }
 
     /// <summary>
-    /// Cria uma nova história de usuário com casos de teste
+    /// Cria uma nova história de usuário
     /// </summary>
     public async Task<ApiResponseDto<UserStoryDto>> CreateAsync(CreateUserStoryDto dto, string currentUser)
     {
@@ -55,23 +52,6 @@ public class UserStoryService
             // Adicionar a história
             await _userStoryRepository.AddAsync(userStory);
             await _userStoryRepository.SaveChangesAsync();
-
-            // Adicionar casos de teste
-            foreach (var testCaseDto in dto.TestCases)
-            {
-                var testCase = new TestCase
-                {
-                    Description = testCaseDto.Description,
-                    OrderIndex = testCaseDto.OrderIndex,
-                    UserStoryId = userStory.Id,
-                    CreatedBy = currentUser,
-                    Status = TestCaseStatus.Pending
-                };
-
-                await _testCaseRepository.AddAsync(testCase);
-            }
-
-            await _testCaseRepository.SaveChangesAsync();
 
             // Buscar a história completa para retorno
             var completeUserStory = await _userStoryRepository.GetCompleteAsync(userStory.Id);
@@ -148,7 +128,6 @@ public class UserStoryService
                 Priority = us.Priority,
                 CreatedAt = us.CreatedAt,
                 CreatedBy = us.CreatedBy,
-                TestCasesCount = us.TestCases.Count,
                 AttachmentsCount = us.Attachments.Count
             }).ToList();
 
@@ -177,7 +156,7 @@ public class UserStoryService
     {
         try
         {
-            var userStory = await _userStoryRepository.GetWithTestCasesAsync(id);
+            var userStory = await _userStoryRepository.GetWithAttachmentsAsync(id);
 
             if (userStory == null)
             {
@@ -206,31 +185,6 @@ public class UserStoryService
 
             userStory.UpdatedBy = currentUser;
             userStory.UpdatedAt = DateTime.UtcNow;
-
-            // Atualizar casos de teste se fornecidos
-            if (dto.TestCases != null)
-            {
-                // Remover casos existentes
-                foreach (var existingTestCase in userStory.TestCases.ToList())
-                {
-                    await _testCaseRepository.DeleteAsync(existingTestCase.Id);
-                }
-
-                // Adicionar novos casos
-                foreach (var testCaseDto in dto.TestCases)
-                {
-                    var testCase = new TestCase
-                    {
-                        Description = testCaseDto.Description,
-                        OrderIndex = testCaseDto.OrderIndex,
-                        UserStoryId = userStory.Id,
-                        CreatedBy = currentUser,
-                        Status = TestCaseStatus.Pending
-                    };
-
-                    await _testCaseRepository.AddAsync(testCase);
-                }
-            }
 
             await _userStoryRepository.UpdateAsync(userStory);
             await _userStoryRepository.SaveChangesAsync();
@@ -312,17 +266,6 @@ public class UserStoryService
             UpdatedAt = userStory.UpdatedAt,
             CreatedBy = userStory.CreatedBy,
             UpdatedBy = userStory.UpdatedBy,
-            TestCases = userStory.TestCases.Select(tc => new TestCaseDto
-            {
-                Id = tc.Id,
-                Description = tc.Description,
-                OrderIndex = tc.OrderIndex,
-                Status = tc.Status,
-                Result = tc.Result,
-                Notes = tc.Notes,
-                CreatedAt = tc.CreatedAt,
-                CreatedBy = tc.CreatedBy
-            }).OrderBy(tc => tc.OrderIndex).ToList(),
             Attachments = userStory.Attachments.Select(a => new AttachmentDto
             {
                 Id = a.Id,

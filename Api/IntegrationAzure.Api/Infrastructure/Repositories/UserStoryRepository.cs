@@ -42,13 +42,6 @@ public class UserStoryRepository : Repository<UserStory>, IUserStoryRepository
             .ToListAsync();
     }
 
-    public async Task<UserStory?> GetWithTestCasesAsync(Guid id)
-    {
-        return await _dbSet
-            .Include(us => us.TestCases)
-            .FirstOrDefaultAsync(us => us.Id == id);
-    }
-
     public async Task<UserStory?> GetWithAttachmentsAsync(Guid id)
     {
         return await _dbSet
@@ -59,7 +52,6 @@ public class UserStoryRepository : Repository<UserStory>, IUserStoryRepository
     public async Task<UserStory?> GetCompleteAsync(Guid id)
     {
         return await _dbSet
-            .Include(us => us.TestCases)
             .Include(us => us.Attachments)
             .FirstOrDefaultAsync(us => us.Id == id);
     }

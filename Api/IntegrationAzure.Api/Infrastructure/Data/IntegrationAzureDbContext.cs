@@ -18,7 +18,6 @@ public class IntegrationAzureDbContext : DbContext
     public DbSet<UserStory> UserStories { get; set; }
     public DbSet<Issue> Issues { get; set; }
     public DbSet<Failure> Failures { get; set; }
-    public DbSet<TestCase> TestCases { get; set; }
     public DbSet<Attachment> Attachments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -103,26 +102,6 @@ public class IntegrationAzureDbContext : DbContext
             entity.HasIndex(e => e.AssignedTo);
         });
 
-        // Configurações para TestCase
-        modelBuilder.Entity<TestCase>(entity =>
-        {
-            entity.ToTable("test_cases");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Description).IsRequired();
-            entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
-
-            // Relacionamento com UserStory
-            entity.HasOne(e => e.UserStory)
-                  .WithMany(us => us.TestCases)
-                  .HasForeignKey(e => e.UserStoryId)
-                  .OnDelete(DeleteBehavior.Cascade);
-
-            // Índices para performance
-            entity.HasIndex(e => e.UserStoryId);
-            entity.HasIndex(e => e.Status);
-        });
-
         // Configurações para Attachment
         modelBuilder.Entity<Attachment>(entity =>
         {
@@ -183,10 +162,6 @@ public class IntegrationAzureDbContext : DbContext
             .HasConversion<string>();
 
         modelBuilder.Entity<Failure>()
-            .Property(e => e.Status)
-            .HasConversion<string>();
-
-        modelBuilder.Entity<TestCase>()
             .Property(e => e.Status)
             .HasConversion<string>();
     }

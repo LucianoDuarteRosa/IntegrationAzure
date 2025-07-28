@@ -21,7 +21,6 @@ builder.Services.AddDbContext<IntegrationAzureDbContext>(options =>
 builder.Services.AddScoped<IUserStoryRepository, UserStoryRepository>();
 builder.Services.AddScoped<IIssueRepository, IssueRepository>();
 builder.Services.AddScoped<IFailureRepository, FailureRepository>();
-builder.Services.AddScoped<IRepository<TestCase>, Repository<TestCase>>();
 builder.Services.AddScoped<IRepository<Attachment>, Repository<Attachment>>();
 
 // Registro dos serviços de aplicação
@@ -29,9 +28,7 @@ builder.Services.AddScoped<UserStoryService>();
 builder.Services.AddScoped<IssueService>();
 builder.Services.AddScoped<FailureService>();
 
-// Registro dos validadores
-builder.Services.AddScoped<IValidator<CreateUserStoryDto>, CreateUserStoryDtoValidator>();
-builder.Services.AddScoped<IValidator<UpdateUserStoryDto>, UpdateUserStoryDtoValidator>();
+// Registro dos validadores existentes (sem UserStory por enquanto)
 builder.Services.AddScoped<IValidator<CreateIssueDto>, CreateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateIssueDto>, UpdateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateFailureDto>, CreateFailureDtoValidator>();
@@ -52,8 +49,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configuração do FluentValidation
-builder.Services.AddValidatorsFromAssemblyContaining<CreateUserStoryDtoValidator>();
+// Configuração do FluentValidation - registro automático de validadores
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Configuração do Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

@@ -330,7 +330,6 @@ public class IssueService
                 Priority = issue.UserStory.Priority,
                 CreatedAt = issue.UserStory.CreatedAt,
                 CreatedBy = issue.UserStory.CreatedBy,
-                TestCasesCount = issue.UserStory.TestCases.Count,
                 AttachmentsCount = issue.UserStory.Attachments.Count
             };
         }

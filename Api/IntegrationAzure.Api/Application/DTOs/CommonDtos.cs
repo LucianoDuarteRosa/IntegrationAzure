@@ -3,30 +3,6 @@ using IntegrationAzure.Api.Domain.Entities;
 namespace IntegrationAzure.Api.Application.DTOs;
 
 /// <summary>
-/// DTO para criação de caso de teste
-/// </summary>
-public class CreateTestCaseDto
-{
-    public string Description { get; set; } = string.Empty;
-    public int OrderIndex { get; set; }
-}
-
-/// <summary>
-/// DTO para retorno de caso de teste
-/// </summary>
-public class TestCaseDto
-{
-    public Guid Id { get; set; }
-    public string Description { get; set; } = string.Empty;
-    public int OrderIndex { get; set; }
-    public TestCaseStatus Status { get; set; }
-    public string? Result { get; set; }
-    public string? Notes { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public string CreatedBy { get; set; } = string.Empty;
-}
-
-/// <summary>
 /// DTO para criação de anexo
 /// </summary>
 public class CreateAttachmentDto
