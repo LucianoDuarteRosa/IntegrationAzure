@@ -20,6 +20,7 @@ public class IntegrationAzureDbContext : DbContext
     public DbSet<Failure> Failures { get; set; }
     public DbSet<Attachment> Attachments { get; set; }
     public DbSet<Log> Logs { get; set; }
+    public DbSet<Configuration> Configurations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -192,6 +193,25 @@ public class IntegrationAzureDbContext : DbContext
         modelBuilder.Entity<Log>()
             .Property(e => e.Level)
             .HasConversion<string>();
+
+        // Configurações para Configuration
+        modelBuilder.Entity<Configuration>(entity =>
+        {
+            entity.ToTable("configurations");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Key).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Value).HasMaxLength(1000).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Category).HasMaxLength(50);
+            entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
+
+            // Índices para performance e unicidade
+            entity.HasIndex(e => e.Key).IsUnique();
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.CreatedAt);
+        });
     }
 
     /// <summary>

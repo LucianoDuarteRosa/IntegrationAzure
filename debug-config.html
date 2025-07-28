@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Debug Configuration API</title>
+</head>
+
+<body>
+    <h1>Teste de API de Configuração</h1>
+    <button onclick="testGet()">Test GET</button>
+    <button onclick="testPost()">Test POST</button>
+    <div id="result"></div>
+
+    <script>
+        const API_URL = 'http://localhost:5066/api';
+
+        async function testGet() {
+            try {
+                const response = await fetch(`${API_URL}/configurations`);
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `<h3>GET Result:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<h3>GET Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+
+        async function testPost() {
+            try {
+                const payload = {
+                    Key: "AZURE_ACCESS_TOKEN",
+                    Value: "test",
+                    Description: "Token de teste",
+                    Category: "Azure",
+                    IsSecret: true,
+                    IsActive: true
+                };
+
+                const response = await fetch(`${API_URL}/configurations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `<h3>POST Result (${response.status}):</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<h3>POST Error:</h3><pre>${error.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+
+</html>

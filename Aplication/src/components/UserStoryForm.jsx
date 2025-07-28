@@ -406,7 +406,7 @@ export function UserStoryForm() {
                     minHeight: 'calc(100vh - 64px)',
                     alignItems: 'flex-start',
                     justifyContent: 'center',
-                    mt: 8,
+                    mt: 10,
                     pt: 2,
                     pb: 4,
                     px: 2
@@ -417,8 +417,7 @@ export function UserStoryForm() {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        width: '100%',
-                        maxWidth: '1200px'
+                        width: '100%'
                     }}
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
@@ -442,7 +441,7 @@ export function UserStoryForm() {
                         sx={{
                             p: 4,
                             width: '100%',
-                            maxWidth: '1000px'
+                            maxWidth: '1150px'
                         }}
                     >
                         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
