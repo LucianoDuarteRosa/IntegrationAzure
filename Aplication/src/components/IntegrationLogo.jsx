@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 
-export const IntegrationLogo = ({ size = 'medium', variant = 'horizontal', isNavbar = false }) => {
+export const IntegrationLogo = ({ size = 'medium', variant = 'horizontal', isNavbar = false, isLoginPage = false }) => {
     const theme = useMuiTheme();
     const isDark = theme.palette.mode === 'dark';
 
@@ -17,6 +17,20 @@ export const IntegrationLogo = ({ size = 'medium', variant = 'horizontal', isNav
 
     // Cores que funcionam bem em qualquer fundo
     const getLogoColors = () => {
+        // Se for página de login no tema claro, usar preto para "Integração"
+        if (isLoginPage && !isDark) {
+            return {
+                integracao: {
+                    main: `linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 50%, #000000 100%)`,
+                    shadow: `linear-gradient(135deg, #2c2c2c60 0%, #1a1a1a40 50%, #00000020 100%)`
+                },
+                azure: {
+                    main: `linear-gradient(135deg, #ff9800 0%, #ffb74d 50%, #ffcc02 100%)`,
+                    shadow: `linear-gradient(135deg, #ff980080 0%, #ffb74d60 50%, #ffcc0240 100%)`
+                }
+            };
+        }
+
         return {
             integracao: {
                 main: isDark

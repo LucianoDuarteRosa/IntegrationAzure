@@ -22,7 +22,8 @@ import {
     Alert,
     Grid
 } from '@mui/material';
-import { Refresh as RefreshIcon, FilterList as FilterIcon, Monitoring as MonitoringIcon } from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
+import { Refresh as RefreshIcon, FilterList as FilterIcon, Assessment as AssessmentIcon } from '@mui/icons-material';
 import { Navbar } from '../components/Navbar';
 import { logService } from '../services';
 
@@ -48,6 +49,7 @@ const LogLevelColors = {
 };
 
 export function LogsPage() {
+    const theme = useTheme();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -64,22 +66,7 @@ export function LogsPage() {
     }, []);
 
     const loadLogs = async () => {
-        try {
-            setLoading(true);
-            setError('');
-
-            const response = await logService.getLogs(filters);
-
-            if (response.success) {
-                setLogs(response.data || []);
-            } else {
-                setError(response.message || 'Erro ao carregar logs');
-            }
-        } catch (err) {
-            setError(err.message || 'Erro ao carregar logs');
-        } finally {
-            setLoading(false);
-        }
+        await loadLogsWithFilters();
     };
 
     const handleFilterChange = (field, value) => {
@@ -90,20 +77,45 @@ export function LogsPage() {
     };
 
     const applyFilters = () => {
-        loadLogs();
+        loadLogsWithFilters();
     };
 
     const clearFilters = () => {
-        setFilters({
+        const clearedFilters = {
             entity: '',
             level: '',
             userId: '',
             pageSize: 50
-        });
-        // Recarregar sem filtros após um breve delay para o estado ser atualizado
-        setTimeout(() => {
-            loadLogs();
-        }, 100);
+        };
+        setFilters(clearedFilters);
+
+        // Carregar logs sem filtros
+        loadLogsWithFilters(clearedFilters);
+    };
+
+    const loadLogsWithFilters = async (customFilters = null) => {
+        try {
+            setLoading(true);
+            setError('');
+
+            const filtersToUse = customFilters || filters;
+            // Remove filtros vazios
+            const cleanFilters = Object.fromEntries(
+                Object.entries(filtersToUse).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+            );
+
+            const response = await logService.getLogs(cleanFilters);
+
+            if (response && response.Success) {
+                setLogs(response.Data || []);
+            } else {
+                setError(response?.message || 'Erro ao carregar logs');
+            }
+        } catch (err) {
+            setError(err.message || 'Erro ao carregar logs');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const formatDate = (dateString) => {
@@ -146,7 +158,7 @@ export function LogsPage() {
                 >
                     <Box sx={{ mb: 3, textAlign: 'center' }}>
                         <Typography variant="h4" component="h1" gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                            <MonitoringIcon sx={{ fontSize: '2.5rem' }} />
+                            <AssessmentIcon sx={{ fontSize: '2.5rem' }} />
                             Logs do Sistema
                         </Typography>
                     </Box>
@@ -273,13 +285,73 @@ export function LogsPage() {
                             <TableContainer>
                                 <Table stickyHeader>
                                     <TableHead>
-                                        <TableRow>
-                                            <TableCell>Data/Hora</TableCell>
-                                            <TableCell>Ação</TableCell>
-                                            <TableCell>Entidade</TableCell>
-                                            <TableCell>Usuário</TableCell>
-                                            <TableCell>Nível</TableCell>
-                                            <TableCell>ID da Entidade</TableCell>
+                                        <TableRow
+                                            sx={{
+                                                backgroundColor: theme.palette.mode === 'dark'
+                                                    ? 'rgba(255, 255, 255, 0.08)'
+                                                    : 'inherit'
+                                            }}
+                                        >
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? 'rgba(255, 255, 255, 0.08)'
+                                                        : 'inherit',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                Data/Hora
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? 'rgba(255, 255, 255, 0.08)'
+                                                        : 'inherit',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                Ação
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? 'rgba(255, 255, 255, 0.08)'
+                                                        : 'inherit',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                Entidade
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? 'rgba(255, 255, 255, 0.08)'
+                                                        : 'inherit',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                Usuário
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? 'rgba(255, 255, 255, 0.08)'
+                                                        : 'inherit',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                Nível
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? 'rgba(255, 255, 255, 0.08)'
+                                                        : 'inherit',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                ID da Entidade
+                                            </TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -293,40 +365,40 @@ export function LogsPage() {
                                             </TableRow>
                                         ) : (
                                             logs.map((log) => (
-                                                <TableRow key={log.id} hover>
+                                                <TableRow key={log.Id} hover>
                                                     <TableCell>
                                                         <Typography variant="body2">
-                                                            {formatDate(log.createdAt)}
+                                                            {formatDate(log.CreatedAt)}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Chip
-                                                            label={log.action}
-                                                            color={getActionColor(log.action)}
+                                                            label={log.Action}
+                                                            color={getActionColor(log.Action)}
                                                             size="small"
                                                             variant="outlined"
                                                         />
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="body2" fontWeight="medium">
-                                                            {log.entity}
+                                                            {log.Entity}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="body2">
-                                                            {log.userId}
+                                                            {log.UserId}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Chip
-                                                            label={LogLevelNames[log.level]}
-                                                            color={LogLevelColors[log.level]}
+                                                            label={LogLevelNames[log.Level]}
+                                                            color={LogLevelColors[log.Level]}
                                                             size="small"
                                                         />
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="body2" color="text.secondary">
-                                                            {log.entityId || '-'}
+                                                            {log.EntityId || '-'}
                                                         </Typography>
                                                     </TableCell>
                                                 </TableRow>

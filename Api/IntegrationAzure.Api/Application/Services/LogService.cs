@@ -83,6 +83,9 @@ public class LogService
             if (filter.EndDate.HasValue)
                 logs = logs.Where(l => l.CreatedAt <= filter.EndDate);
 
+            // Ordenar por data decrescente (mais recentes primeiro)
+            logs = logs.OrderByDescending(l => l.CreatedAt);
+
             // Paginação
             var totalCount = logs.Count();
             var pagedLogs = logs

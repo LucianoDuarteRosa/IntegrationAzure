@@ -69,7 +69,7 @@ export function Login() {
                 >
                     {/* Logo acima do formulário */}
                     <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-                        <IntegrationLogo size="large" variant="vertical" />
+                        <IntegrationLogo size="large" variant="vertical" isLoginPage={true} />
                     </Box>
 
                     <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
