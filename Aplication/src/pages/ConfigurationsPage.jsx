@@ -31,7 +31,8 @@ import {
     Edit as EditIcon,
     Delete as DeleteIcon,
     Visibility as VisibilityIcon,
-    VisibilityOff as VisibilityOffIcon
+    VisibilityOff as VisibilityOffIcon,
+    Cloud as CloudIcon
 } from '@mui/icons-material';
 import { Navbar } from '../components/Navbar';
 import { configurationService } from '../services';

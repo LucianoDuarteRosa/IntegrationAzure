@@ -740,6 +740,7 @@ export function UserStoryForm() {
                                                         })}
                                                         disabled={impact.notApplicable}
                                                         size="small"
+                                                        sx={{ color: '#d32f2f' }}
                                                     >
                                                         <DeleteIcon />
                                                     </IconButton>
@@ -835,6 +836,7 @@ export function UserStoryForm() {
                                                         })}
                                                         disabled={objective.notApplicable}
                                                         size="small"
+                                                        sx={{ color: '#d32f2f' }}
                                                     >
                                                         <DeleteIcon />
                                                     </IconButton>
@@ -901,6 +903,7 @@ export function UserStoryForm() {
                                                         })}
                                                         disabled={fields.notApplicable}
                                                         size="small"
+                                                        sx={{ color: '#d32f2f' }}
                                                     >
                                                         <DeleteIcon />
                                                     </IconButton>
@@ -1038,6 +1041,7 @@ export function UserStoryForm() {
                                                         })}
                                                         disabled={messages.notApplicable}
                                                         size="small"
+                                                        sx={{ color: '#d32f2f' }}
                                                     >
                                                         <DeleteIcon />
                                                     </IconButton>
@@ -1104,6 +1108,7 @@ export function UserStoryForm() {
                                                         })}
                                                         disabled={rules.notApplicable}
                                                         size="small"
+                                                        sx={{ color: '#d32f2f' }}
                                                     >
                                                         <DeleteIcon />
                                                     </IconButton>
@@ -1170,6 +1175,7 @@ export function UserStoryForm() {
                                                         })}
                                                         disabled={scenarios.notApplicable}
                                                         size="small"
+                                                        sx={{ color: '#d32f2f' }}
                                                     >
                                                         <DeleteIcon />
                                                     </IconButton>
@@ -1349,6 +1355,7 @@ export function UserStoryForm() {
                                                                     items: newItems
                                                                 });
                                                             }}
+                                                            sx={{ color: '#d32f2f' }}
                                                         >
                                                             <DeleteIcon />
                                                         </IconButton>
@@ -1416,6 +1423,7 @@ export function UserStoryForm() {
                                                             items: newItems
                                                         });
                                                     }}
+                                                    sx={{ color: '#d32f2f' }}
                                                 >
                                                     <DeleteIcon />
                                                 </IconButton>

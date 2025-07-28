@@ -83,10 +83,10 @@ const historiasPorDemanda = {
 };
 
 const severidades = [
-    { value: 'Low', label: 'Baixa', color: '#4caf50' },
-    { value: 'Medium', label: 'Média', color: '#ff9800' },
-    { value: 'High', label: 'Alta', color: '#f44336' },
-    { value: 'Critical', label: 'Crítica', color: '#d32f2f' },
+    { value: 'Critical', label: 'Crítico', color: '#d32f2f' },
+    { value: 'Normal', label: 'Normal', color: '#ff9800' },
+    { value: 'NonCritical', label: 'Não Crítico', color: '#4caf50' },
+    { value: 'Enhancement', label: 'Melhoria', color: '#2196f3' },
 ];
 
 const ambientes = [
@@ -153,6 +153,7 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                             onClick={() => onRemove(index)}
                             disabled={scenarios.length === 1 || disabled}
                             size="small"
+                            sx={{ color: '#d32f2f' }}
                         >
                             <DeleteIcon />
                         </IconButton>
@@ -249,7 +250,7 @@ export function FailureForm() {
             demandNumber: '',
             userStoryId: '',
             title: '',
-            severity: 'Medium',
+            severity: 'Normal',
             environment: 'Production',
             observations: '',
             givenWhenThen: [{ given: '', when: '', then: '' }],
@@ -659,6 +660,7 @@ export function FailureForm() {
                                                     onClick={() => handleRemoveAttachment(attachment.id)}
                                                     disabled={isSubmitting}
                                                     size="small"
+                                                    sx={{ color: '#d32f2f' }}
                                                 >
                                                     <DeleteIcon />
                                                 </IconButton>
