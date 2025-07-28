@@ -101,7 +101,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Middlewares
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Comentado para desenvolvimento - usar HTTP
 app.UseCors("AllowReactApp");
 app.UseRouting();
 
