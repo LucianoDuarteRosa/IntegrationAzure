@@ -276,22 +276,36 @@ export function LogsPage() {
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <TableContainer>
+                            <TableContainer
+                                sx={{
+                                    maxHeight: 'calc(96vh - 400px)',
+                                    overflowY: 'auto',
+                                    overflowX: 'hidden'
+                                }}
+                            >
                                 <Table stickyHeader>
                                     <TableHead>
                                         <TableRow
                                             sx={{
                                                 backgroundColor: theme.palette.mode === 'dark'
-                                                    ? 'rgba(255, 255, 255, 0.08)'
-                                                    : 'inherit'
+                                                    ? '#424242'
+                                                    : '#ffffff',
+                                                position: 'sticky',
+                                                top: 0,
+                                                zIndex: 100
                                             }}
                                         >
                                             <TableCell
                                                 sx={{
                                                     backgroundColor: theme.palette.mode === 'dark'
-                                                        ? 'rgba(255, 255, 255, 0.08)'
-                                                        : 'inherit',
-                                                    fontWeight: 'bold'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
                                                 }}
                                             >
                                                 Data/Hora
@@ -299,9 +313,14 @@ export function LogsPage() {
                                             <TableCell
                                                 sx={{
                                                     backgroundColor: theme.palette.mode === 'dark'
-                                                        ? 'rgba(255, 255, 255, 0.08)'
-                                                        : 'inherit',
-                                                    fontWeight: 'bold'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
                                                 }}
                                             >
                                                 Ação
@@ -309,9 +328,14 @@ export function LogsPage() {
                                             <TableCell
                                                 sx={{
                                                     backgroundColor: theme.palette.mode === 'dark'
-                                                        ? 'rgba(255, 255, 255, 0.08)'
-                                                        : 'inherit',
-                                                    fontWeight: 'bold'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
                                                 }}
                                             >
                                                 Entidade
@@ -319,9 +343,14 @@ export function LogsPage() {
                                             <TableCell
                                                 sx={{
                                                     backgroundColor: theme.palette.mode === 'dark'
-                                                        ? 'rgba(255, 255, 255, 0.08)'
-                                                        : 'inherit',
-                                                    fontWeight: 'bold'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
                                                 }}
                                             >
                                                 Usuário
@@ -329,9 +358,14 @@ export function LogsPage() {
                                             <TableCell
                                                 sx={{
                                                     backgroundColor: theme.palette.mode === 'dark'
-                                                        ? 'rgba(255, 255, 255, 0.08)'
-                                                        : 'inherit',
-                                                    fontWeight: 'bold'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
                                                 }}
                                             >
                                                 Nível
@@ -339,9 +373,14 @@ export function LogsPage() {
                                             <TableCell
                                                 sx={{
                                                     backgroundColor: theme.palette.mode === 'dark'
-                                                        ? 'rgba(255, 255, 255, 0.08)'
-                                                        : 'inherit',
-                                                    fontWeight: 'bold'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
                                                 }}
                                             >
                                                 ID da Entidade
