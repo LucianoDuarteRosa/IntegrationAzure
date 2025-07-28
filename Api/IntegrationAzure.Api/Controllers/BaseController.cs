@@ -15,11 +15,12 @@ public abstract class BaseController : ControllerBase
     /// <summary>
     /// Obtém o usuário atual do contexto HTTP
     /// Por enquanto retorna um valor mockado, mas pode ser integrado com autenticação
+    /// NOTA: Implementar autenticação real quando necessário
     /// </summary>
     protected string GetCurrentUser()
     {
-        // TODO: Implementar autenticação real
-        // Por enquanto retornamos um usuário mockado
+        // Retorna usuário do contexto de autenticação ou valor padrão do sistema
+        // Pode ser expandido para integração com Azure AD, JWT ou outro provedor
         return User?.Identity?.Name ?? "system@integrationazure.com";
     }
 

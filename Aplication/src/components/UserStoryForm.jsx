@@ -677,6 +677,8 @@ export function UserStoryForm() {
                                 </Box>
                             </Box>
 
+                            <Divider sx={{ my: 4 }} />
+
                             <Section title="História do Usuário" isFirst>
                                 <Stack spacing={3}>
                                     <TextField
@@ -710,6 +712,28 @@ export function UserStoryForm() {
                                         required
                                     />
                                 </Stack>
+                            </Section>
+
+                            <Section
+                                title="Critérios de Aceite"
+                                notApplicable={acceptanceCriteria.notApplicable}
+                                onNotApplicableChange={(checked) => setAcceptanceCriteria({
+                                    ...acceptanceCriteria,
+                                    notApplicable: checked
+                                })}
+                            >
+                                <TextField
+                                    fullWidth
+                                    multiline
+                                    rows={4}
+                                    value={acceptanceCriteria.content}
+                                    onChange={(e) => setAcceptanceCriteria({
+                                        ...acceptanceCriteria,
+                                        content: e.target.value
+                                    })}
+                                    disabled={acceptanceCriteria.notApplicable}
+                                    required
+                                />
                             </Section>
 
                             <Section
@@ -1262,28 +1286,6 @@ export function UserStoryForm() {
                             </Section>
 
                             <Section
-                                title="Critérios de Aceite"
-                                notApplicable={acceptanceCriteria.notApplicable}
-                                onNotApplicableChange={(checked) => setAcceptanceCriteria({
-                                    ...acceptanceCriteria,
-                                    notApplicable: checked
-                                })}
-                            >
-                                <TextField
-                                    fullWidth
-                                    multiline
-                                    rows={4}
-                                    value={acceptanceCriteria.content}
-                                    onChange={(e) => setAcceptanceCriteria({
-                                        ...acceptanceCriteria,
-                                        content: e.target.value
-                                    })}
-                                    disabled={acceptanceCriteria.notApplicable}
-                                    required
-                                />
-                            </Section>
-
-                            <Section
                                 title="Telas Ilustrativas"
                                 notApplicable={screenshots.notApplicable}
                                 onNotApplicableChange={(checked) => setScreenshots({ ...screenshots, notApplicable: checked })}
@@ -1393,7 +1395,7 @@ export function UserStoryForm() {
                                         </Button>
                                     </label>
                                 </Box>
-                                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', marginTop: 2 }}>
                                     Anexe documentos complementares (PDFs, planilhas, documentos de requisitos, etc.)
                                 </Typography>
 

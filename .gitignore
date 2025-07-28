@@ -399,3 +399,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Custom debug and development files
+debug-config.html
+crop_favicons.*
+*.debug.js
+*.debug.html

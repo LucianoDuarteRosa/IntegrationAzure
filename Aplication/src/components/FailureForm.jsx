@@ -335,8 +335,6 @@ export function FailureForm() {
                 attachments: attachments,
             };
 
-            console.log('Dados da falha a serem enviados:', failureData);
-
             // Simulação de envio (descomente quando a API estiver pronta)
             // const result = await failureService.create(failureData);
 
