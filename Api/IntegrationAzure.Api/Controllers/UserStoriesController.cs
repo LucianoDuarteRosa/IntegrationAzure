@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using IntegrationAzure.Api.Application.Services;
 using IntegrationAzure.Api.Application.DTOs;
 using FluentValidation;
+using System.ComponentModel.DataAnnotations;
 
 namespace IntegrationAzure.Api.Controllers
 {
@@ -74,10 +75,28 @@ namespace IntegrationAzure.Api.Controllers
         /// <param name="createDto">Dados da história de usuário a ser criada</param>
         /// <returns>História de usuário criada</returns>
         [HttpPost]
-        public async Task<ActionResult<ApiResponseDto<UserStoryDto>>> Create([FromBody] CreateUserStoryDto createDto)
+        public async Task<ActionResult<ApiResponseDto<UserStoryDto>>> Create([FromBody][Required] CreateUserStoryDto createDto)
         {
             try
             {
+                // Verificar se o ModelState é válido
+                if (!ModelState.IsValid)
+                {
+                    return ValidationErrorResponse<UserStoryDto>(ModelState);
+                }
+
+                // Log para depuração
+                Console.WriteLine($"Received createDto: DemandNumber={createDto?.DemandNumber}, Title={createDto?.Title}, Priority={createDto?.Priority}");
+
+                if (createDto == null)
+                {
+                    return ErrorResponse<UserStoryDto>(
+                        "Dados de entrada inválidos",
+                        new List<string> { "O objeto createDto é obrigatório" },
+                        400
+                    );
+                }
+
                 // Validação manual se o validador estiver disponível
                 if (_createValidator != null)
                 {

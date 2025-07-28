@@ -18,7 +18,6 @@ import {
     FormControlLabel,
     Stack,
     Divider,
-    FormGroup,
     Grid,
     Alert,
     CircularProgress,
@@ -39,7 +38,6 @@ const schema = yup.object().shape({
     priority: yup.string().required('Prioridade é obrigatória'),
 });
 
-// Simulação de demandas disponíveis
 const demandas = [
     { id: 'DEM-001', title: 'Demanda 1' },
     { id: 'DEM-002', title: 'Demanda 2' },
@@ -277,14 +275,73 @@ export function UserStoryForm() {
         setError('');
 
         try {
-            // Preparar os dados para enviar para a API
+            // Mapeamento dos valores de prioridade para os números do enum
+            const priorityMap = {
+                'Low': 1,
+                'Medium': 2,
+                'High': 3,
+                'Critical': 4
+            };
+
+            // Preparar os dados completos para enviar para a API
             const userStoryData = {
                 demandNumber: data.demandNumber,
                 title: data.title,
-                description: `Como: ${userStory.como}\nQuero: ${userStory.quero}\nPara: ${userStory.para}`,
-                priority: data.priority,
-                acceptanceCriteria: acceptanceCriteria.content || 'Não especificado'
+                priority: priorityMap[data.priority] || 2, // Default para Medium
+                acceptanceCriteria: acceptanceCriteria.content || 'Não especificado',
+
+                // História do usuário (como/quero/para)
+                userStory: {
+                    como: userStory.como,
+                    quero: userStory.quero,
+                    para: userStory.para
+                },
+
+                // Seções opcionais
+                impact: impact.notApplicable ? null : {
+                    items: impact.items.filter(item => item.current.trim() || item.expected.trim())
+                },
+
+                objective: objective.notApplicable ? null : {
+                    fields: objective.fields.filter(field => field.content.trim())
+                },
+
+                screenshots: screenshots.notApplicable ? null : {
+                    items: screenshots.items.map(file => ({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type
+                    }))
+                },
+
+                formFields: fields.notApplicable ? null : {
+                    items: fields.items.filter(field => field.name.trim())
+                },
+
+                messages: messages.notApplicable ? null : {
+                    items: messages.items.filter(item => item.content.trim())
+                },
+
+                businessRules: rules.notApplicable ? null : {
+                    items: rules.items.filter(item => item.content.trim())
+                },
+
+                scenarios: scenarios.notApplicable ? null : {
+                    items: scenarios.items.filter(scenario =>
+                        scenario.given.trim() || scenario.when.trim() || scenario.then.trim()
+                    )
+                },
+
+                attachments: files.notApplicable ? null : {
+                    items: files.items.map(file => ({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type
+                    }))
+                }
             };
+
+            console.log('Dados que serão enviados para a API:', JSON.stringify(userStoryData, null, 2));
 
             await userStoryService.create(userStoryData);
             setSuccess(true);
@@ -295,7 +352,16 @@ export function UserStoryForm() {
             }, 2000);
 
         } catch (err) {
-            setError(err.message || 'Erro ao criar história do usuário');
+            console.error('Erro completo:', err);
+
+            // Tratamento específico para diferentes tipos de erro
+            if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+                setError(`Erro de validação: ${err.errors.join(', ')}`);
+            } else if (err.message) {
+                setError(err.message);
+            } else {
+                setError('Erro ao criar história do usuário');
+            }
         } finally {
             setLoading(false);
         }

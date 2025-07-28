@@ -27,15 +27,23 @@ builder.Services.AddScoped<IRepository<Attachment>, Repository<Attachment>>();
 builder.Services.AddScoped<UserStoryService>();
 builder.Services.AddScoped<IssueService>();
 builder.Services.AddScoped<FailureService>();
+builder.Services.AddScoped<MarkdownGeneratorService>();
 
-// Registro dos validadores existentes (sem UserStory por enquanto)
+// Registro dos validadores
+builder.Services.AddScoped<IValidator<CreateUserStoryDto>, CreateUserStoryDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateIssueDto>, CreateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateIssueDto>, UpdateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateFailureDto>, CreateFailureDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateFailureDto>, UpdateFailureDtoValidator>();
 
 // Configuração de Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configuração para melhor serialização de enums
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Manter nomes originais
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 
 // Configuração de CORS para o frontend React
 builder.Services.AddCors(options =>

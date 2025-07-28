@@ -11,11 +11,14 @@ namespace IntegrationAzure.Api.Application.Services;
 public class UserStoryService
 {
     private readonly IUserStoryRepository _userStoryRepository;
+    private readonly MarkdownGeneratorService _markdownGenerator;
 
     public UserStoryService(
-        IUserStoryRepository userStoryRepository)
+        IUserStoryRepository userStoryRepository,
+        MarkdownGeneratorService markdownGenerator)
     {
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
+        _markdownGenerator = markdownGenerator ?? throw new ArgumentNullException(nameof(markdownGenerator));
     }
 
     /// <summary>
@@ -37,13 +40,16 @@ public class UserStoryService
                 };
             }
 
+            // Gerar a descrição em Markdown a partir dos dados estruturados
+            var markdownDescription = _markdownGenerator.GenerateUserStoryDescription(dto);
+
             // Criar a entidade UserStory
             var userStory = new UserStory
             {
                 DemandNumber = dto.DemandNumber,
                 Title = dto.Title,
                 AcceptanceCriteria = dto.AcceptanceCriteria,
-                Description = dto.Description,
+                Description = markdownDescription, // Descrição gerada em Markdown
                 Priority = dto.Priority,
                 CreatedBy = currentUser,
                 Status = UserStoryStatus.New
