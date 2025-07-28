@@ -1,4 +1,4 @@
-import { AppBar, Box, Toolbar, Typography, IconButton } from '@mui/material';
+import { AppBar, Box, Toolbar, Typography, IconButton, Button } from '@mui/material';
 import { Logout as LogoutIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,11 +14,27 @@ export function Navbar() {
         navigate('/');
     };
 
+    const handleLogoClick = () => {
+        navigate('/dashboard');
+    };
+
     return (
         <AppBar position="fixed">
             <Toolbar>
                 <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-                    <IntegrationLogo size="small" isNavbar={true} />
+                    <Button
+                        onClick={handleLogoClick}
+                        sx={{
+                            p: 0,
+                            textTransform: 'none',
+                            '&:hover': {
+                                backgroundColor: 'transparent',
+                                opacity: 0.8
+                            }
+                        }}
+                    >
+                        <IntegrationLogo size="small" isNavbar={true} />
+                    </Button>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <ThemeToggle />

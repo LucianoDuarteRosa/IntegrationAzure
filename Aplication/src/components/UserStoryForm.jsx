@@ -27,6 +27,7 @@ import {
     Add as AddIcon,
     AttachFile as AttachFileIcon,
     Visibility as VisibilityIcon,
+    Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
@@ -341,8 +342,6 @@ export function UserStoryForm() {
                 }
             };
 
-            console.log('Dados que serão enviados para a API:', JSON.stringify(userStoryData, null, 2));
-
             await userStoryService.create(userStoryData);
             setSuccess(true);
 
@@ -394,6 +393,22 @@ export function UserStoryForm() {
                         maxWidth: '1200px'
                     }}
                 >
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
+                        <Typography
+                            variant="h4"
+                            component="h1"
+                            sx={{
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1
+                            }}
+                        >
+                            <AssignmentIcon sx={{ fontSize: '2.5rem' }} />
+                            Nova História
+                        </Typography>
+                    </Box>
                     <Paper
                         elevation={3}
                         sx={{
@@ -402,18 +417,7 @@ export function UserStoryForm() {
                             maxWidth: '1000px'
                         }}
                     >
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
-                            <Typography
-                                variant="h4"
-                                component="h1"
-                                sx={{
-                                    fontWeight: 'bold',
-                                    textAlign: 'center'
-                                }}
-                            >
-                                Nova História
-                            </Typography>
-                        </Box>
+
 
                         {error && (
                             <Alert severity="error" sx={{ mb: 3 }}>

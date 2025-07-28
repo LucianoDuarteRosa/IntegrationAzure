@@ -11,15 +11,18 @@ namespace IntegrationAzure.Api.Controllers
     public class UserStoriesController : BaseController
     {
         private readonly UserStoryService _userStoryService;
+        private readonly LogService _logService;
         private readonly IValidator<CreateUserStoryDto>? _createValidator;
         private readonly IValidator<UpdateUserStoryDto>? _updateValidator;
 
         public UserStoriesController(
             UserStoryService userStoryService,
+            LogService logService,
             IValidator<CreateUserStoryDto>? createValidator = null,
             IValidator<UpdateUserStoryDto>? updateValidator = null)
         {
             _userStoryService = userStoryService;
+            _logService = logService;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
         }
@@ -85,9 +88,6 @@ namespace IntegrationAzure.Api.Controllers
                     return ValidationErrorResponse<UserStoryDto>(ModelState);
                 }
 
-                // Log para depuração
-                Console.WriteLine($"Received createDto: DemandNumber={createDto?.DemandNumber}, Title={createDto?.Title}, Priority={createDto?.Priority}");
-
                 if (createDto == null)
                 {
                     return ErrorResponse<UserStoryDto>(
@@ -104,6 +104,17 @@ namespace IntegrationAzure.Api.Controllers
                     if (!validationResult.IsValid)
                     {
                         var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+
+                        // Log de erro de validação
+                        await _logService.LogActionAsync(
+                            "CREATE_FAILED",
+                            "UserStory",
+                            null,
+                            GetCurrentUser(),
+                            $"Validation errors: {string.Join(", ", errors)}",
+                            Domain.Entities.LogLevel.Warning
+                        );
+
                         return ErrorResponse<UserStoryDto>(
                             "Dados de entrada inválidos",
                             errors,
@@ -117,13 +128,43 @@ namespace IntegrationAzure.Api.Controllers
 
                 if (result.Success && result.Data != null)
                 {
+                    // Log de sucesso
+                    await _logService.LogActionAsync(
+                        "CREATE_SUCCESS",
+                        "UserStory",
+                        result.Data.Id.ToString(),
+                        currentUser,
+                        $"Created: {result.Data.Title} (#{result.Data.DemandNumber})",
+                        Domain.Entities.LogLevel.Success
+                    );
+
                     return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
                 }
+
+                // Log de erro do serviço
+                await _logService.LogActionAsync(
+                    "CREATE_FAILED",
+                    "UserStory",
+                    null,
+                    currentUser,
+                    result.Message,
+                    Domain.Entities.LogLevel.Error
+                );
 
                 return ProcessServiceResponse(result);
             }
             catch (Exception ex)
             {
+                // Log de erro crítico
+                await _logService.LogActionAsync(
+                    "CREATE_ERROR",
+                    "UserStory",
+                    null,
+                    GetCurrentUser(),
+                    $"Exception: {ex.Message}",
+                    Domain.Entities.LogLevel.Error
+                );
+
                 return ErrorResponse<UserStoryDto>(
                     "Erro interno do servidor",
                     new List<string> { ex.Message },

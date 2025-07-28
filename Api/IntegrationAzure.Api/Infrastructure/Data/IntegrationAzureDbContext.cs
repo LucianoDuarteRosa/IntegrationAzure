@@ -19,6 +19,7 @@ public class IntegrationAzureDbContext : DbContext
     public DbSet<Issue> Issues { get; set; }
     public DbSet<Failure> Failures { get; set; }
     public DbSet<Attachment> Attachments { get; set; }
+    public DbSet<Log> Logs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -163,6 +164,33 @@ public class IntegrationAzureDbContext : DbContext
 
         modelBuilder.Entity<Failure>()
             .Property(e => e.Status)
+            .HasConversion<string>();
+
+        // Configurações para Log
+        modelBuilder.Entity<Log>(entity =>
+        {
+            entity.ToTable("logs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Action).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Entity).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.EntityId).HasMaxLength(100);
+            entity.Property(e => e.UserId).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Details).HasMaxLength(500);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.UserAgent).HasMaxLength(500);
+            entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
+
+            // Índices para performance
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.Entity);
+            entity.HasIndex(e => e.Level);
+            entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // Configuração de enum para Log
+        modelBuilder.Entity<Log>()
+            .Property(e => e.Level)
             .HasConversion<string>();
     }
 

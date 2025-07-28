@@ -21,12 +21,14 @@ builder.Services.AddDbContext<IntegrationAzureDbContext>(options =>
 builder.Services.AddScoped<IUserStoryRepository, UserStoryRepository>();
 builder.Services.AddScoped<IIssueRepository, IssueRepository>();
 builder.Services.AddScoped<IFailureRepository, FailureRepository>();
+builder.Services.AddScoped<ILogRepository, LogRepository>();
 builder.Services.AddScoped<IRepository<Attachment>, Repository<Attachment>>();
 
 // Registro dos serviços de aplicação
 builder.Services.AddScoped<UserStoryService>();
 builder.Services.AddScoped<IssueService>();
 builder.Services.AddScoped<FailureService>();
+builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<MarkdownGeneratorService>();
 
 // Registro dos validadores

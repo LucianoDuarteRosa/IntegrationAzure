@@ -4,6 +4,7 @@ import { CustomThemeProvider } from './contexts/ThemeContext';
 import { Login } from './pages/Login';
 import { Home } from './components/Home';
 import { UserStoryForm } from './components/UserStoryForm';
+import { LogsPage } from './pages/LogsPage';
 import { CircularProgress, Box } from '@mui/material';
 
 function PrivateRoute({ children }) {
@@ -92,7 +93,7 @@ function App() {
               path="/logs"
               element={
                 <PrivateRoute>
-                  <div>Em desenvolvimento</div>
+                  <LogsPage />
                 </PrivateRoute>
               }
             />
