@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../hooks/useNotifications';
 import { IntegrationLogo } from '../components/IntegrationLogo';
 import {
     Container,
@@ -9,21 +10,19 @@ import {
     Button,
     Typography,
     Paper,
-    CircularProgress,
-    Alert
+    CircularProgress
 } from '@mui/material';
 
 export function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
+    const { error } = useNotifications();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setIsLoading(true);
 
         try {
@@ -32,14 +31,11 @@ export function Login() {
             if (result.success) {
                 navigate('/dashboard');
             } else {
-                setError(result.message || 'Erro ao fazer login');
-                if (result.errors && result.errors.length > 0) {
-                    setError(result.errors.join(', '));
-                }
+                error.validation(result.errors || [result.message || 'Credenciais inválidas']);
             }
         } catch (error) {
             console.error('Erro no login:', error);
-            setError('Erro interno. Tente novamente.');
+            error.connection();
         } finally {
             setIsLoading(false);
         }
@@ -101,11 +97,6 @@ export function Login() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
-                            {error && (
-                                <Alert severity="error" sx={{ mt: 2 }}>
-                                    {error}
-                                </Alert>
-                            )}
                             <Button
                                 type="submit"
                                 fullWidth

@@ -26,14 +26,14 @@ export function Home() {
             path: '/nova-historia'
         },
         {
-            icon: IssueIcon,
-            title: 'Nova Issue',
-            path: '/nova-issue'
-        },
-        {
             icon: FalhaIcon,
             title: 'Nova Falha',
             path: '/nova-falha'
+        },
+        {
+            icon: IssueIcon,
+            title: 'Nova Issue',
+            path: '/nova-issue'
         },
         {
             icon: UsersIcon,

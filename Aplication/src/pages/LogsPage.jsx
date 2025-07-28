@@ -19,13 +19,13 @@ import {
     Button,
     Stack,
     CircularProgress,
-    Alert,
     Grid
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Refresh as RefreshIcon, FilterList as FilterIcon, Assessment as AssessmentIcon } from '@mui/icons-material';
 import { Navbar } from '../components/Navbar';
 import { logService } from '../services';
+import { useNotifications } from '../hooks/useNotifications';
 
 const LogLevel = {
     Info: 1,
@@ -50,9 +50,9 @@ const LogLevelColors = {
 
 export function LogsPage() {
     const theme = useTheme();
+    const { error } = useNotifications();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const [filters, setFilters] = useState({
         entity: '',
         level: '',
@@ -96,7 +96,6 @@ export function LogsPage() {
     const loadLogsWithFilters = async (customFilters = null) => {
         try {
             setLoading(true);
-            setError('');
 
             const filtersToUse = customFilters || filters;
             // Remove filtros vazios
@@ -109,10 +108,11 @@ export function LogsPage() {
             if (response && response.Success) {
                 setLogs(response.Data || []);
             } else {
-                setError(response?.message || 'Erro ao carregar logs');
+                error.load('logs', [response?.message || 'Resposta inválida do servidor']);
             }
         } catch (err) {
-            setError(err.message || 'Erro ao carregar logs');
+            console.error('Erro na requisição completa:', err);
+            error.connection();
         } finally {
             setLoading(false);
         }
@@ -270,12 +270,6 @@ export function LogsPage() {
                                 Atualizar
                             </Button>
                         </Box>
-
-                        {error && (
-                            <Box sx={{ p: 2 }}>
-                                <Alert severity="error">{error}</Alert>
-                            </Box>
-                        )}
 
                         {loading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>

@@ -28,18 +28,6 @@ public class UserStoryService
     {
         try
         {
-            // Verificar se já existe uma história com o mesmo número de demanda
-            var existingStories = await _userStoryRepository.GetByDemandNumberAsync(dto.DemandNumber);
-            if (existingStories.Any())
-            {
-                return new ApiResponseDto<UserStoryDto>
-                {
-                    Success = false,
-                    Message = "Já existe uma história com este número de demanda",
-                    Errors = new List<string> { "Número de demanda duplicado" }
-                };
-            }
-
             // Gerar a descrição em Markdown a partir dos dados estruturados
             var markdownDescription = _markdownGenerator.GenerateUserStoryDescription(dto);
 

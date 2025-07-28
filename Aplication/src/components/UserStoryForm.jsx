@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { userStoryService } from '../services/userStoryService';
+import { useNotifications } from '../hooks/useNotifications';
 import {
     Box,
     Container,
@@ -190,6 +191,7 @@ const FieldDefinition = ({ field, onChange, onRemove }) => (
 
 export function UserStoryForm() {
     const navigate = useNavigate();
+    const { showSuccess, showError } = useNotifications();
     const [files, setFiles] = useState({
         notApplicable: false,
         items: []
@@ -254,8 +256,6 @@ export function UserStoryForm() {
     });
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(schema)
@@ -273,7 +273,6 @@ export function UserStoryForm() {
 
     const onSubmit = async (data) => {
         setLoading(true);
-        setError('');
 
         try {
             // Mapeamento dos valores de prioridade para os números do enum
@@ -286,80 +285,109 @@ export function UserStoryForm() {
 
             // Preparar os dados completos para enviar para a API
             const userStoryData = {
-                demandNumber: data.demandNumber,
-                title: data.title,
-                priority: priorityMap[data.priority] || 2, // Default para Medium
-                acceptanceCriteria: acceptanceCriteria.content || 'Não especificado',
+                DemandNumber: data.demandNumber,
+                Title: data.title,
+                Priority: priorityMap[data.priority] || 2, // Default para Medium
+                AcceptanceCriteria: acceptanceCriteria.content || 'Não especificado',
 
                 // História do usuário (como/quero/para)
-                userStory: {
-                    como: userStory.como,
-                    quero: userStory.quero,
-                    para: userStory.para
+                UserStory: {
+                    Como: userStory.como,
+                    Quero: userStory.quero,
+                    Para: userStory.para
                 },
 
                 // Seções opcionais
-                impact: impact.notApplicable ? null : {
-                    items: impact.items.filter(item => item.current.trim() || item.expected.trim())
-                },
-
-                objective: objective.notApplicable ? null : {
-                    fields: objective.fields.filter(field => field.content.trim())
-                },
-
-                screenshots: screenshots.notApplicable ? null : {
-                    items: screenshots.items.map(file => ({
-                        name: file.name,
-                        size: file.size,
-                        type: file.type
+                Impact: impact.notApplicable ? null : {
+                    Items: impact.items.filter(item => item.current.trim() || item.expected.trim()).map(item => ({
+                        Current: item.current,
+                        Expected: item.expected
                     }))
                 },
 
-                formFields: fields.notApplicable ? null : {
-                    items: fields.items.filter(field => field.name.trim())
+                Objective: objective.notApplicable ? null : {
+                    Fields: objective.fields.filter(field => field.content.trim()).map(field => ({
+                        Content: field.content
+                    }))
                 },
 
-                messages: messages.notApplicable ? null : {
-                    items: messages.items.filter(item => item.content.trim())
+                Screenshots: screenshots.notApplicable ? null : {
+                    Items: screenshots.items.map(file => ({
+                        Name: file.name,
+                        Size: file.size,
+                        Type: file.type
+                    }))
                 },
 
-                businessRules: rules.notApplicable ? null : {
-                    items: rules.items.filter(item => item.content.trim())
+                FormFields: fields.notApplicable ? null : {
+                    Items: fields.items.filter(field => field.name.trim()).map(field => ({
+                        Name: field.name,
+                        Type: field.type,
+                        Size: field.size,
+                        Required: field.required
+                    }))
                 },
 
-                scenarios: scenarios.notApplicable ? null : {
-                    items: scenarios.items.filter(scenario =>
+                Messages: messages.notApplicable ? null : {
+                    Items: messages.items.filter(item => item.content.trim()).map(item => ({
+                        Content: item.content
+                    }))
+                },
+
+                BusinessRules: rules.notApplicable ? null : {
+                    Items: rules.items.filter(item => item.content.trim()).map(item => ({
+                        Content: item.content
+                    }))
+                },
+
+                Scenarios: scenarios.notApplicable ? null : {
+                    Items: scenarios.items.filter(scenario =>
                         scenario.given.trim() || scenario.when.trim() || scenario.then.trim()
-                    )
+                    ).map(scenario => ({
+                        Given: scenario.given,
+                        When: scenario.when,
+                        Then: scenario.then
+                    }))
                 },
 
-                attachments: files.notApplicable ? null : {
-                    items: files.items.map(file => ({
-                        name: file.name,
-                        size: file.size,
-                        type: file.type
+                Attachments: files.notApplicable ? null : {
+                    Items: files.items.map(file => ({
+                        Name: file.name,
+                        Size: file.size,
+                        Type: file.type
                     }))
                 }
             };
 
             await userStoryService.create(userStoryData);
-            setSuccess(true);
 
-            // Redirecionar para dashboard após 2 segundos
+            // Mostrar notificação de sucesso
+            showSuccess('História de usuário criada com sucesso!');
+
+            // Redirecionar para dashboard após mostrar a notificação
             setTimeout(() => {
                 navigate('/dashboard');
-            }, 2000);
+            }, 1500);
 
         } catch (err) {
             console.error('Erro completo:', err);
+            console.error('Dados enviados:', userStoryData);
 
             // Tratamento específico para diferentes tipos de erro
             if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
-                setError(`Erro de validação: ${err.errors.join(', ')}`);
+                showError(err.errors.join(', '));
             } else if (err.message) {
-                setError(err.message);
+                showError(err.message);
+            } else if (err.response) {
+                // Erro de resposta da API
+                const apiError = err.response.data;
+                if (apiError.errors && apiError.errors.length > 0) {
+                    showError(apiError.errors.join(', '));
+                } else {
+                    showError(apiError.message || 'Erro na resposta da API');
+                }
             } else {
-                setError('Erro ao criar história do usuário');
+                showError('Erro ao criar história de usuário');
             }
         } finally {
             setLoading(false);
@@ -417,20 +445,6 @@ export function UserStoryForm() {
                             maxWidth: '1000px'
                         }}
                     >
-
-
-                        {error && (
-                            <Alert severity="error" sx={{ mb: 3 }}>
-                                {error}
-                            </Alert>
-                        )}
-
-                        {success && (
-                            <Alert severity="success" sx={{ mb: 3 }}>
-                                História criada com sucesso! Redirecionando...
-                            </Alert>
-                        )}
-
                         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
                             <Stack spacing={3} sx={{ mb: 4 }}>
                                 <Controller
