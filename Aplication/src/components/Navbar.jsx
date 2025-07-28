@@ -30,6 +30,14 @@ export function Navbar() {
                             '&:hover': {
                                 backgroundColor: 'transparent',
                                 opacity: 0.8
+                            },
+                            '&:focus': {
+                                outline: 'none',
+                                boxShadow: 'none'
+                            },
+                            '&:active': {
+                                outline: 'none',
+                                boxShadow: 'none'
                             }
                         }}
                     >
