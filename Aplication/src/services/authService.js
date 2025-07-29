@@ -31,6 +31,7 @@ export const authService = {
             // Verifica se a resposta foi bem-sucedida
             if (response.ok && data.success === true) {
                 const userData = data.data;
+                console.log('authService.login - raw userData:', userData); // Debug
 
                 // Normalizar os dados do usuário para o formato esperado pelo frontend
                 const normalizedUser = {
@@ -45,6 +46,8 @@ export const authService = {
                     },
                     token: 'api-token-' + Date.now() // Por enquanto, gera um token mock
                 };
+
+                console.log('authService.login - normalizedUser:', normalizedUser); // Debug
 
                 // Salvar no localStorage
                 localStorage.setItem('authToken', normalizedUser.token);
@@ -152,6 +155,18 @@ export const authService = {
             return remaining > 0 ? remaining : 0;
         } catch {
             return 0;
+        }
+    },
+
+    /**
+     * Atualiza os dados do usuário na sessão atual
+     */
+    updateCurrentUser(userData) {
+        try {
+            localStorage.setItem('currentUser', JSON.stringify(userData));
+            return true;
+        } catch {
+            return false;
         }
     }
 };

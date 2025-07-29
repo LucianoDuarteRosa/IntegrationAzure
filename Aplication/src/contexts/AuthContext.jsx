@@ -67,6 +67,13 @@ export function AuthProvider({ children }) {
         return authService.getSessionTimeRemaining();
     };
 
+    // Função para atualizar dados do usuário
+    const updateUser = (userData) => {
+        setUser(userData);
+        // Também atualiza no localStorage/sessionStorage
+        authService.updateCurrentUser(userData);
+    };
+
     return (
         <AuthContext.Provider value={{
             user,
@@ -75,7 +82,8 @@ export function AuthProvider({ children }) {
             isLoading,
             isAuthenticated,
             getCurrentUser,
-            getSessionTimeRemaining
+            getSessionTimeRemaining,
+            updateUser
         }}>
             {children}
         </AuthContext.Provider>

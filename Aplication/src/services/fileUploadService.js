@@ -48,6 +48,8 @@ const fileUploadService = {
     getImageUrl(imagePath) {
         if (!imagePath) return null;
 
+        console.log('fileUploadService.getImageUrl - input:', imagePath); // Debug
+
         // Se já é uma URL completa, retorna como está
         if (imagePath.startsWith('http')) {
             return imagePath;
@@ -55,6 +57,7 @@ const fileUploadService = {
 
         // Constrói a URL baseada na configuração da API
         const baseURL = api.defaults.baseURL?.replace('/api', '') || 'http://localhost:5066';
+        console.log('fileUploadService.getImageUrl - baseURL:', baseURL); // Debug
 
         // Se é apenas o nome do arquivo, adiciona o caminho completo
         let fullPath = imagePath;
@@ -62,7 +65,9 @@ const fileUploadService = {
             fullPath = `/uploads/users/${imagePath}`;
         }
 
-        return `${baseURL}${fullPath}`;
+        const finalURL = `${baseURL}${fullPath}`;
+        console.log('fileUploadService.getImageUrl - finalURL:', finalURL); // Debug
+        return finalURL;
     },
 
     /**
