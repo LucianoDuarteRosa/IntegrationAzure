@@ -38,7 +38,6 @@ builder.Services.AddScoped<IValidator<CreateUserStoryDto>, CreateUserStoryDtoVal
 builder.Services.AddScoped<IValidator<CreateIssueDto>, CreateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateIssueDto>, UpdateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateFailureDto>, CreateFailureDtoValidator>();
-builder.Services.AddScoped<IValidator<UpdateFailureDto>, UpdateFailureDtoValidator>();
 
 // Configuração de Controllers
 builder.Services.AddControllers()

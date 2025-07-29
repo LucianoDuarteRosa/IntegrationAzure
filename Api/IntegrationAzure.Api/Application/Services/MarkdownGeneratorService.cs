@@ -1,5 +1,6 @@
 using System.Text;
 using IntegrationAzure.Api.Application.DTOs;
+using IntegrationAzure.Api.Domain.Entities;
 
 namespace IntegrationAzure.Api.Application.Services;
 
@@ -291,7 +292,7 @@ public class MarkdownGeneratorService
         string[] sizes = { "B", "KB", "MB", "GB" };
         double len = bytes;
         int order = 0;
-        
+
         while (len >= 1024 && order < sizes.Length - 1)
         {
             order++;
@@ -300,4 +301,83 @@ public class MarkdownGeneratorService
 
         return $"{len:0.##} {sizes[order]}";
     }
+
+    /// <summary>
+    /// Gera a descrição completa em Markdown para uma falha
+    /// </summary>
+    public string GenerateFailureDescription(CreateFailureDto dto, List<FailureScenarioDto>? scenarios = null, string? observations = null)
+    {
+        var md = new StringBuilder();
+
+        // 1. Informações Básicas
+        md.AppendLine("## 🐛 Informações da Falha");
+        md.AppendLine();
+        md.AppendLine($"**📋 Número:** {dto.FailureNumber}");
+        md.AppendLine($"**📅 Ocorrência:** {dto.OccurredAt:dd/MM/yyyy HH:mm:ss}");
+        md.AppendLine($"**🌐 Ambiente:** {dto.Environment}");
+        md.AppendLine($"**⚠️ Severidade:** {GetSeverityText(dto.Severity)}");
+        md.AppendLine();
+
+        // 2. Cenários da Falha (Dado que/Quando/Então)
+        if (scenarios != null && scenarios.Any())
+        {
+            md.AppendLine("## 🔄 Cenários da Falha");
+            md.AppendLine();
+
+            for (int i = 0; i < scenarios.Count; i++)
+            {
+                var scenario = scenarios[i];
+                md.AppendLine($"### Cenário {i + 1}");
+                md.AppendLine();
+                md.AppendLine($"**🎯 Dado que:** {scenario.Given}");
+                md.AppendLine();
+                md.AppendLine($"**▶️ Quando:** {scenario.When}");
+                md.AppendLine();
+                md.AppendLine($"**❌ Então:** {scenario.Then}");
+                md.AppendLine();
+            }
+        }
+
+        // 3. Observações Adicionais
+        if (!string.IsNullOrEmpty(observations))
+        {
+            md.AppendLine("## 📝 Observações Adicionais");
+            md.AppendLine();
+            md.AppendLine(observations);
+            md.AppendLine();
+        }
+
+        // 4. Informações de Relatório
+        if (!string.IsNullOrEmpty(dto.ReportedBy))
+        {
+            md.AppendLine("## 👤 Informações do Relato");
+            md.AppendLine();
+            md.AppendLine($"**Reportado por:** {dto.ReportedBy}");
+            md.AppendLine();
+        }
+
+        return md.ToString().Trim();
+    }
+
+    private string GetSeverityText(FailureSeverity severity)
+    {
+        return severity switch
+        {
+            FailureSeverity.Low => "🟢 Baixa",
+            FailureSeverity.Medium => "🟡 Média",
+            FailureSeverity.High => "🟠 Alta",
+            FailureSeverity.Critical => "🔴 Crítica",
+            _ => "❓ Não especificada"
+        };
+    }
+}
+
+/// <summary>
+/// DTO para representar cenários de falha (Dado que/Quando/Então)
+/// </summary>
+public class FailureScenarioDto
+{
+    public string Given { get; set; } = string.Empty;
+    public string When { get; set; } = string.Empty;
+    public string Then { get; set; } = string.Empty;
 }

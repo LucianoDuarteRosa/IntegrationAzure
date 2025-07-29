@@ -47,70 +47,9 @@ public class CreateFailureDtoValidator : AbstractValidator<CreateFailureDto>
             .WithMessage("Relator deve ter no máximo 100 caracteres")
             .When(x => !string.IsNullOrEmpty(x.ReportedBy));
 
-        RuleFor(x => x.AssignedTo)
-            .MaximumLength(100)
-            .WithMessage("Responsável deve ter no máximo 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.AssignedTo));
-
         RuleFor(x => x.Environment)
             .MaximumLength(200)
             .WithMessage("Ambiente deve ter no máximo 200 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Environment));
-
-        RuleFor(x => x.EstimatedImpactCost)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Custo estimado deve ser maior ou igual a zero")
-            .When(x => x.EstimatedImpactCost.HasValue);
-    }
-}
-
-/// <summary>
-/// Validador para atualização de falhas
-/// </summary>
-public class UpdateFailureDtoValidator : AbstractValidator<UpdateFailureDto>
-{
-    public UpdateFailureDtoValidator()
-    {
-        RuleFor(x => x.Title)
-            .MaximumLength(255)
-            .WithMessage("Título deve ter no máximo 255 caracteres")
-            .MinimumLength(5)
-            .WithMessage("Título deve ter pelo menos 5 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.Title));
-
-        RuleFor(x => x.Description)
-            .MinimumLength(10)
-            .WithMessage("Descrição deve ter pelo menos 10 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.Description));
-
-        RuleFor(x => x.Severity)
-            .IsInEnum()
-            .WithMessage("Severidade deve ser um valor válido")
-            .When(x => x.Severity.HasValue);
-
-        RuleFor(x => x.Status)
-            .IsInEnum()
-            .WithMessage("Status deve ser um valor válido")
-            .When(x => x.Status.HasValue);
-
-        RuleFor(x => x.AssignedTo)
-            .MaximumLength(100)
-            .WithMessage("Responsável deve ter no máximo 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.AssignedTo));
-
-        RuleFor(x => x.Environment)
-            .MaximumLength(200)
-            .WithMessage("Ambiente deve ter no máximo 200 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.Environment));
-
-        RuleFor(x => x.EstimatedImpactCost)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Custo estimado deve ser maior ou igual a zero")
-            .When(x => x.EstimatedImpactCost.HasValue);
-
-        RuleFor(x => x.DowntimeDuration)
-            .GreaterThanOrEqualTo(TimeSpan.Zero)
-            .WithMessage("Duração do downtime deve ser maior ou igual a zero")
-            .When(x => x.DowntimeDuration.HasValue);
     }
 }

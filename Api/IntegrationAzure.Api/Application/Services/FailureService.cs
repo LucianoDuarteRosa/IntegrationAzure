@@ -13,15 +13,18 @@ public class FailureService
     private readonly IFailureRepository _failureRepository;
     private readonly IIssueRepository _issueRepository;
     private readonly IUserStoryRepository _userStoryRepository;
+    private readonly MarkdownGeneratorService _markdownGenerator;
 
     public FailureService(
         IFailureRepository failureRepository,
         IIssueRepository issueRepository,
-        IUserStoryRepository userStoryRepository)
+        IUserStoryRepository userStoryRepository,
+        MarkdownGeneratorService markdownGenerator)
     {
         _failureRepository = failureRepository ?? throw new ArgumentNullException(nameof(failureRepository));
         _issueRepository = issueRepository ?? throw new ArgumentNullException(nameof(issueRepository));
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
+        _markdownGenerator = markdownGenerator ?? throw new ArgumentNullException(nameof(markdownGenerator));
     }
 
     /// <summary>
@@ -71,23 +74,20 @@ public class FailureService
                 }
             }
 
+            // Gerar a descrição em Markdown a partir dos dados estruturados
+            var markdownDescription = _markdownGenerator.GenerateFailureDescription(dto);
+
             var failure = new Failure
             {
                 FailureNumber = dto.FailureNumber,
                 Title = dto.Title,
-                Description = dto.Description,
+                Description = markdownDescription, // Descrição gerada em Markdown
                 Severity = dto.Severity,
                 OccurredAt = dto.OccurredAt,
                 ReportedBy = dto.ReportedBy,
-                AssignedTo = dto.AssignedTo,
                 Environment = dto.Environment,
-                SystemsAffected = dto.SystemsAffected,
-                ImpactDescription = dto.ImpactDescription,
-                StepsToReproduce = dto.StepsToReproduce,
-                WorkaroundSolution = dto.WorkaroundSolution,
                 IssueId = dto.IssueId,
                 UserStoryId = dto.UserStoryId,
-                EstimatedImpactCost = dto.EstimatedImpactCost,
                 CreatedBy = currentUser,
                 Status = FailureStatus.Reported
             };
@@ -101,7 +101,7 @@ public class FailureService
             {
                 Success = true,
                 Message = "Falha criada com sucesso",
-                Data = await MapToDtoAsync(createdFailure!)
+                Data = MapToDto(createdFailure!)
             };
         }
         catch (Exception ex)
@@ -137,7 +137,7 @@ public class FailureService
             {
                 Success = true,
                 Message = "Falha encontrada",
-                Data = await MapToDtoAsync(failure)
+                Data = MapToDto(failure)
             };
         }
         catch (Exception ex)
@@ -168,10 +168,8 @@ public class FailureService
                 Severity = f.Severity,
                 Status = f.Status,
                 OccurredAt = f.OccurredAt,
-                AssignedTo = f.AssignedTo,
                 CreatedAt = f.CreatedAt,
                 CreatedBy = f.CreatedBy,
-                DowntimeDuration = f.DowntimeDuration,
                 IssueTitle = f.Issue?.Title,
                 UserStoryTitle = f.UserStory?.Title,
                 AttachmentsCount = f.Attachments.Count
@@ -196,175 +194,9 @@ public class FailureService
     }
 
     /// <summary>
-    /// Atualiza uma falha
-    /// </summary>
-    public async Task<ApiResponseDto<FailureDto>> UpdateAsync(Guid id, UpdateFailureDto dto, string currentUser)
-    {
-        try
-        {
-            var failure = await _failureRepository.GetByIdAsync(id);
-
-            if (failure == null)
-            {
-                return new ApiResponseDto<FailureDto>
-                {
-                    Success = false,
-                    Message = "Falha não encontrada"
-                };
-            }
-
-            // Verificar se a issue existe (se fornecida)
-            if (dto.IssueId.HasValue)
-            {
-                var issue = await _issueRepository.GetByIdAsync(dto.IssueId.Value);
-                if (issue == null)
-                {
-                    return new ApiResponseDto<FailureDto>
-                    {
-                        Success = false,
-                        Message = "Issue não encontrada"
-                    };
-                }
-            }
-
-            // Verificar se a história de usuário existe (se fornecida)
-            if (dto.UserStoryId.HasValue)
-            {
-                var userStory = await _userStoryRepository.GetByIdAsync(dto.UserStoryId.Value);
-                if (userStory == null)
-                {
-                    return new ApiResponseDto<FailureDto>
-                    {
-                        Success = false,
-                        Message = "História de usuário não encontrada"
-                    };
-                }
-            }
-
-            // Atualizar propriedades não nulas
-            if (!string.IsNullOrEmpty(dto.Title))
-                failure.Title = dto.Title;
-
-            if (!string.IsNullOrEmpty(dto.Description))
-                failure.Description = dto.Description;
-
-            if (dto.Severity.HasValue)
-                failure.Severity = dto.Severity.Value;
-
-            if (dto.Status.HasValue)
-            {
-                failure.Status = dto.Status.Value;
-                if (dto.Status.Value == FailureStatus.Resolved)
-                {
-                    failure.ResolvedAt = DateTime.UtcNow;
-                }
-            }
-
-            if (dto.AssignedTo != null)
-                failure.AssignedTo = dto.AssignedTo;
-
-            if (dto.Environment != null)
-                failure.Environment = dto.Environment;
-
-            if (dto.SystemsAffected != null)
-                failure.SystemsAffected = dto.SystemsAffected;
-
-            if (dto.ImpactDescription != null)
-                failure.ImpactDescription = dto.ImpactDescription;
-
-            if (dto.StepsToReproduce != null)
-                failure.StepsToReproduce = dto.StepsToReproduce;
-
-            if (dto.WorkaroundSolution != null)
-                failure.WorkaroundSolution = dto.WorkaroundSolution;
-
-            if (dto.RootCauseAnalysis != null)
-                failure.RootCauseAnalysis = dto.RootCauseAnalysis;
-
-            if (dto.PermanentSolution != null)
-                failure.PermanentSolution = dto.PermanentSolution;
-
-            if (dto.DowntimeDuration.HasValue)
-                failure.DowntimeDuration = dto.DowntimeDuration;
-
-            if (dto.EstimatedImpactCost.HasValue)
-                failure.EstimatedImpactCost = dto.EstimatedImpactCost;
-
-            if (dto.IssueId != failure.IssueId)
-                failure.IssueId = dto.IssueId;
-
-            if (dto.UserStoryId != failure.UserStoryId)
-                failure.UserStoryId = dto.UserStoryId;
-
-            failure.UpdatedBy = currentUser;
-            failure.UpdatedAt = DateTime.UtcNow;
-
-            await _failureRepository.UpdateAsync(failure);
-            await _failureRepository.SaveChangesAsync();
-
-            var updatedFailure = await _failureRepository.GetWithAttachmentsAsync(id);
-
-            return new ApiResponseDto<FailureDto>
-            {
-                Success = true,
-                Message = "Falha atualizada com sucesso",
-                Data = await MapToDtoAsync(updatedFailure!)
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ApiResponseDto<FailureDto>
-            {
-                Success = false,
-                Message = "Erro interno do servidor",
-                Errors = new List<string> { ex.Message }
-            };
-        }
-    }
-
-    /// <summary>
-    /// Exclui uma falha
-    /// </summary>
-    public async Task<ApiResponseDto<bool>> DeleteAsync(Guid id)
-    {
-        try
-        {
-            var failure = await _failureRepository.GetByIdAsync(id);
-
-            if (failure == null)
-            {
-                return new ApiResponseDto<bool>
-                {
-                    Success = false,
-                    Message = "Falha não encontrada"
-                };
-            }
-
-            await _failureRepository.DeleteAsync(id);
-            await _failureRepository.SaveChangesAsync();
-
-            return new ApiResponseDto<bool>
-            {
-                Success = true,
-                Message = "Falha excluída com sucesso",
-                Data = true
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ApiResponseDto<bool>
-            {
-                Success = false,
-                Message = "Erro interno do servidor",
-                Errors = new List<string> { ex.Message }
-            };
-        }
-    }
-
-    /// <summary>
     /// Mapeia entidade para DTO
     /// </summary>
-    private async Task<FailureDto> MapToDtoAsync(Failure failure)
+    private FailureDto MapToDto(Failure failure)
     {
         IssueSummaryDto? issueSummary = null;
         if (failure.Issue != null)
@@ -411,21 +243,9 @@ public class FailureService
             Status = failure.Status,
             OccurredAt = failure.OccurredAt,
             ReportedBy = failure.ReportedBy,
-            AssignedTo = failure.AssignedTo,
             Environment = failure.Environment,
-            SystemsAffected = failure.SystemsAffected,
-            ImpactDescription = failure.ImpactDescription,
-            StepsToReproduce = failure.StepsToReproduce,
-            WorkaroundSolution = failure.WorkaroundSolution,
-            RootCauseAnalysis = failure.RootCauseAnalysis,
-            PermanentSolution = failure.PermanentSolution,
             CreatedAt = failure.CreatedAt,
-            UpdatedAt = failure.UpdatedAt,
-            ResolvedAt = failure.ResolvedAt,
             CreatedBy = failure.CreatedBy,
-            UpdatedBy = failure.UpdatedBy,
-            DowntimeDuration = failure.DowntimeDuration,
-            EstimatedImpactCost = failure.EstimatedImpactCost,
             IssueId = failure.IssueId,
             Issue = issueSummary,
             UserStoryId = failure.UserStoryId,

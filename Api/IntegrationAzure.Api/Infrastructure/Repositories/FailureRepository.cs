@@ -31,17 +31,6 @@ public class FailureRepository : Repository<Failure>, IFailureRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Failure>> GetByAssigneeAsync(string assignee)
-    {
-        if (string.IsNullOrWhiteSpace(assignee))
-            throw new ArgumentException("Assignee cannot be null or empty", nameof(assignee));
-
-        return await _dbSet
-            .Where(f => f.AssignedTo == assignee)
-            .OrderByDescending(f => f.OccurredAt)
-            .ToListAsync();
-    }
-
     public async Task<Failure?> GetWithAttachmentsAsync(Guid id)
     {
         return await _dbSet

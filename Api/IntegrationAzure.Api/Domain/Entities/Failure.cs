@@ -6,7 +6,7 @@ namespace IntegrationAzure.Api.Domain.Entities;
 /// Entidade que representa uma Falha/Incidente
 /// Para rastreamento de falhas em produção e incidentes críticos
 /// </summary>
-public class Failure : BaseEntity
+public class Failure : SimpleBaseEntity
 {
     [Required]
     [StringLength(50)]
@@ -29,22 +29,7 @@ public class Failure : BaseEntity
     [StringLength(100)]
     public string? ReportedBy { get; set; }
 
-    [StringLength(100)]
-    public string? AssignedTo { get; set; }
-
     public string? Environment { get; set; }
-
-    public string? SystemsAffected { get; set; }
-
-    public string? ImpactDescription { get; set; }
-
-    public string? StepsToReproduce { get; set; }
-
-    public string? WorkaroundSolution { get; set; }
-
-    public string? RootCauseAnalysis { get; set; }
-
-    public string? PermanentSolution { get; set; }
 
     // Relacionamento com anexos
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
@@ -55,12 +40,6 @@ public class Failure : BaseEntity
 
     public Guid? UserStoryId { get; set; }
     public virtual UserStory? UserStory { get; set; }
-
-    public DateTime? ResolvedAt { get; set; }
-
-    public TimeSpan? DowntimeDuration { get; set; }
-
-    public decimal? EstimatedImpactCost { get; set; }
 }
 
 /// <summary>

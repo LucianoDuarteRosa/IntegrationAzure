@@ -79,10 +79,7 @@ public class IntegrationAzureDbContext : DbContext
             entity.Property(e => e.Title).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Description).IsRequired();
             entity.Property(e => e.ReportedBy).HasMaxLength(100);
-            entity.Property(e => e.AssignedTo).HasMaxLength(100);
             entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
-            entity.Property(e => e.EstimatedImpactCost).HasColumnType("decimal(18,2)");
 
             // Relacionamentos opcionais
             entity.HasOne(e => e.Issue)
@@ -100,7 +97,6 @@ public class IntegrationAzureDbContext : DbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Severity);
             entity.HasIndex(e => e.OccurredAt);
-            entity.HasIndex(e => e.AssignedTo);
         });
 
         // Configurações para Attachment

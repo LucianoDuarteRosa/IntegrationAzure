@@ -10,7 +10,6 @@ public interface IFailureRepository : IRepository<Failure>
 {
     Task<IEnumerable<Failure>> GetByStatusAsync(FailureStatus status);
     Task<IEnumerable<Failure>> GetBySeverityAsync(FailureSeverity severity);
-    Task<IEnumerable<Failure>> GetByAssigneeAsync(string assignee);
     Task<Failure?> GetWithAttachmentsAsync(Guid id);
     Task<IEnumerable<Failure>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);
     Task<IEnumerable<Failure>> GetCriticalFailuresAsync();
