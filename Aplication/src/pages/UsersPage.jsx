@@ -79,30 +79,42 @@ export function UsersPage() {
             setLoading(true);
             const response = await userService.getUsers();
 
-            if (response && response.success) {
-                let userData = response.data || [];
+            // Verifica tanto 'success' quanto 'Success' (case-insensitive)
+            const isSuccess = response && (response.success === true || response.Success === true);
+
+            if (isSuccess) {
+                let userData = response.Data || response.data || [];
 
                 // Se for usuário comum, só mostra o próprio perfil
                 if (currentUser?.profile?.name === 'Usuário') {
-                    userData = userData.filter(u => u.email === currentUser.email);
+                    const currentUserEmail = currentUser.email;
+                    userData = userData.filter(u => (u.Email || u.email) === currentUserEmail);
                 }
 
                 setUsers(userData);
             } else {
-                error.load('usuários', [response?.message || 'Resposta inválida do servidor']);
+                error.load('usuários', [response?.message || response?.Message || 'Resposta inválida do servidor']);
             }
-        } catch {
+        } catch (err) {
             error.connection();
         } finally {
             setLoading(false);
         }
-    };
-
-    const loadProfiles = async () => {
+    }; const loadProfiles = async () => {
         try {
+            console.log('Carregando perfis...');
             const response = await profileService.getActiveProfiles();
-            if (response && response.success) {
-                setProfiles(response.data || []);
+            console.log('Resposta da API (perfis):', response);
+
+            // Verifica tanto 'success' quanto 'Success' (case-insensitive)
+            const isSuccess = response && (response.success === true || response.Success === true);
+
+            if (isSuccess) {
+                const profileData = response.Data || response.data || [];
+                console.log('Dados dos perfis:', profileData);
+                setProfiles(profileData);
+            } else {
+                console.error('Erro na resposta dos perfis:', response);
             }
         } catch (error) {
             console.error('Erro ao carregar perfis:', error);
@@ -125,11 +137,17 @@ export function UsersPage() {
 
     const getFilteredUsers = () => {
         return users.filter(user => {
-            const matchesProfile = !filters.profileId || user.profile.id === filters.profileId;
+            // Usar tanto PascalCase quanto camelCase para compatibilidade
+            const profile = user.Profile || user.profile;
+            const name = user.Name || user.name;
+            const nickname = user.Nickname || user.nickname;
+            const email = user.Email || user.email;
+
+            const matchesProfile = !filters.profileId || profile?.Id === filters.profileId || profile?.id === filters.profileId;
             const matchesSearch = !filters.search ||
-                user.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                user.nickname.toLowerCase().includes(filters.search.toLowerCase()) ||
-                user.email.toLowerCase().includes(filters.search.toLowerCase());
+                name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+                nickname?.toLowerCase().includes(filters.search.toLowerCase()) ||
+                email?.toLowerCase().includes(filters.search.toLowerCase());
 
             return matchesProfile && matchesSearch;
         });
@@ -139,10 +157,11 @@ export function UsersPage() {
         if (!currentUser) return false;
 
         const currentProfile = currentUser.profile?.name;
+        const userEmail = user.Email || user.email;
 
         // Usuário comum só pode editar o próprio perfil
         if (currentProfile === 'Usuário') {
-            return user.email === currentUser.email;
+            return userEmail === currentUser.email;
         }
 
         // Desenvolvedor e Administrador podem editar outros usuários
@@ -159,12 +178,13 @@ export function UsersPage() {
         if (!currentUser) return false;
 
         const currentProfile = currentUser.profile?.name;
+        const userEmail = user.Email || user.email;
 
         // Usuário comum não pode deletar ninguém
         if (currentProfile === 'Usuário') return false;
 
         // Não pode deletar o próprio usuário
-        if (user.email === currentUser.email) return false;
+        if (userEmail === currentUser.email) return false;
 
         return currentProfile === 'Desenvolvedor' || currentProfile === 'Administrador';
     };
@@ -195,17 +215,19 @@ export function UsersPage() {
 
             if (selectedUser) {
                 // Editar usuário existente
-                response = await userService.updateUser(selectedUser.id, userData);
+                const userId = selectedUser.Id || selectedUser.id;
+                response = await userService.updateUser(userId, userData);
             } else {
                 // Criar novo usuário
                 response = await userService.createUser(userData);
             }
 
-            if (response && response.success) {
-                success.show(response.message || `Usuário ${selectedUser ? 'atualizado' : 'criado'} com sucesso!`);
+            const isSuccess = response && (response.success === true || response.Success === true);
+            if (isSuccess) {
+                success.show(response.message || response.Message || `Usuário ${selectedUser ? 'atualizado' : 'criado'} com sucesso!`);
                 await loadUsers();
             } else {
-                error.show(response?.message || 'Erro ao salvar usuário');
+                error.show(response?.message || response?.Message || 'Erro ao salvar usuário');
             }
         } catch (err) {
             error.connection();
@@ -214,12 +236,14 @@ export function UsersPage() {
 
     const handleSavePassword = async (passwordData) => {
         try {
-            const response = await userService.changePassword(selectedUser.id, passwordData);
+            const userId = selectedUser.Id || selectedUser.id;
+            const response = await userService.changePassword(userId, passwordData);
 
-            if (response && response.success) {
+            const isSuccess = response && (response.success === true || response.Success === true);
+            if (isSuccess) {
                 success.show('Senha alterada com sucesso!');
             } else {
-                error.show(response?.message || 'Erro ao alterar senha');
+                error.show(response?.message || response?.Message || 'Erro ao alterar senha');
             }
         } catch (err) {
             error.connection();
@@ -228,13 +252,15 @@ export function UsersPage() {
 
     const confirmDeleteUser = async () => {
         try {
-            const response = await userService.deleteUser(selectedUser.id);
+            const userId = selectedUser.Id || selectedUser.id;
+            const response = await userService.deleteUser(userId);
 
-            if (response && response.success) {
+            const isSuccess = response && (response.success === true || response.Success === true);
+            if (isSuccess) {
                 success.show('Usuário removido com sucesso!');
                 await loadUsers();
             } else {
-                error.show(response?.message || 'Erro ao remover usuário');
+                error.show(response?.message || response?.Message || 'Erro ao remover usuário');
             }
         } catch (err) {
             error.connection();
@@ -334,8 +360,8 @@ export function UsersPage() {
                                         >
                                             <MenuItem value="">Todos os Perfis</MenuItem>
                                             {profiles.map((profile) => (
-                                                <MenuItem key={profile.id} value={profile.id}>
-                                                    {profile.name}
+                                                <MenuItem key={profile.Id || profile.id} value={profile.Id || profile.id}>
+                                                    {profile.Name || profile.name}
                                                 </MenuItem>
                                             ))}
                                         </Select>
@@ -420,41 +446,41 @@ export function UsersPage() {
                                     </TableHead>
                                     <TableBody>
                                         {filteredUsers.map((user) => (
-                                            <TableRow key={user.id} hover>
+                                            <TableRow key={user.Id || user.id} hover>
                                                 <TableCell>
                                                     <Box display="flex" alignItems="center" gap={2}>
                                                         <Avatar
-                                                            src={user.profileImagePath}
+                                                            src={user.ProfileImagePath || user.profileImagePath}
                                                             sx={{ width: 40, height: 40 }}
                                                         >
                                                             <PersonIcon />
                                                         </Avatar>
                                                         <Box>
                                                             <Typography variant="subtitle2" fontWeight="medium">
-                                                                {user.name}
+                                                                {user.Name || user.name}
                                                             </Typography>
                                                             <Typography variant="body2" color="text.secondary">
-                                                                @{user.nickname}
+                                                                @{user.Nickname || user.nickname}
                                                             </Typography>
                                                         </Box>
                                                     </Box>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Typography variant="body2">
-                                                        {user.email}
+                                                        {user.Email || user.email}
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell>
                                                     <Chip
-                                                        icon={getProfileIcon(user.profile.name)}
-                                                        label={user.profile.name}
-                                                        color={getProfileColor(user.profile.name)}
+                                                        icon={getProfileIcon((user.Profile || user.profile)?.Name || (user.Profile || user.profile)?.name)}
+                                                        label={(user.Profile || user.profile)?.Name || (user.Profile || user.profile)?.name}
+                                                        color={getProfileColor((user.Profile || user.profile)?.Name || (user.Profile || user.profile)?.name)}
                                                         size="small"
                                                     />
                                                 </TableCell>
                                                 <TableCell>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        {formatDate(user.createdAt)}
+                                                        {formatDate(user.CreatedAt || user.createdAt)}
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell align="center">
@@ -518,7 +544,7 @@ export function UsersPage() {
                 open={passwordModalOpen}
                 onClose={() => setPasswordModalOpen(false)}
                 onSave={handleSavePassword}
-                userName={selectedUser?.name}
+                userName={selectedUser?.Name || selectedUser?.name}
             />
 
             {/* Dialog de Confirmação de Exclusão */}
@@ -536,7 +562,7 @@ export function UsersPage() {
                         Esta ação não pode ser desfeita!
                     </Alert>
                     <Typography>
-                        Tem certeza que deseja remover o usuário <strong>{selectedUser?.name}</strong>?
+                        Tem certeza que deseja remover o usuário <strong>{selectedUser?.Name || selectedUser?.name}</strong>?
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                         O usuário será desativado no sistema.
