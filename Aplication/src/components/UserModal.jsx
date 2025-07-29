@@ -61,13 +61,13 @@ export function UserModal({
             loadProfiles();
             if (isEditing && user) {
                 setFormData({
-                    name: user.Name || user.name || '',
-                    nickname: user.Nickname || user.nickname || '',
-                    email: user.Email || user.email || '',
+                    name: user.name || '',
+                    nickname: user.nickname || '',
+                    email: user.email || '',
                     password: '',
                     confirmPassword: '',
-                    profileImagePath: user.ProfileImagePath || user.profileImagePath || '',
-                    profileId: (user.Profile || user.profile)?.Id || (user.Profile || user.profile)?.id || ''
+                    profileImagePath: user.profileImagePath || '',
+                    profileId: user.profile?.id || ''
                 });
 
                 // Para usuários existentes, limpar preview (imagem será carregada do src do Avatar)
@@ -95,22 +95,22 @@ export function UserModal({
     const loadProfiles = async () => {
         try {
             const response = await profileService.getActiveProfiles();
-            // Verifica tanto 'success' quanto 'Success' (case-insensitive)
-            const isSuccess = response && (response.success === true || response.Success === true);
+            // Usando camelCase (configurado no backend)
+            const isSuccess = response && response.success === true;
 
             if (isSuccess) {
-                let availableProfiles = response.Data || response.data || [];
+                let availableProfiles = response.data || [];
 
                 // Filtrar perfis baseado no perfil do usuário atual
                 if (currentUserProfile === 'Administrador') {
                     // Administrador pode atribuir qualquer perfil exceto Desenvolvedor
-                    availableProfiles = availableProfiles.filter(p => (p.Name || p.name) !== 'Desenvolvedor');
+                    availableProfiles = availableProfiles.filter(p => p.name !== 'Desenvolvedor');
                 } else if (currentUserProfile === 'Desenvolvedor') {
                     // Desenvolvedor pode atribuir qualquer perfil
                     // Não filtrar nada
                 } else {
                     // Usuário comum só pode ver seu próprio perfil
-                    availableProfiles = availableProfiles.filter(p => (p.Name || p.name) === 'Usuário');
+                    availableProfiles = availableProfiles.filter(p => p.name === 'Usuário');
                 }
 
                 setProfiles(availableProfiles);
@@ -246,8 +246,8 @@ export function UserModal({
     };
 
     const getProfileName = (profileId) => {
-        const profile = profiles.find(p => (p.Id || p.id) === profileId);
-        return profile ? (profile.Name || profile.name) : '';
+        const profile = profiles.find(p => p.id === profileId);
+        return profile ? profile.name : '';
     };
 
     return (
@@ -370,11 +370,11 @@ export function UserModal({
                                     label="Perfil"
                                 >
                                     {profiles.map((profile) => (
-                                        <MenuItem key={profile.Id || profile.id} value={profile.Id || profile.id}>
-                                            {profile.Name || profile.name}
-                                            {(profile.Description || profile.description) && (
+                                        <MenuItem key={profile.id} value={profile.id}>
+                                            {profile.name}
+                                            {profile.description && (
                                                 <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
-                                                    - {profile.Description || profile.description}
+                                                    - {profile.description}
                                                 </Typography>
                                             )}
                                         </MenuItem>

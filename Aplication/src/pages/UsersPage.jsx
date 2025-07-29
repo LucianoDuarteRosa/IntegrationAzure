@@ -51,7 +51,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export function UsersPage() {
     const theme = useTheme();
-    const { error, success } = useNotifications();
+    const { error, showSuccess, showError } = useNotifications();
     const { user: currentUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [profiles, setProfiles] = useState([]);
@@ -79,11 +79,11 @@ export function UsersPage() {
             setLoading(true);
             const response = await userService.getUsers();
 
-            // Verifica tanto 'success' quanto 'Success' (case-insensitive)
-            const isSuccess = response && (response.success === true || response.Success === true);
+            // Usando camelCase (configurado no backend)
+            const isSuccess = response && response.success === true;
 
             if (isSuccess) {
-                let userData = response.Data || response.data || [];
+                let userData = response.data || [];
 
                 // Aplicar filtros baseados na hierarquia: Desenvolvedor > Administrador > Usuário
                 const currentProfile = currentUser?.profile?.name;
@@ -116,11 +116,11 @@ export function UsersPage() {
         try {
             const response = await profileService.getActiveProfiles();
 
-            // Verifica tanto 'success' quanto 'Success' (case-insensitive)
-            const isSuccess = response && (response.success === true || response.Success === true);
+            // Usando camelCase (configurado no backend)
+            const isSuccess = response && response.success === true;
 
             if (isSuccess) {
-                const profileData = response.Data || response.data || [];
+                const profileData = response.data || [];
                 setProfiles(profileData);
             }
         } catch (error) {
@@ -250,13 +250,14 @@ export function UsersPage() {
                 // Criar novo usuário
                 response = await userService.createUser(userData);
             }
-
-            const isSuccess = response && (response.success === true || response.Success === true);
+            const isSuccess = response && response.success === true;
             if (isSuccess) {
-                success.show(response.message || response.Message || `Usuário ${selectedUser ? 'atualizado' : 'criado'} com sucesso!`);
+                showSuccess('Usuário salvo!', response.message || `Usuário ${selectedUser ? 'atualizado' : 'criado'} com sucesso!`);
+                setUserModalOpen(false);
+                setSelectedUser(null);
                 await loadUsers();
             } else {
-                error.show(response?.message || response?.Message || 'Erro ao salvar usuário');
+                showError('Erro ao salvar', response?.message || 'Erro ao salvar usuário');
             }
         } catch (err) {
             error.connection();
@@ -266,7 +267,7 @@ export function UsersPage() {
     // Função para verificar se pode usar alteração administrativa (sem senha atual)
     const canChangePasswordWithoutCurrent = (targetUser) => {
         const currentProfile = currentUser?.profile?.name;
-        const targetProfile = (targetUser.Profile || targetUser.profile)?.Name || (targetUser.Profile || targetUser.profile)?.name;
+        const targetProfile = targetUser.profile?.name;
 
         // Desenvolvedor pode alterar qualquer senha sem senha atual
         if (currentProfile === 'Desenvolvedor') {
@@ -293,11 +294,13 @@ export function UsersPage() {
                 response = await userService.changePassword(userId, passwordData);
             }
 
-            const isSuccess = response && (response.success === true || response.Success === true);
+            const isSuccess = response && response.success === true;
             if (isSuccess) {
-                success.show('Senha alterada com sucesso!');
+                showSuccess('Senha alterada!', 'Senha alterada com sucesso!');
+                setPasswordModalOpen(false);
+                setSelectedUser(null);
             } else {
-                error.show(response?.message || response?.Message || 'Erro ao alterar senha');
+                showError('Erro ao alterar senha', response?.message || 'Erro ao alterar senha');
             }
         } catch (err) {
             error.connection();
@@ -306,15 +309,15 @@ export function UsersPage() {
 
     const confirmDeleteUser = async () => {
         try {
-            const userId = selectedUser.Id || selectedUser.id;
+            const userId = selectedUser.id;
             const response = await userService.deleteUser(userId);
 
-            const isSuccess = response && (response.success === true || response.Success === true);
+            const isSuccess = response && response.success === true;
             if (isSuccess) {
-                success.show('Usuário removido com sucesso!');
+                showSuccess('Usuário removido!', 'Usuário removido com sucesso!');
                 await loadUsers();
             } else {
-                error.show(response?.message || response?.Message || 'Erro ao remover usuário');
+                showError('Erro ao remover', response?.message || 'Erro ao remover usuário');
             }
         } catch (err) {
             error.connection();

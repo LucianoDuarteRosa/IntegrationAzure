@@ -105,8 +105,8 @@ export function LogsPage() {
 
             const response = await logService.getLogs(cleanFilters);
 
-            if (response && response.Success) {
-                setLogs(response.Data || []);
+            if (response && response.success) {
+                setLogs(response.data || []);
             } else {
                 error.load('logs', [response?.message || 'Resposta inválida do servidor']);
             }
@@ -118,10 +118,16 @@ export function LogsPage() {
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleString('pt-BR');
+        if (!dateString) return 'Data inválida';
+        try {
+            return new Date(dateString).toLocaleString('pt-BR');
+        } catch (error) {
+            return 'Data inválida';
+        }
     };
 
     const getActionColor = (action) => {
+        if (!action || typeof action !== 'string') return 'primary';
         if (action.includes('SUCCESS')) return 'success';
         if (action.includes('FAILED') || action.includes('ERROR')) return 'error';
         if (action.includes('WARNING')) return 'warning';
@@ -397,40 +403,40 @@ export function LogsPage() {
                                             </TableRow>
                                         ) : (
                                             logs.map((log) => (
-                                                <TableRow key={log.Id} hover>
+                                                <TableRow key={log.Id || log.id} hover>
                                                     <TableCell>
                                                         <Typography variant="body2">
-                                                            {formatDate(log.CreatedAt)}
+                                                            {formatDate(log.CreatedAt || log.createdAt)}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Chip
-                                                            label={log.Action}
-                                                            color={getActionColor(log.Action)}
+                                                            label={log.Action || log.action || 'N/A'}
+                                                            color={getActionColor(log.Action || log.action)}
                                                             size="small"
                                                             variant="outlined"
                                                         />
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="body2" fontWeight="medium">
-                                                            {log.Entity}
+                                                            {log.Entity || log.entity || 'N/A'}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="body2">
-                                                            {log.UserId}
+                                                            {log.UserId || log.userId || 'N/A'}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Chip
-                                                            label={LogLevelNames[log.Level]}
-                                                            color={LogLevelColors[log.Level]}
+                                                            label={LogLevelNames[log.Level || log.level] || 'UNKNOWN'}
+                                                            color={LogLevelColors[log.Level || log.level] || 'default'}
                                                             size="small"
                                                         />
                                                     </TableCell>
                                                     <TableCell>
                                                         <Typography variant="body2" color="text.secondary">
-                                                            {log.EntityId || '-'}
+                                                            {log.EntityId || log.entityId || '-'}
                                                         </Typography>
                                                     </TableCell>
                                                 </TableRow>

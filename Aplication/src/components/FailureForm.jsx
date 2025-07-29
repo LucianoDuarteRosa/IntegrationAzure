@@ -360,14 +360,8 @@ export function FailureForm() {
             // Enviar para a API
             const response = await failureService.create(failureData);
 
-            // A API retorna um ApiResponseDto<T> com propriedade Success (maiúscula)
-            // Axios retorna response.data, então verificamos diferentes formatos possíveis
-            const isSuccess = response && (
-                response.Success === true ||           // Formato da API C# (maiúscula)
-                response.success === true ||           // Formato JavaScript (minúscula)
-                (response.data && response.data.Success === true) || // Se estiver aninhado em data
-                (response.data && response.data.success === true)    // Se estiver aninhado em data (minúscula)
-            );
+            // A API retorna um ApiResponseDto<T> com propriedade success (camelCase)
+            const isSuccess = response && response.success === true;
 
             if (isSuccess) {
                 showSuccess('Falha registrada com sucesso!');

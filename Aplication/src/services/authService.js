@@ -29,19 +29,19 @@ export const authService = {
             const data = await response.json();
 
             // Verifica se a resposta foi bem-sucedida
-            if (response.ok && (data.success === true || data.Success === true)) {
-                const userData = data.Data || data.data;
+            if (response.ok && data.success === true) {
+                const userData = data.data;
 
                 // Normalizar os dados do usuário para o formato esperado pelo frontend
                 const normalizedUser = {
-                    id: userData.Id || userData.id,
-                    email: userData.Email || userData.email,
-                    name: userData.Name || userData.name,
-                    nickname: userData.Nickname || userData.nickname,
-                    profileImagePath: userData.ProfileImagePath || userData.profileImagePath,
+                    id: userData.id,
+                    email: userData.email,
+                    name: userData.name,
+                    nickname: userData.nickname,
+                    profileImagePath: userData.profileImagePath,
                     profile: {
-                        id: userData.Profile?.Id || userData.Profile?.id || userData.profile?.Id || userData.profile?.id,
-                        name: userData.Profile?.Name || userData.Profile?.name || userData.profile?.Name || userData.profile?.name
+                        id: userData.profile?.id,
+                        name: userData.profile?.name
                     },
                     token: 'api-token-' + Date.now() // Por enquanto, gera um token mock
                 };
@@ -52,12 +52,12 @@ export const authService = {
 
                 return {
                     success: true,
-                    message: data.Message || data.message || 'Login realizado com sucesso',
+                    message: data.message || 'Login realizado com sucesso',
                     data: normalizedUser
                 };
             } else {
                 // Erro de autenticação
-                const errorMessage = data.Message || data.message || 'Email ou senha incorretos';
+                const errorMessage = data.message || 'Email ou senha incorretos';
                 throw new Error(errorMessage);
             }
         } catch (error) {

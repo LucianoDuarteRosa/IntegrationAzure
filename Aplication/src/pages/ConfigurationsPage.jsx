@@ -62,8 +62,8 @@ export function ConfigurationsPage() {
         try {
             setLoading(true);
             const response = await configurationService.getAll();
-            if (response.Success) {
-                setConfigurations(response.Data || []);
+            if (response.success) {
+                setConfigurations(response.data || []);
             } else {
                 showError('Erro ao carregar configurações');
             }
@@ -78,12 +78,12 @@ export function ConfigurationsPage() {
         if (config) {
             setEditingConfig(config);
             setFormData({
-                key: config.Key,
-                value: config.Value === '*****' ? '' : config.Value,
-                description: config.Description,
-                category: config.Category,
-                isSecret: config.IsSecret,
-                isActive: config.IsActive
+                key: config.Key || config.key || '',
+                value: (config.Value || config.value) === '*****' ? '' : (config.Value || config.value || ''),
+                description: config.Description || config.description || '',
+                category: config.Category || config.category || '',
+                isSecret: config.IsSecret ?? config.isSecret ?? false,
+                isActive: config.IsActive ?? config.isActive ?? true
             });
         } else {
             setEditingConfig(null);
@@ -120,19 +120,19 @@ export function ConfigurationsPage() {
             }
 
             if (editingConfig) {
-                const response = await configurationService.update(editingConfig.Id, {
+                const response = await configurationService.update(editingConfig.Id || editingConfig.id, {
                     Value: formData.value,
                     Description: formData.description,
                     Category: formData.category,
                     IsSecret: formData.isSecret,
                     IsActive: formData.isActive
                 });
-                if (response.Success) {
+                if (response.success) {
                     showSuccess('Configuração atualizada com sucesso!');
                 }
             } else {
                 const response = await configurationService.create(formData);
-                if (response.Success) {
+                if (response.success) {
                     showSuccess('Configuração criada com sucesso!');
                 }
             }
@@ -145,10 +145,10 @@ export function ConfigurationsPage() {
     };
 
     const handleDelete = async (config) => {
-        if (window.confirm(`Tem certeza que deseja excluir a configuração "${config.Key}"?`)) {
+        if (window.confirm(`Tem certeza que deseja excluir a configuração "${config.Key || config.key || 'Esta configuração'}"?`)) {
             try {
-                const response = await configurationService.delete(config.Id);
-                if (response.Success) {
+                const response = await configurationService.delete(config.Id || config.id);
+                if (response.success) {
                     showSuccess('Configuração excluída com sucesso!');
                     loadConfigurations();
                 }
@@ -166,7 +166,7 @@ export function ConfigurationsPage() {
     };
 
     const groupedConfigs = configurations.reduce((groups, config) => {
-        const category = config.Category || 'Outros';
+        const category = config.Category || config.category || 'Outros';
         if (!groups[category]) {
             groups[category] = [];
         }
@@ -242,7 +242,7 @@ export function ConfigurationsPage() {
 
                             <Grid container spacing={2}>
                                 {configs.map((config) => (
-                                    <Grid item xs={12} md={6} lg={4} key={config.Id}>
+                                    <Grid item xs={12} md={6} lg={4} key={config.Id || config.id}>
                                         <Card variant="outlined" sx={{ height: '100%' }}>
                                             <CardContent>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
@@ -251,37 +251,37 @@ export function ConfigurationsPage() {
                                                         flex: 1,
                                                         mr: 1
                                                     }}>
-                                                        {config.Key}
+                                                        {config.Key || config.key || 'Sem chave'}
                                                     </Typography>
                                                     <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                                        {config.IsSecret && (
+                                                        {(config.IsSecret || config.isSecret) && (
                                                             <Chip label="Secreto" size="small" color="warning" />
                                                         )}
-                                                        {!config.IsActive && (
+                                                        {!(config.IsActive ?? config.isActive ?? true) && (
                                                             <Chip label="Inativo" size="small" color="error" />
                                                         )}
                                                     </Box>
                                                 </Box>
 
                                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                                    {config.Description || 'Sem descrição'}
+                                                    {config.Description || config.description || 'Sem descrição'}
                                                 </Typography>
 
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <TextField
                                                         size="small"
-                                                        value={config.IsSecret && !visibleSecrets[config.Id] ? '*****' : config.Value}
-                                                        type={config.IsSecret && !visibleSecrets[config.Id] ? 'password' : 'text'}
+                                                        value={(config.IsSecret || config.isSecret) && !visibleSecrets[config.Id || config.id] ? '*****' : (config.Value || config.value || '')}
+                                                        type={(config.IsSecret || config.isSecret) && !visibleSecrets[config.Id || config.id] ? 'password' : 'text'}
                                                         fullWidth
                                                         InputProps={{ readOnly: true }}
                                                         sx={{ '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
                                                     />
-                                                    {config.IsSecret && (
+                                                    {(config.IsSecret || config.isSecret) && (
                                                         <IconButton
                                                             size="small"
-                                                            onClick={() => toggleSecretVisibility(config.Id)}
+                                                            onClick={() => toggleSecretVisibility(config.Id || config.id)}
                                                         >
-                                                            {visibleSecrets[config.Id] ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                                            {visibleSecrets[config.Id || config.id] ? <VisibilityOffIcon /> : <VisibilityIcon />}
                                                         </IconButton>
                                                     )}
                                                 </Box>
@@ -297,7 +297,7 @@ export function ConfigurationsPage() {
                                                 </IconButton>
                                                 <IconButton
                                                     size="small"
-                                                    onClick={() => handleDelete(config)}
+                                                    onClick={() => handleDelete(config.Id || config.id)}
                                                     color="error"
                                                 >
                                                     <DeleteIcon fontSize="small" />

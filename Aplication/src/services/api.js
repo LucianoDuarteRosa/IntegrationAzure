@@ -9,7 +9,7 @@ const api = axios.create({
     }
 });
 
-// Interceptor para adicionar token de autenticação (quando implementado)
+// Interceptor para adicionar token de autenticação e usuário atual
 api.interceptors.request.use(
     (config) => {
         // TODO: Adicionar token de autenticação quando implementado
@@ -17,6 +17,20 @@ api.interceptors.request.use(
         // if (token) {
         //     config.headers.Authorization = `Bearer ${token}`;
         // }
+
+        // Adicionar usuário atual do localStorage
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                if (user.email) {
+                    config.headers['X-Current-User'] = user.email;
+                }
+            } catch (error) {
+                console.warn('Erro ao parsear userData do localStorage:', error);
+            }
+        }
+
         return config;
     },
     (error) => {

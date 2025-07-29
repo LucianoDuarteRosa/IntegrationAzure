@@ -52,8 +52,8 @@ builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordDtoValid
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Configuração para melhor serialização de enums
-        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Manter nomes originais
+        // Configuração para camelCase (compatível com JavaScript)
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
