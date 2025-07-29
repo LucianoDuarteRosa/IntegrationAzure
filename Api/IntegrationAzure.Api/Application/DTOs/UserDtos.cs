@@ -103,3 +103,16 @@ public class SimpleUserDto
     public string? ProfileImagePath { get; set; }
     public string ProfileName { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// DTO para login do usuário
+/// </summary>
+public class LoginDto
+{
+    [Required(ErrorMessage = "O email é obrigatório")]
+    [EmailAddress(ErrorMessage = "Formato de email inválido")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "A senha é obrigatória")]
+    public string Password { get; set; } = string.Empty;
+}

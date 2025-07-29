@@ -24,7 +24,8 @@ import {
     VisibilityOff as VisibilityOffIcon,
     Person as PersonIcon,
     Edit as EditIcon,
-    Add as AddIcon
+    Add as AddIcon,
+    PhotoCamera as PhotoCameraIcon
 } from '@mui/icons-material';
 import { profileService } from '../services';
 
@@ -41,6 +42,8 @@ export function UserModal({
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState({});
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -58,14 +61,18 @@ export function UserModal({
             loadProfiles();
             if (isEditing && user) {
                 setFormData({
-                    name: user.name || '',
-                    nickname: user.nickname || '',
-                    email: user.email || '',
+                    name: user.Name || user.name || '',
+                    nickname: user.Nickname || user.nickname || '',
+                    email: user.Email || user.email || '',
                     password: '',
                     confirmPassword: '',
-                    profileImagePath: user.profileImagePath || '',
-                    profileId: user.profile?.id || ''
+                    profileImagePath: user.ProfileImagePath || user.profileImagePath || '',
+                    profileId: (user.Profile || user.profile)?.Id || (user.Profile || user.profile)?.id || ''
                 });
+
+                // Para usuários existentes, limpar preview (imagem será carregada do src do Avatar)
+                setSelectedImage(null);
+                setImagePreview('');
             } else {
                 setFormData({
                     name: '',
@@ -76,6 +83,10 @@ export function UserModal({
                     profileImagePath: '',
                     profileId: ''
                 });
+
+                // Para novos usuários, limpar tudo
+                setSelectedImage(null);
+                setImagePreview('');
             }
             setErrors({});
         }
@@ -84,19 +95,22 @@ export function UserModal({
     const loadProfiles = async () => {
         try {
             const response = await profileService.getActiveProfiles();
-            if (response && response.success) {
-                let availableProfiles = response.data || [];
+            // Verifica tanto 'success' quanto 'Success' (case-insensitive)
+            const isSuccess = response && (response.success === true || response.Success === true);
+
+            if (isSuccess) {
+                let availableProfiles = response.Data || response.data || [];
 
                 // Filtrar perfis baseado no perfil do usuário atual
                 if (currentUserProfile === 'Administrador') {
                     // Administrador pode atribuir qualquer perfil exceto Desenvolvedor
-                    availableProfiles = availableProfiles.filter(p => p.name !== 'Desenvolvedor');
+                    availableProfiles = availableProfiles.filter(p => (p.Name || p.name) !== 'Desenvolvedor');
                 } else if (currentUserProfile === 'Desenvolvedor') {
                     // Desenvolvedor pode atribuir qualquer perfil
                     // Não filtrar nada
                 } else {
                     // Usuário comum só pode ver seu próprio perfil
-                    availableProfiles = availableProfiles.filter(p => p.name === 'Usuário');
+                    availableProfiles = availableProfiles.filter(p => (p.Name || p.name) === 'Usuário');
                 }
 
                 setProfiles(availableProfiles);
@@ -119,6 +133,34 @@ export function UserModal({
                 ...prev,
                 [field]: null
             }));
+        }
+    };
+
+    const handleImageChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setSelectedImage(file);
+
+            // Criar preview da imagem
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setImagePreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+
+            // Atualizar o formData com o nome do arquivo
+            setFormData(prev => ({
+                ...prev,
+                profileImagePath: file.name
+            }));
+
+            // Limpar erro do campo se existir
+            if (errors.profileImagePath) {
+                setErrors(prev => ({
+                    ...prev,
+                    profileImagePath: null
+                }));
+            }
         }
     };
 
@@ -183,6 +225,11 @@ export function UserModal({
             }
 
             await onSave(userData);
+
+            // Limpar estados de imagem após salvar
+            setSelectedImage(null);
+            setImagePreview('');
+
             onClose();
         } catch (error) {
             console.error('Erro ao salvar usuário:', error);
@@ -191,15 +238,22 @@ export function UserModal({
         }
     };
 
+    const handleClose = () => {
+        // Limpar estados de imagem ao fechar
+        setSelectedImage(null);
+        setImagePreview('');
+        onClose();
+    };
+
     const getProfileName = (profileId) => {
-        const profile = profiles.find(p => p.id === profileId);
-        return profile ? profile.name : '';
+        const profile = profiles.find(p => (p.Id || p.id) === profileId);
+        return profile ? (profile.Name || profile.name) : '';
     };
 
     return (
         <Dialog
             open={open}
-            onClose={onClose}
+            onClose={handleClose}
             maxWidth="md"
             fullWidth
             PaperProps={{
@@ -228,18 +282,40 @@ export function UserModal({
                                     mb: 2,
                                     bgcolor: 'primary.main'
                                 }}
-                                src={formData.profileImagePath}
+                                src={imagePreview || formData.profileImagePath}
                             >
                                 <PersonIcon sx={{ fontSize: 40 }} />
                             </Avatar>
-                            <TextField
-                                fullWidth
-                                label="Caminho da Imagem de Perfil"
-                                value={formData.profileImagePath}
-                                onChange={handleInputChange('profileImagePath')}
-                                placeholder="/images/users/avatar.jpg"
-                                size="small"
-                            />
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Imagem de Perfil"
+                                    value={formData.profileImagePath}
+                                    placeholder="Nenhum arquivo selecionado"
+                                    size="small"
+                                    InputProps={{ readOnly: true }}
+                                    error={!!errors.profileImagePath}
+                                    helperText={errors.profileImagePath}
+                                />
+                                <input
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    id="image-upload"
+                                    type="file"
+                                    onChange={handleImageChange}
+                                />
+                                <label htmlFor="image-upload">
+                                    <Button
+                                        variant="outlined"
+                                        component="span"
+                                        startIcon={<PhotoCameraIcon />}
+                                        size="small"
+                                    >
+                                        Buscar
+                                    </Button>
+                                </label>
+                            </Box>
                         </Grid>
 
                         <Grid item xs={12}>
@@ -294,11 +370,11 @@ export function UserModal({
                                     label="Perfil"
                                 >
                                     {profiles.map((profile) => (
-                                        <MenuItem key={profile.id} value={profile.id}>
-                                            {profile.name}
-                                            {profile.description && (
+                                        <MenuItem key={profile.Id || profile.id} value={profile.Id || profile.id}>
+                                            {profile.Name || profile.name}
+                                            {(profile.Description || profile.description) && (
                                                 <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
-                                                    - {profile.description}
+                                                    - {profile.Description || profile.description}
                                                 </Typography>
                                             )}
                                         </MenuItem>
@@ -388,7 +464,7 @@ export function UserModal({
 
             <DialogActions sx={{ p: 3, pt: 1 }}>
                 <Button
-                    onClick={onClose}
+                    onClick={handleClose}
                     disabled={loading}
                 >
                     Cancelar

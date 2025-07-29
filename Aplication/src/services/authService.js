@@ -1,92 +1,64 @@
 /**
  * Serviço para operações de autenticação
- * Por enquanto simula autenticação, mas pode ser integrado com Azure AD
+ * Integrado com a API real do backend
  */
+
+const API_BASE_URL = 'http://localhost:5066/api';
+
 export const authService = {
     /**
-     * Realiza login (simulado)
+     * Realiza login real com a API
      */
     async login(email, password) {
         try {
-            // Por enquanto, simula uma autenticação bem-sucedida
-            // TODO: Integrar com API de autenticação real
-
             if (!email || !password) {
                 throw new Error('Email e senha são obrigatórios');
             }
 
-            // Simula validação
-            if (email === 'admin@admin' && password === '123') {
-                const userData = {
-                    id: '1',
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
                     email: email,
-                    name: 'Administrador',
-                    nickname: 'admin',
-                    role: 'admin',
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            // Verifica se a resposta foi bem-sucedida
+            if (response.ok && (data.success === true || data.Success === true)) {
+                const userData = data.Data || data.data;
+
+                // Normalizar os dados do usuário para o formato esperado pelo frontend
+                const normalizedUser = {
+                    id: userData.Id || userData.id,
+                    email: userData.Email || userData.email,
+                    name: userData.Name || userData.name,
+                    nickname: userData.Nickname || userData.nickname,
+                    profileImagePath: userData.ProfileImagePath || userData.profileImagePath,
                     profile: {
-                        id: '1',
-                        name: 'Administrador'
+                        id: userData.Profile?.Id || userData.Profile?.id || userData.profile?.Id || userData.profile?.id,
+                        name: userData.Profile?.Name || userData.Profile?.name || userData.profile?.Name || userData.profile?.name
                     },
-                    token: 'mock-jwt-token-' + Date.now()
+                    token: 'api-token-' + Date.now() // Por enquanto, gera um token mock
                 };
 
-                // Salva no localStorage
-                localStorage.setItem('authToken', userData.token);
-                localStorage.setItem('userData', JSON.stringify(userData));
+                // Salvar no localStorage
+                localStorage.setItem('authToken', normalizedUser.token);
+                localStorage.setItem('userData', JSON.stringify(normalizedUser));
 
                 return {
                     success: true,
-                    message: 'Login realizado com sucesso',
-                    data: userData
-                };
-            } else if (email === 'dev@dev' && password === '123') {
-                const userData = {
-                    id: '2',
-                    email: email,
-                    name: 'Desenvolvedor',
-                    nickname: 'dev',
-                    role: 'developer',
-                    profile: {
-                        id: '2',
-                        name: 'Desenvolvedor'
-                    },
-                    token: 'mock-jwt-token-' + Date.now()
-                };
-
-                // Salva no localStorage
-                localStorage.setItem('authToken', userData.token);
-                localStorage.setItem('userData', JSON.stringify(userData));
-
-                return {
-                    success: true,
-                    message: 'Login realizado com sucesso',
-                    data: userData
-                };
-            } else if (email === 'user@user' && password === '123') {
-                const userData = {
-                    id: '3',
-                    email: email,
-                    name: 'Usuário',
-                    nickname: 'user',
-                    role: 'user',
-                    profile: {
-                        id: '3',
-                        name: 'Usuário'
-                    },
-                    token: 'mock-jwt-token-' + Date.now()
-                };
-
-                // Salva no localStorage
-                localStorage.setItem('authToken', userData.token);
-                localStorage.setItem('userData', JSON.stringify(userData));
-
-                return {
-                    success: true,
-                    message: 'Login realizado com sucesso',
-                    data: userData
+                    message: data.Message || data.message || 'Login realizado com sucesso',
+                    data: normalizedUser
                 };
             } else {
-                throw new Error('Email ou senha inválidos');
+                // Erro de autenticação
+                const errorMessage = data.Message || data.message || 'Email ou senha incorretos';
+                throw new Error(errorMessage);
             }
         } catch (error) {
             return {

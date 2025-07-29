@@ -359,6 +359,65 @@ public class UserService
     }
 
     /// <summary>
+    /// Autentica um usuário com email e senha
+    /// </summary>
+    public async Task<ApiResponseDto<UserDto>> AuthenticateAsync(string email, string password)
+    {
+        try
+        {
+            // Buscar usuário pelo email
+            var user = await _userRepository.GetByEmailAsync(email);
+
+            if (user == null)
+            {
+                return new ApiResponseDto<UserDto>
+                {
+                    Success = false,
+                    Message = "Email ou senha incorretos"
+                };
+            }
+
+            // Verificar se o usuário está ativo
+            if (!user.IsActive)
+            {
+                return new ApiResponseDto<UserDto>
+                {
+                    Success = false,
+                    Message = "Usuário desativado"
+                };
+            }
+
+            // Verificar a senha
+            if (!VerifyPassword(password, user.Password))
+            {
+                return new ApiResponseDto<UserDto>
+                {
+                    Success = false,
+                    Message = "Email ou senha incorretos"
+                };
+            }
+
+            // Retornar dados do usuário autenticado
+            var userDto = MapToUserDto(user);
+            return new ApiResponseDto<UserDto>
+            {
+                Success = true,
+                Message = "Login realizado com sucesso",
+                Data = userDto
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ApiResponseDto<UserDto>
+            {
+                Success = false,
+                Message = "Erro interno no servidor",
+                Errors = new List<string> { ex.Message }
+            };
+        }
+    }
+
+    /// <summary>
     /// Gera hash da senha usando SHA256
     /// </summary>
     private static string HashPassword(string password)
