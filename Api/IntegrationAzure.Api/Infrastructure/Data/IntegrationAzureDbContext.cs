@@ -21,6 +21,8 @@ public class IntegrationAzureDbContext : DbContext
     public DbSet<Attachment> Attachments { get; set; }
     public DbSet<Log> Logs { get; set; }
     public DbSet<Configuration> Configurations { get; set; }
+    public DbSet<Profile> Profiles { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -204,6 +206,49 @@ public class IntegrationAzureDbContext : DbContext
             // Índices para performance e unicidade
             entity.HasIndex(e => e.Key).IsUnique();
             entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // Configurações para Profile
+        modelBuilder.Entity<Profile>(entity =>
+        {
+            entity.ToTable("profiles");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
+
+            // Índices para performance e unicidade
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => e.CreatedAt);
+        });
+
+        // Configurações para User
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("users");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Nickname).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.Password).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.ProfileImagePath).HasMaxLength(500);
+            entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
+
+            // Configuração do relacionamento com Profile
+            entity.HasOne(e => e.Profile)
+                  .WithMany(p => p.Users)
+                  .HasForeignKey(e => e.ProfileId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Índices para performance e unicidade
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.Nickname).IsUnique();
+            entity.HasIndex(e => e.ProfileId);
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.CreatedAt);
         });

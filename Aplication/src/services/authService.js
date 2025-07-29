@@ -21,7 +21,58 @@ export const authService = {
                     id: '1',
                     email: email,
                     name: 'Administrador',
+                    nickname: 'admin',
                     role: 'admin',
+                    profile: {
+                        id: '1',
+                        name: 'Administrador'
+                    },
+                    token: 'mock-jwt-token-' + Date.now()
+                };
+
+                // Salva no localStorage
+                localStorage.setItem('authToken', userData.token);
+                localStorage.setItem('userData', JSON.stringify(userData));
+
+                return {
+                    success: true,
+                    message: 'Login realizado com sucesso',
+                    data: userData
+                };
+            } else if (email === 'dev@dev' && password === '123') {
+                const userData = {
+                    id: '2',
+                    email: email,
+                    name: 'Desenvolvedor',
+                    nickname: 'dev',
+                    role: 'developer',
+                    profile: {
+                        id: '2',
+                        name: 'Desenvolvedor'
+                    },
+                    token: 'mock-jwt-token-' + Date.now()
+                };
+
+                // Salva no localStorage
+                localStorage.setItem('authToken', userData.token);
+                localStorage.setItem('userData', JSON.stringify(userData));
+
+                return {
+                    success: true,
+                    message: 'Login realizado com sucesso',
+                    data: userData
+                };
+            } else if (email === 'user@user' && password === '123') {
+                const userData = {
+                    id: '3',
+                    email: email,
+                    name: 'Usuário',
+                    nickname: 'user',
+                    role: 'user',
+                    profile: {
+                        id: '3',
+                        name: 'Usuário'
+                    },
                     token: 'mock-jwt-token-' + Date.now()
                 };
 

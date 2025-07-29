@@ -23,6 +23,8 @@ builder.Services.AddScoped<IIssueRepository, IssueRepository>();
 builder.Services.AddScoped<IFailureRepository, FailureRepository>();
 builder.Services.AddScoped<ILogRepository, LogRepository>();
 builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRepository<Attachment>, Repository<Attachment>>();
 
 // Registro dos serviços de aplicação
@@ -31,6 +33,8 @@ builder.Services.AddScoped<IssueService>();
 builder.Services.AddScoped<FailureService>();
 builder.Services.AddScoped<LogService>();
 builder.Services.AddScoped<ConfigurationService>();
+builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MarkdownGeneratorService>();
 
 // Registro dos validadores
@@ -38,6 +42,11 @@ builder.Services.AddScoped<IValidator<CreateUserStoryDto>, CreateUserStoryDtoVal
 builder.Services.AddScoped<IValidator<CreateIssueDto>, CreateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateIssueDto>, UpdateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateFailureDto>, CreateFailureDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateProfileDto>, CreateProfileDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdateProfileDto>, UpdateProfileDtoValidator>();
+builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdateUserDto>, UpdateUserDtoValidator>();
+builder.Services.AddScoped<IValidator<ChangePasswordDto>, ChangePasswordDtoValidator>();
 
 // Configuração de Controllers
 builder.Services.AddControllers()
@@ -105,6 +114,9 @@ if (app.Environment.IsDevelopment())
     {
         var context = scope.ServiceProvider.GetRequiredService<IntegrationAzureDbContext>();
         context.Database.EnsureCreated(); // Para desenvolvimento - em produção use Migrate()
+
+        // Popular dados iniciais
+        await DataSeeder.SeedAllAsync(context);
     }
 }
 

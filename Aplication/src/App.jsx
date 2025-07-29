@@ -9,6 +9,7 @@ import { UserStoryForm } from './components/UserStoryForm';
 import { FailureForm } from './components/FailureForm';
 import { LogsPage } from './pages/LogsPage';
 import { ConfigurationsPage } from './pages/ConfigurationsPage';
+import { UsersPage } from './pages/UsersPage';
 import { CircularProgress, Box } from '@mui/material';
 
 function PrivateRoute({ children }) {
@@ -82,7 +83,7 @@ function App() {
                 path="/usuarios"
                 element={
                   <PrivateRoute>
-                    <div>Em desenvolvimento</div>
+                    <UsersPage />
                   </PrivateRoute>
                 }
               />

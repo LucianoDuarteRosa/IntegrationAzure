@@ -1,0 +1,132 @@
+### Testes para API de Usuários e Perfis
+### Configuração da URL base
+@baseUrl = http://localhost:5000
+
+###
+# ============= PERFIS =============
+
+### Listar todos os perfis
+GET {{baseUrl}}/api/profiles
+
+### Listar perfis ativos (para dropdown)
+GET {{baseUrl}}/api/profiles/active
+
+### Obter perfil por ID
+GET {{baseUrl}}/api/profiles/{{profileId}}
+
+### Criar novo perfil
+POST {{baseUrl}}/api/profiles
+Content-Type: application/json
+
+{
+  "name": "Teste",
+  "description": "Perfil de teste criado via API"
+}
+
+### Atualizar perfil
+PUT {{baseUrl}}/api/profiles/{{profileId}}
+Content-Type: application/json
+
+{
+  "name": "Teste Atualizado",
+  "description": "Descrição atualizada do perfil de teste"
+}
+
+### Deletar perfil
+DELETE {{baseUrl}}/api/profiles/{{profileId}}
+
+###
+# ============= USUÁRIOS =============
+
+### Listar todos os usuários
+GET {{baseUrl}}/api/users
+
+### Obter usuário por ID
+GET {{baseUrl}}/api/users/{{userId}}
+
+### Obter usuários por perfil
+GET {{baseUrl}}/api/users/profile/{{profileId}}
+
+### Criar novo usuário
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "name": "João Silva",
+  "nickname": "joao.silva",
+  "email": "joao.silva@exemplo.com",
+  "password": "MinhaSenh@123",
+  "profileImagePath": "/images/users/joao.jpg",
+  "profileId": "{{profileId}}"
+}
+
+### Atualizar usuário
+PUT {{baseUrl}}/api/users/{{userId}}
+Content-Type: application/json
+
+{
+  "name": "João Silva Santos",
+  "nickname": "joao.santos",
+  "email": "joao.santos@exemplo.com",
+  "profileImagePath": "/images/users/joao-novo.jpg",
+  "profileId": "{{profileId}}"
+}
+
+### Alterar senha do usuário
+PATCH {{baseUrl}}/api/users/{{userId}}/change-password
+Content-Type: application/json
+
+{
+  "currentPassword": "MinhaSenh@123",
+  "newPassword": "NovaSenha@456",
+  "confirmPassword": "NovaSenha@456"
+}
+
+### Deletar usuário
+DELETE {{baseUrl}}/api/users/{{userId}}
+
+###
+# ============= TESTES DE VALIDAÇÃO =============
+
+### Criar perfil com nome duplicado (deve falhar)
+POST {{baseUrl}}/api/profiles
+Content-Type: application/json
+
+{
+  "name": "Administrador",
+  "description": "Tentativa de criar perfil duplicado"
+}
+
+### Criar usuário com email duplicado (deve falhar)
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "name": "Teste Duplicado",
+  "nickname": "teste.duplicado",
+  "email": "joao.silva@exemplo.com",
+  "password": "MinhaSenh@123",
+  "profileId": "{{profileId}}"
+}
+
+### Criar usuário com dados inválidos (deve falhar)
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "name": "",
+  "nickname": "nick@invalid",
+  "email": "email-invalido",
+  "password": "123",
+  "profileId": "00000000-0000-0000-0000-000000000000"
+}
+
+### Alterar senha com senha atual incorreta (deve falhar)
+PATCH {{baseUrl}}/api/users/{{userId}}/change-password
+Content-Type: application/json
+
+{
+  "currentPassword": "SenhaErrada123",
+  "newPassword": "NovaSenha@789",
+  "confirmPassword": "NovaSenha@789"
+}
