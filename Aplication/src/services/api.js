@@ -32,7 +32,7 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             // TODO: Redirecionar para login quando implementado
-            console.error('Não autorizado');
+            // Token inválido ou expirado
         }
         return Promise.reject(error);
     }

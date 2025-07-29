@@ -1,5 +1,3 @@
-import api from './api';
-
 /**
  * Serviço para operações de autenticação
  * Por enquanto simula autenticação, mas pode ser integrado com Azure AD
@@ -40,7 +38,6 @@ export const authService = {
                 throw new Error('Email ou senha inválidos');
             }
         } catch (error) {
-            console.error('Erro ao fazer login:', error);
             return {
                 success: false,
                 message: error.message || 'Erro ao fazer login',
@@ -60,8 +57,7 @@ export const authService = {
                 success: true,
                 message: 'Logout realizado com sucesso'
             };
-        } catch (error) {
-            console.error('Erro ao fazer logout:', error);
+        } catch {
             return {
                 success: false,
                 message: 'Erro ao fazer logout'
@@ -85,8 +81,7 @@ export const authService = {
         try {
             const userData = localStorage.getItem('userData');
             return userData ? JSON.parse(userData) : null;
-        } catch (error) {
-            console.error('Erro ao obter dados do usuário:', error);
+        } catch {
             return null;
         }
     },
@@ -109,8 +104,7 @@ export const authService = {
 
             // Por enquanto, só verifica se existe token
             return this.isAuthenticated();
-        } catch (error) {
-            console.error('Erro ao verificar sessão:', error);
+        } catch {
             this.logout(); // Remove tokens inválidos
             return false;
         }
@@ -133,8 +127,7 @@ export const authService = {
             const remaining = sessionDuration - elapsed;
 
             return remaining > 0 ? remaining : 0;
-        } catch (error) {
-            console.error('Erro ao calcular tempo de sessão:', error);
+        } catch {
             return 0;
         }
     }

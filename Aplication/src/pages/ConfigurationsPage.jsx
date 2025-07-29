@@ -67,8 +67,7 @@ export function ConfigurationsPage() {
             } else {
                 showError('Erro ao carregar configurações');
             }
-        } catch (error) {
-            console.error('Erro ao carregar configurações:', error);
+        } catch {
             showError('Erro ao conectar com o servidor');
         } finally {
             setLoading(false);
@@ -141,7 +140,6 @@ export function ConfigurationsPage() {
             handleCloseDialog();
             loadConfigurations();
         } catch (error) {
-            console.error('Erro ao salvar configuração:', error);
             showError(error.response?.data?.message || 'Erro ao salvar configuração');
         }
     };
@@ -154,8 +152,7 @@ export function ConfigurationsPage() {
                     showSuccess('Configuração excluída com sucesso!');
                     loadConfigurations();
                 }
-            } catch (error) {
-                console.error('Erro ao excluir configuração:', error);
+            } catch {
                 showError('Erro ao excluir configuração');
             }
         }

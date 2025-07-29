@@ -13,7 +13,6 @@ export const issueService = {
             const response = await api.get('/issues');
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar issues:', error);
             throw this.handleError(error);
         }
     },
@@ -26,7 +25,6 @@ export const issueService = {
             const response = await api.get(`/issues/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar issue:', error);
             throw this.handleError(error);
         }
     },
@@ -39,7 +37,6 @@ export const issueService = {
             const response = await api.post('/issues', issueData);
             return response.data;
         } catch (error) {
-            console.error('Erro ao criar issue:', error);
             throw this.handleError(error);
         }
     },
@@ -52,7 +49,6 @@ export const issueService = {
             const response = await api.put(`/issues/${id}`, issueData);
             return response.data;
         } catch (error) {
-            console.error('Erro ao atualizar issue:', error);
             throw this.handleError(error);
         }
     },
@@ -65,7 +61,6 @@ export const issueService = {
             const response = await api.delete(`/issues/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao excluir issue:', error);
             throw this.handleError(error);
         }
     },

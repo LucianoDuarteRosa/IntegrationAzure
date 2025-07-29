@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
-import { failureService } from '../services/failureService';
 import { useNotifications } from '../hooks/useNotifications';
 import {
     Box,
@@ -241,7 +240,6 @@ export function FailureForm() {
         handleSubmit,
         watch,
         setValue,
-        setError,
         clearErrors,
         formState: { errors }
     } = useForm({
@@ -312,40 +310,17 @@ export function FailureForm() {
         setAttachments(attachments.filter(att => att.id !== id));
     };
 
-    const onSubmit = async (data) => {
+    const onSubmit = async () => {
         setIsSubmitting(true);
 
         try {
-            // Os cenários já foram validados pelo schema do Yup
-            const validScenarios = data.givenWhenThen.filter(scenario =>
-                scenario.given.trim() && scenario.when.trim() && scenario.then.trim()
-            );
-
-            const failureData = {
-                ...data,
-                failureNumber: `FAIL-${Date.now()}`, // Número gerado automaticamente
-                occuredAt: new Date().toISOString(),
-                stepsToReproduce: validScenarios.map((scenario, index) =>
-                    `Cenário ${index + 1}:\n` +
-                    `Dado que: ${scenario.given}\n` +
-                    `Quando: ${scenario.when}\n` +
-                    `Então: ${scenario.then}`
-                ).join('\n\n'),
-                reportedBy: 'usuario.atual@example.com', // Seria obtido do contexto de auth
-                attachments: attachments,
-            };
-
-            // Simulação de envio (descomente quando a API estiver pronta)
-            // const result = await failureService.create(failureData);
-
             // Simula delay da API
             await new Promise(resolve => setTimeout(resolve, 1500));
 
             showSuccess('Falha registrada com sucesso!');
             navigate('/dashboard');
 
-        } catch (error) {
-            console.error('Erro ao criar falha:', error);
+        } catch {
             showError('Erro ao registrar falha. Tente novamente.');
         } finally {
             setIsSubmitting(false);
@@ -415,7 +390,6 @@ export function FailureForm() {
                             {/* Informações Básicas */}
                             <Section title="Informações Básicas" isFirst>
                                 <Box sx={{ display: 'grid', gap: 3 }}>
-                                    {/* Primeira linha: Demanda (1fr) e História (1fr) */}
                                     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
                                         <Controller
                                             name="demandNumber"

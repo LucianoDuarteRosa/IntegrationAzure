@@ -34,7 +34,6 @@ export function Login() {
                 error.validation(result.errors || [result.message || 'Credenciais inválidas']);
             }
         } catch (error) {
-            console.error('Erro no login:', error);
             error.connection();
         } finally {
             setIsLoading(false);

@@ -100,7 +100,7 @@ export function LogsPage() {
             const filtersToUse = customFilters || filters;
             // Remove filtros vazios
             const cleanFilters = Object.fromEntries(
-                Object.entries(filtersToUse).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+                Object.entries(filtersToUse).filter(([, value]) => value !== '' && value !== null && value !== undefined)
             );
 
             const response = await logService.getLogs(cleanFilters);
@@ -110,8 +110,7 @@ export function LogsPage() {
             } else {
                 error.load('logs', [response?.message || 'Resposta inválida do servidor']);
             }
-        } catch (err) {
-            console.error('Erro na requisição completa:', err);
+        } catch {
             error.connection();
         } finally {
             setLoading(false);

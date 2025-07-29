@@ -16,8 +16,8 @@ export function AuthProvider({ children }) {
                     const userData = authService.getCurrentUser();
                     setUser(userData);
                 }
-            } catch (error) {
-                console.error('Erro ao verificar sessão:', error);
+            } catch {
+                // Erro silencioso na verificação de sessão
             }
             setIsLoading(false);
         };
@@ -37,7 +37,6 @@ export function AuthProvider({ children }) {
                 return { success: false, message: result.message, errors: result.errors };
             }
         } catch (error) {
-            console.error('Erro no login:', error);
             return {
                 success: false,
                 message: 'Erro interno. Tente novamente.',

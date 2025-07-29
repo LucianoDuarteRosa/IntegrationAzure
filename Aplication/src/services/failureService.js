@@ -13,7 +13,6 @@ export const failureService = {
             const response = await api.get('/failures');
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar falhas:', error);
             throw this.handleError(error);
         }
     },
@@ -26,7 +25,6 @@ export const failureService = {
             const response = await api.get(`/failures/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar falha:', error);
             throw this.handleError(error);
         }
     },
@@ -39,7 +37,6 @@ export const failureService = {
             const response = await api.post('/failures', failureData);
             return response.data;
         } catch (error) {
-            console.error('Erro ao criar falha:', error);
             throw this.handleError(error);
         }
     },
@@ -52,7 +49,6 @@ export const failureService = {
             const response = await api.put(`/failures/${id}`, failureData);
             return response.data;
         } catch (error) {
-            console.error('Erro ao atualizar falha:', error);
             throw this.handleError(error);
         }
     },
@@ -65,7 +61,6 @@ export const failureService = {
             const response = await api.delete(`/failures/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao excluir falha:', error);
             throw this.handleError(error);
         }
     },

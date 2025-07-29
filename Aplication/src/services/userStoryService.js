@@ -13,7 +13,6 @@ export const userStoryService = {
             const response = await api.get('/userstories');
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar histórias:', error);
             throw this.handleError(error);
         }
     },
@@ -26,7 +25,6 @@ export const userStoryService = {
             const response = await api.get(`/userstories/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar história:', error);
             throw this.handleError(error);
         }
     },
@@ -39,7 +37,6 @@ export const userStoryService = {
             const response = await api.post('/userstories', userStoryData);
             return response.data;
         } catch (error) {
-            console.error('Erro ao criar história:', error);
             throw this.handleError(error);
         }
     },
@@ -52,7 +49,6 @@ export const userStoryService = {
             const response = await api.put(`/userstories/${id}`, userStoryData);
             return response.data;
         } catch (error) {
-            console.error('Erro ao atualizar história:', error);
             throw this.handleError(error);
         }
     },
@@ -65,7 +61,6 @@ export const userStoryService = {
             const response = await api.delete(`/userstories/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao excluir história:', error);
             throw this.handleError(error);
         }
     },

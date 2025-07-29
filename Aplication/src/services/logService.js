@@ -23,7 +23,6 @@ export const logService = {
             const response = await api.get(`/logs?${params.toString()}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar logs:', error);
             throw this.handleError(error);
         }
     },
@@ -36,7 +35,6 @@ export const logService = {
             const response = await api.get(`/logs/recent?count=${count}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar logs recentes:', error);
             throw this.handleError(error);
         }
     },
@@ -49,7 +47,6 @@ export const logService = {
             const response = await api.post('/logs', logData);
             return response.data;
         } catch (error) {
-            console.error('Erro ao criar log:', error);
             throw this.handleError(error);
         }
     },

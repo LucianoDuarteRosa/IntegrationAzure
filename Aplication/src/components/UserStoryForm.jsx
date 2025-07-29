@@ -527,9 +527,6 @@ export function UserStoryForm() {
             }, 1500);
 
         } catch (err) {
-            console.error('Erro completo:', err);
-            console.error('Dados enviados:', userStoryData);
-
             // Tratamento específico para diferentes tipos de erro
             if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
                 showError(err.errors.join(', '));
