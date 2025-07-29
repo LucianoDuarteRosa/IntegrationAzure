@@ -241,6 +241,7 @@ export function FailureForm() {
         watch,
         setValue,
         clearErrors,
+        reset,
         formState: { errors }
     } = useForm({
         resolver: yupResolver(schema),
@@ -254,6 +255,26 @@ export function FailureForm() {
             givenWhenThen: [{ given: '', when: '', then: '' }],
         }
     });
+
+    // Função para resetar todo o formulário
+    const resetFormToInitialState = () => {
+        // Reset do react-hook-form
+        reset({
+            demandNumber: '',
+            userStoryId: '',
+            title: '',
+            severity: 'Medium',
+            environment: 'Production',
+            observations: '',
+            givenWhenThen: [{ given: '', when: '', then: '' }],
+        });
+
+        // Reset dos estados locais
+        setAttachments([]);
+        setGivenWhenThen([{ given: '', when: '', then: '' }]);
+        setSelectedDemand('');
+        setAvailableStories([]);
+    };
 
     const watchedDemand = watch('demandNumber');
 
@@ -364,8 +385,10 @@ export function FailureForm() {
             const isSuccess = response && response.success === true;
 
             if (isSuccess) {
-                showSuccess('Falha registrada com sucesso!');
-                navigate('/dashboard');
+                showSuccess('Falha registrada!', 'Falha registrada com sucesso!');
+
+                // Resetar o formulário para registrar uma nova falha
+                resetFormToInitialState();
             } else {
                 // Se não tem success=true, tratar como erro
                 const errorMessage = response?.Message || response?.message || 'Erro ao registrar falha';
@@ -379,13 +402,13 @@ export function FailureForm() {
                 const errorData = error.response.data;
 
                 if (errorData.errors && Array.isArray(errorData.errors)) {
-                    showError(`Erro de validação: ${errorData.errors.join(', ')}`);
+                    showError('Erro de validação', errorData.errors.join(', '));
                 } else if (errorData.Errors && Array.isArray(errorData.Errors)) {
-                    showError(`Erro de validação: ${errorData.Errors.join(', ')}`);
+                    showError('Erro de validação', errorData.Errors.join(', '));
                 } else if (errorData.message || errorData.Message) {
-                    showError(errorData.message || errorData.Message);
+                    showError('Erro de validação', errorData.message || errorData.Message);
                 } else {
-                    showError('Erro de validação. Verifique os dados informados.');
+                    showError('Erro de validação', 'Verifique os dados informados.');
                 }
             } else if (error.errors && typeof error.errors === 'object') {
                 // Se errors é um objeto com propriedades (como $.UserStoryId)
@@ -398,13 +421,13 @@ export function FailureForm() {
                         errorMessages.push(errorArray);
                     }
                 });
-                showError(errorMessages.join(', '));
+                showError('Erro de validação', errorMessages.join(', '));
             } else if (error.errors && Array.isArray(error.errors)) {
-                showError(error.errors.join(', '));
+                showError('Erro de validação', error.errors.join(', '));
             } else if (error.message) {
-                showError(error.message);
+                showError('Erro na operação', error.message);
             } else {
-                showError('Erro ao registrar falha. Tente novamente.');
+                showError('Erro ao registrar', 'Erro ao registrar falha. Tente novamente.');
             }
         } finally {
             setIsSubmitting(false);

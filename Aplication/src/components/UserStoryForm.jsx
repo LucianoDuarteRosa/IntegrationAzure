@@ -411,9 +411,80 @@ export function UserStoryForm() {
 
     const [loading, setLoading] = useState(false);
 
-    const { control, handleSubmit, formState: { errors } } = useForm({
+    const { control, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: yupResolver(schema)
     });
+
+    // Função para resetar todo o formulário
+    const resetFormToInitialState = () => {
+        // Reset do react-hook-form
+        reset({
+            demandNumber: '',
+            title: '',
+            priority: 'Medium'
+        });
+
+        // Reset dos estados locais
+        setFiles({
+            notApplicable: false,
+            items: []
+        });
+        setScreenshots({
+            notApplicable: false,
+            items: []
+        });
+        setUserStory({
+            como: '',
+            quero: '',
+            para: ''
+        });
+        setImpact({
+            notApplicable: false,
+            items: [
+                {
+                    id: 1,
+                    current: '',
+                    expected: '',
+                },
+            ],
+        });
+        setObjective({
+            notApplicable: false,
+            fields: [{ id: 1, content: '' }],
+        });
+        setFields({
+            notApplicable: false,
+            items: [
+                {
+                    id: 1,
+                    name: '',
+                    type: 'text',
+                    size: '',
+                    required: false,
+                },
+            ],
+        });
+        setMessages({
+            notApplicable: false,
+            items: [{ id: 1, content: '' }],
+        });
+        setRules({
+            notApplicable: false,
+            items: [{ id: 1, content: '' }],
+        });
+        setScenarios({
+            notApplicable: false,
+            items: [
+                {
+                    id: 1,
+                    given: '',
+                    when: '',
+                    then: '',
+                },
+            ],
+        });
+        setAcceptanceCriteria('');
+    };
 
     const handleFileChange = (e) => {
         if (!files.notApplicable) {
@@ -431,7 +502,7 @@ export function UserStoryForm() {
         try {
             // Validação personalizada para critérios de aceite
             if (!acceptanceCriteria.trim()) {
-                showError('Critérios de aceite são obrigatórios');
+                showError('Dados obrigatórios', 'Critérios de aceite são obrigatórios');
                 setLoading(false);
                 return;
             }
@@ -523,29 +594,27 @@ export function UserStoryForm() {
             await userStoryService.create(userStoryData);
 
             // Mostrar notificação de sucesso
-            showSuccess('História de usuário criada com sucesso!');
+            showSuccess('História criada!', 'História de usuário criada com sucesso!');
 
-            // Redirecionar para dashboard após mostrar a notificação
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 1500);
+            // Resetar o formulário para criar uma nova história
+            resetFormToInitialState();
 
         } catch (err) {
             // Tratamento específico para diferentes tipos de erro
             if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
-                showError(err.errors.join(', '));
+                showError('Erro de validação', err.errors.join(', '));
             } else if (err.message) {
-                showError(err.message);
+                showError('Erro na operação', err.message);
             } else if (err.response) {
                 // Erro de resposta da API
                 const apiError = err.response.data;
                 if (apiError.errors && apiError.errors.length > 0) {
-                    showError(apiError.errors.join(', '));
+                    showError('Erro de validação', apiError.errors.join(', '));
                 } else {
-                    showError(apiError.message || 'Erro na resposta da API');
+                    showError('Erro na API', apiError.message || 'Erro na resposta da API');
                 }
             } else {
-                showError('Erro ao criar história de usuário');
+                showError('Erro ao criar', 'Erro ao criar história de usuário');
             }
         } finally {
             setLoading(false);

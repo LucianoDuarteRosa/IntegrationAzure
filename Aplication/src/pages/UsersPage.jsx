@@ -458,7 +458,7 @@ export function UsersPage() {
                                 </Grid>
 
                             </Grid>
-                            <Box fullWidth display="flex" justifyContent="flex-end">
+                            <Box display="flex" justifyContent="flex-end" >
                                 {canCreateUser() && (
                                     <Button
                                         variant="contained"

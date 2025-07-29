@@ -65,10 +65,10 @@ export function ConfigurationsPage() {
             if (response.success) {
                 setConfigurations(response.data || []);
             } else {
-                showError('Erro ao carregar configurações');
+                showError('Erro ao carregar', 'Erro ao carregar configurações');
             }
         } catch {
-            showError('Erro ao conectar com o servidor');
+            showError('Erro de conexão', 'Erro ao conectar com o servidor');
         } finally {
             setLoading(false);
         }
@@ -115,7 +115,7 @@ export function ConfigurationsPage() {
     const handleSave = async () => {
         try {
             if (!formData.key || !formData.value) {
-                showError('Chave e valor são obrigatórios');
+                showError('Dados obrigatórios', 'Chave e valor são obrigatórios');
                 return;
             }
 
@@ -128,19 +128,19 @@ export function ConfigurationsPage() {
                     IsActive: formData.isActive
                 });
                 if (response.success) {
-                    showSuccess('Configuração atualizada com sucesso!');
+                    showSuccess('Configuração atualizada!', 'Configuração atualizada com sucesso!');
                 }
             } else {
                 const response = await configurationService.create(formData);
                 if (response.success) {
-                    showSuccess('Configuração criada com sucesso!');
+                    showSuccess('Configuração criada!', 'Configuração criada com sucesso!');
                 }
             }
 
             handleCloseDialog();
             loadConfigurations();
         } catch (error) {
-            showError(error.response?.data?.message || 'Erro ao salvar configuração');
+            showError('Erro ao salvar', error.response?.data?.message || 'Erro ao salvar configuração');
         }
     };
 
@@ -149,11 +149,11 @@ export function ConfigurationsPage() {
             try {
                 const response = await configurationService.delete(config.Id || config.id);
                 if (response.success) {
-                    showSuccess('Configuração excluída com sucesso!');
+                    showSuccess('Configuração excluída!', 'Configuração excluída com sucesso!');
                     loadConfigurations();
                 }
             } catch {
-                showError('Erro ao excluir configuração');
+                showError('Erro ao excluir', 'Erro ao excluir configuração');
             }
         }
     };
