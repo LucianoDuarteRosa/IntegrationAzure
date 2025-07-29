@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { useNotifications } from '../hooks/useNotifications';
+import { failureService } from '../services/failureService';
 import {
     Box,
     Container,
@@ -33,27 +34,26 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 const schema = yup.object().shape({
-    demandNumber: yup.string().required('Número da demanda é obrigatório'),
-    userStoryId: yup.string().required('História é obrigatória'),
+    demandNumber: yup.string().required('Demanda é obrigatória'),
+    userStoryId: yup.string().required('História do usuário é obrigatória'),
     title: yup.string().required('Título é obrigatório'),
     severity: yup.string().required('Severidade é obrigatória'),
     environment: yup.string().required('Ambiente é obrigatório'),
-    observations: yup.string(),
+    observations: yup.string(), // Opcional
     givenWhenThen: yup.array().of(
         yup.object().shape({
-            given: yup.string().trim().required('Campo "Dado que" é obrigatório'),
-            when: yup.string().trim().required('Campo "Quando" é obrigatório'),
-            then: yup.string().trim().required('Campo "Então" é obrigatório'),
+            given: yup.string().trim(),
+            when: yup.string().trim(),
+            then: yup.string().trim(),
         })
-    ).min(1, 'Pelo menos um cenário completo é obrigatório')
-        .test('at-least-one-complete', 'Pelo menos um cenário completo é obrigatório', function (value) {
-            if (!value || value.length === 0) return false;
-            return value.some(scenario =>
-                scenario.given?.trim() &&
-                scenario.when?.trim() &&
-                scenario.then?.trim()
-            );
-        }),
+    ).test('at-least-one-complete', 'Pelo menos um cenário completo é obrigatório', function (value) {
+        if (!value || value.length === 0) return false;
+        return value.some(scenario =>
+            scenario.given?.trim() &&
+            scenario.when?.trim() &&
+            scenario.then?.trim()
+        );
+    }),
 });
 
 // Dados simulados para demandas e histórias
@@ -82,10 +82,10 @@ const historiasPorDemanda = {
 };
 
 const severidades = [
-    { value: 'Critical', label: 'Crítico', color: '#d32f2f' },
-    { value: 'Normal', label: 'Normal', color: '#ff9800' },
-    { value: 'NonCritical', label: 'Não Crítico', color: '#4caf50' },
-    { value: 'Enhancement', label: 'Melhoria', color: '#2196f3' },
+    { value: 'Low', label: 'Baixa', color: '#4caf50' },
+    { value: 'Medium', label: 'Média', color: '#ff9800' },
+    { value: 'High', label: 'Alta', color: '#f44336' },
+    { value: 'Critical', label: 'Crítica', color: '#d32f2f' },
 ];
 
 const ambientes = [
@@ -161,7 +161,7 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                     <Stack spacing={2}>
                         <TextField
                             fullWidth
-                            label="Dado que..."
+                            label="Dado que"
                             multiline
                             rows={2}
                             value={scenario.given}
@@ -174,7 +174,7 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                         />
                         <TextField
                             fullWidth
-                            label="Quando..."
+                            label="Quando"
                             multiline
                             rows={2}
                             value={scenario.when}
@@ -187,7 +187,7 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                         />
                         <TextField
                             fullWidth
-                            label="Então..."
+                            label="Então"
                             multiline
                             rows={2}
                             value={scenario.then}
@@ -248,7 +248,7 @@ export function FailureForm() {
             demandNumber: '',
             userStoryId: '',
             title: '',
-            severity: 'Normal',
+            severity: 'Medium',
             environment: 'Production',
             observations: '',
             givenWhenThen: [{ given: '', when: '', then: '' }],
@@ -257,11 +257,12 @@ export function FailureForm() {
 
     const watchedDemand = watch('demandNumber');
 
-    // Atualiza histórias disponíveis quando a demanda muda
+    // Atualiza histórias disponíveis quando a demanda muda (usando dados fictícios)
     useEffect(() => {
         if (watchedDemand) {
             setSelectedDemand(watchedDemand);
-            setAvailableStories(historiasPorDemanda[watchedDemand] || []);
+            const stories = historiasPorDemanda[watchedDemand] || [];
+            setAvailableStories(stories);
             setValue('userStoryId', ''); // Limpa a história selecionada
         } else {
             setAvailableStories([]);
@@ -310,18 +311,74 @@ export function FailureForm() {
         setAttachments(attachments.filter(att => att.id !== id));
     };
 
-    const onSubmit = async () => {
+    const onSubmit = async (data) => {
         setIsSubmitting(true);
 
         try {
-            // Simula delay da API
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Mapear severidade para os valores da API
+            const severityMap = {
+                'Low': 1,
+                'Medium': 2,
+                'High': 3,
+                'Critical': 4
+            };
 
-            showSuccess('Falha registrada com sucesso!');
-            navigate('/dashboard');
+            // Montar cenários completos (Dado que/Quando/Então)
+            const completedScenarios = givenWhenThen.filter(scenario =>
+                scenario.given?.trim() &&
+                scenario.when?.trim() &&
+                scenario.then?.trim()
+            );
 
-        } catch {
-            showError('Erro ao registrar falha. Tente novamente.');
+            // Montar a descrição com os cenários no formato Gherkin
+            let description = '';
+            if (completedScenarios.length > 0) {
+                description = completedScenarios.map((scenario, index) =>
+                    `**Cenário ${index + 1}:**\n` +
+                    `**Dado que** ${scenario.given}\n` +
+                    `**Quando** ${scenario.when}\n` +
+                    `**Então** ${scenario.then}\n`
+                ).join('\n');
+            }
+
+            // Adicionar observações se existirem
+            if (data.observations?.trim()) {
+                description += `\n**Observações:**\n${data.observations}`;
+            }
+
+            // Preparar dados para envio
+            const failureData = {
+                FailureNumber: `FAIL-${Date.now()}`, // Gerar número único
+                Title: data.title,
+                Description: description,
+                Severity: severityMap[data.severity],
+                OccurredAt: new Date().toISOString(),
+                Environment: data.environment,
+                UserStoryId: data.userStoryId,
+                StepsToReproduce: description, // Usar a mesma descrição para reprodução
+            };
+
+            // Enviar para a API
+            const response = await failureService.create(failureData);
+
+            if (response.success) {
+                showSuccess('Falha registrada com sucesso!');
+                navigate('/dashboard');
+            } else {
+                throw new Error(response.message || 'Erro ao registrar falha');
+            }
+
+        } catch (error) {
+            console.error('Erro ao registrar falha:', error);
+
+            // Tratamento específico para diferentes tipos de erro
+            if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
+                showError(error.errors.join(', '));
+            } else if (error.message) {
+                showError(error.message);
+            } else {
+                showError('Erro ao registrar falha. Tente novamente.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -425,21 +482,27 @@ export function FailureForm() {
                                                 <FormControl
                                                     fullWidth
                                                     error={!!errors.userStoryId}
-                                                    disabled={!selectedDemand}
+                                                    disabled={availableStories.length === 0}
                                                     required
                                                 >
                                                     <InputLabel>História do Usuário</InputLabel>
                                                     <Select
                                                         {...field}
                                                         label="História do Usuário"
-                                                        disabled={isSubmitting || !selectedDemand}
+                                                        disabled={isSubmitting || availableStories.length === 0}
                                                         required
                                                     >
-                                                        {availableStories.map((story) => (
-                                                            <MenuItem key={story.id} value={story.id}>
-                                                                {story.id} - {story.title}
+                                                        {availableStories.length === 0 ? (
+                                                            <MenuItem disabled>
+                                                                {selectedDemand ? 'Nenhuma história disponível' : 'Selecione uma demanda primeiro'}
                                                             </MenuItem>
-                                                        ))}
+                                                        ) : (
+                                                            availableStories.map((story) => (
+                                                                <MenuItem key={story.id} value={story.id}>
+                                                                    {story.id} - {story.title}
+                                                                </MenuItem>
+                                                            ))
+                                                        )}
                                                     </Select>
                                                     {errors.userStoryId && (
                                                         <Typography variant="caption" color="error" sx={{ mt: 1 }}>
