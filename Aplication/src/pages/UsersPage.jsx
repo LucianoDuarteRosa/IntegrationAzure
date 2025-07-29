@@ -100,21 +100,18 @@ export function UsersPage() {
         } finally {
             setLoading(false);
         }
-    }; const loadProfiles = async () => {
+    };
+
+    const loadProfiles = async () => {
         try {
-            console.log('Carregando perfis...');
             const response = await profileService.getActiveProfiles();
-            console.log('Resposta da API (perfis):', response);
 
             // Verifica tanto 'success' quanto 'Success' (case-insensitive)
             const isSuccess = response && (response.success === true || response.Success === true);
 
             if (isSuccess) {
                 const profileData = response.Data || response.data || [];
-                console.log('Dados dos perfis:', profileData);
                 setProfiles(profileData);
-            } else {
-                console.error('Erro na resposta dos perfis:', response);
             }
         } catch (error) {
             console.error('Erro ao carregar perfis:', error);
@@ -436,12 +433,92 @@ export function UsersPage() {
                             <TableContainer>
                                 <Table>
                                     <TableHead>
-                                        <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                            <TableCell>Usuário</TableCell>
-                                            <TableCell>Email</TableCell>
-                                            <TableCell>Perfil</TableCell>
-                                            <TableCell>Criado em</TableCell>
-                                            <TableCell align="center">Ações</TableCell>
+                                        <TableRow
+                                            sx={{
+                                                backgroundColor: theme.palette.mode === 'dark'
+                                                    ? '#424242'
+                                                    : '#ffffff',
+                                                position: 'sticky',
+                                                top: 0,
+                                                zIndex: 100
+                                            }}
+                                        >
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
+                                                }}
+                                            >
+                                                Usuário
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
+                                                }}
+                                            >
+                                                Email
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
+                                                }}
+                                            >
+                                                Perfil
+                                            </TableCell>
+                                            <TableCell
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
+                                                }}
+                                            >
+                                                Criado em
+                                            </TableCell>
+                                            <TableCell
+                                                align="center"
+                                                sx={{
+                                                    backgroundColor: theme.palette.mode === 'dark'
+                                                        ? '#424242'
+                                                        : '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    position: 'sticky',
+                                                    top: 0,
+                                                    zIndex: 99,
+                                                    borderBottom: '2px solid',
+                                                    borderBottomColor: theme.palette.mode === 'dark' ? '#666' : '#e0e0e0'
+                                                }}
+                                            >
+                                                Ações
+                                            </TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
