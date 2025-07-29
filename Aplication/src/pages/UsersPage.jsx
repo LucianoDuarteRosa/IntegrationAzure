@@ -85,11 +85,21 @@ export function UsersPage() {
             if (isSuccess) {
                 let userData = response.Data || response.data || [];
 
-                // Se for usuário comum, só mostra o próprio perfil
-                if (currentUser?.profile?.name === 'Usuário') {
+                // Aplicar filtros baseados na hierarquia: Desenvolvedor > Administrador > Usuário
+                const currentProfile = currentUser?.profile?.name;
+
+                if (currentProfile === 'Usuário') {
+                    // Usuário comum só vê o próprio perfil
                     const currentUserEmail = currentUser.email;
                     userData = userData.filter(u => (u.Email || u.email) === currentUserEmail);
+                } else if (currentProfile === 'Administrador') {
+                    // Administrador vê outros Administradores e Usuários, mas não Desenvolvedores
+                    userData = userData.filter(u => {
+                        const userProfile = (u.Profile || u.profile)?.Name || (u.Profile || u.profile)?.name;
+                        return userProfile !== 'Desenvolvedor';
+                    });
                 }
+                // Desenvolvedor vê todos (não precisa filtrar)
 
                 setUsers(userData);
             } else {
@@ -155,19 +165,30 @@ export function UsersPage() {
 
         const currentProfile = currentUser.profile?.name;
         const userEmail = user.Email || user.email;
+        const targetProfile = (user.Profile || user.profile)?.Name || (user.Profile || user.profile)?.name;
 
         // Usuário comum só pode editar o próprio perfil
         if (currentProfile === 'Usuário') {
             return userEmail === currentUser.email;
         }
 
-        // Desenvolvedor e Administrador podem editar outros usuários
-        return currentProfile === 'Desenvolvedor' || currentProfile === 'Administrador';
+        // Desenvolvedor pode editar qualquer um
+        if (currentProfile === 'Desenvolvedor') {
+            return true;
+        }
+
+        // Administrador pode editar outros Administradores e Usuários, mas não Desenvolvedores
+        if (currentProfile === 'Administrador') {
+            return targetProfile !== 'Desenvolvedor';
+        }
+
+        return false;
     };
 
     const canCreateUser = () => {
         if (!currentUser) return false;
         const currentProfile = currentUser.profile?.name;
+        // Apenas Desenvolvedor e Administrador podem criar usuários
         return currentProfile === 'Desenvolvedor' || currentProfile === 'Administrador';
     };
 
@@ -176,6 +197,7 @@ export function UsersPage() {
 
         const currentProfile = currentUser.profile?.name;
         const userEmail = user.Email || user.email;
+        const targetProfile = (user.Profile || user.profile)?.Name || (user.Profile || user.profile)?.name;
 
         // Usuário comum não pode deletar ninguém
         if (currentProfile === 'Usuário') return false;
@@ -183,7 +205,17 @@ export function UsersPage() {
         // Não pode deletar o próprio usuário
         if (userEmail === currentUser.email) return false;
 
-        return currentProfile === 'Desenvolvedor' || currentProfile === 'Administrador';
+        // Desenvolvedor pode deletar qualquer um (exceto próprio)
+        if (currentProfile === 'Desenvolvedor') {
+            return true;
+        }
+
+        // Administrador pode deletar outros Administradores e Usuários, mas não Desenvolvedores
+        if (currentProfile === 'Administrador') {
+            return targetProfile !== 'Desenvolvedor';
+        }
+
+        return false;
     };
 
     const handleCreateUser = () => {
@@ -231,10 +263,35 @@ export function UsersPage() {
         }
     };
 
+    // Função para verificar se pode usar alteração administrativa (sem senha atual)
+    const canChangePasswordWithoutCurrent = (targetUser) => {
+        const currentProfile = currentUser?.profile?.name;
+        const targetProfile = (targetUser.Profile || targetUser.profile)?.Name || (targetUser.Profile || targetUser.profile)?.name;
+
+        // Desenvolvedor pode alterar qualquer senha sem senha atual
+        if (currentProfile === 'Desenvolvedor') {
+            return true;
+        }
+
+        // Administrador pode alterar senha de Usuário sem senha atual
+        if (currentProfile === 'Administrador' && targetProfile === 'Usuário') {
+            return true;
+        }
+
+        return false;
+    };
+
     const handleSavePassword = async (passwordData) => {
         try {
             const userId = selectedUser.Id || selectedUser.id;
-            const response = await userService.changePassword(userId, passwordData);
+            const isAdminChange = canChangePasswordWithoutCurrent(selectedUser);
+
+            let response;
+            if (isAdminChange) {
+                response = await userService.adminChangePassword(userId, passwordData);
+            } else {
+                response = await userService.changePassword(userId, passwordData);
+            }
 
             const isSuccess = response && (response.success === true || response.Success === true);
             if (isSuccess) {
@@ -622,6 +679,7 @@ export function UsersPage() {
                 onClose={() => setPasswordModalOpen(false)}
                 onSave={handleSavePassword}
                 userName={selectedUser?.Name || selectedUser?.name}
+                isAdminChange={selectedUser ? canChangePasswordWithoutCurrent(selectedUser) : false}
             />
 
             {/* Dialog de Confirmação de Exclusão */}

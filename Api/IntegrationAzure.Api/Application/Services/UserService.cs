@@ -275,13 +275,13 @@ public class UserService
     }
 
     /// <summary>
-    /// Altera a senha de um usuário
+    /// Altera a senha de um usuário com base na hierarquia de perfis
     /// </summary>
     public async Task<ApiResponseDto<bool>> ChangePasswordAsync(Guid id, ChangePasswordDto dto, string currentUser)
     {
         try
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _userRepository.GetWithProfileAsync(id);
             if (user == null)
             {
                 return new ApiResponseDto<bool>
@@ -291,13 +291,98 @@ public class UserService
                 };
             }
 
-            // Verificar se a senha atual está correta
-            if (!VerifyPassword(dto.CurrentPassword, user.Password))
+            // Buscar o usuário atual para verificar hierarquia
+            var currentUserEntity = await _userRepository.GetByEmailAsync(currentUser);
+            if (currentUserEntity == null)
             {
                 return new ApiResponseDto<bool>
                 {
                     Success = false,
-                    Message = "Senha atual incorreta"
+                    Message = "Usuário atual não encontrado"
+                };
+            }
+
+            var currentUserProfile = await _profileRepository.GetByIdAsync(currentUserEntity.ProfileId);
+            var targetUserProfile = user.Profile;
+
+            // Verificar se precisa da senha atual baseado na hierarquia
+            bool needsCurrentPassword = ShouldRequireCurrentPassword(currentUserProfile?.Name, targetUserProfile?.Name);
+
+            if (needsCurrentPassword)
+            {
+                // Verificar se a senha atual está correta
+                if (!VerifyPassword(dto.CurrentPassword, user.Password))
+                {
+                    return new ApiResponseDto<bool>
+                    {
+                        Success = false,
+                        Message = "Senha atual incorreta"
+                    };
+                }
+            }
+
+            user.Password = HashPassword(dto.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedBy = currentUser;
+
+            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveChangesAsync();
+
+            return new ApiResponseDto<bool>
+            {
+                Success = true,
+                Message = "Senha alterada com sucesso",
+                Data = true
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ApiResponseDto<bool>
+            {
+                Success = false,
+                Message = $"Erro interno: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Altera a senha de um usuário por hierarquia (sem necessidade da senha atual)
+    /// </summary>
+    public async Task<ApiResponseDto<bool>> AdminChangePasswordAsync(Guid id, AdminChangePasswordDto dto, string currentUser)
+    {
+        try
+        {
+            var user = await _userRepository.GetWithProfileAsync(id);
+            if (user == null)
+            {
+                return new ApiResponseDto<bool>
+                {
+                    Success = false,
+                    Message = "Usuário não encontrado"
+                };
+            }
+
+            // Buscar o usuário atual para verificar hierarquia
+            var currentUserEntity = await _userRepository.GetByEmailAsync(currentUser);
+            if (currentUserEntity == null)
+            {
+                return new ApiResponseDto<bool>
+                {
+                    Success = false,
+                    Message = "Usuário atual não encontrado"
+                };
+            }
+
+            var currentUserProfile = await _profileRepository.GetByIdAsync(currentUserEntity.ProfileId);
+            var targetUserProfile = user.Profile;
+
+            // Verificar se tem permissão para alterar senha sem senha atual
+            if (!CanChangePasswordWithoutCurrent(currentUserProfile?.Name, targetUserProfile?.Name))
+            {
+                return new ApiResponseDto<bool>
+                {
+                    Success = false,
+                    Message = "Sem permissão para alterar senha deste usuário"
                 };
             }
 
@@ -326,6 +411,25 @@ public class UserService
     }
 
     /// <summary>
+    /// Verifica se pode alterar senha sem informar a senha atual
+    /// </summary>
+    private static bool CanChangePasswordWithoutCurrent(string? currentUserProfile, string? targetUserProfile)
+    {
+        if (string.IsNullOrEmpty(currentUserProfile) || string.IsNullOrEmpty(targetUserProfile))
+            return false;
+
+        // Desenvolvedor pode alterar senha de qualquer um sem precisar da atual
+        if (currentUserProfile == "Desenvolvedor")
+            return true;
+
+        // Administrador pode alterar senha de Usuários sem precisar da atual
+        if (currentUserProfile == "Administrador" && targetUserProfile == "Usuário")
+            return true;
+
+        return false;
+    }
+
+    /// <summary>
     /// Obtém usuários por perfil
     /// </summary>
     public async Task<ApiResponseDto<IEnumerable<SimpleUserDto>>> GetByProfileAsync(Guid profileId)
@@ -351,6 +455,91 @@ public class UserService
         catch (Exception ex)
         {
             return new ApiResponseDto<IEnumerable<SimpleUserDto>>
+            {
+                Success = false,
+                Message = $"Erro interno: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Determina se é necessário informar a senha atual para alterar a senha de um usuário
+    /// baseado na hierarquia: Desenvolvedor > Administrador > Usuário
+    /// </summary>
+    private static bool ShouldRequireCurrentPassword(string? currentUserProfile, string? targetUserProfile)
+    {
+        if (string.IsNullOrEmpty(currentUserProfile) || string.IsNullOrEmpty(targetUserProfile))
+            return true;
+
+        // Desenvolvedor pode alterar senha de qualquer um sem precisar da atual
+        if (currentUserProfile == "Desenvolvedor")
+            return false;
+
+        // Administrador pode alterar senha de Usuários sem precisar da atual
+        if (currentUserProfile == "Administrador" && targetUserProfile == "Usuário")
+            return false;
+
+        // Para todos os outros casos, precisa da senha atual
+        return true;
+    }
+
+    /// <summary>
+    /// Verifica se o usuário atual pode visualizar/editar o usuário alvo baseado na hierarquia
+    /// </summary>
+    private static bool CanAccessUser(string? currentUserProfile, string? targetUserProfile)
+    {
+        if (string.IsNullOrEmpty(currentUserProfile) || string.IsNullOrEmpty(targetUserProfile))
+            return false;
+
+        return currentUserProfile switch
+        {
+            "Desenvolvedor" => true, // Desenvolvedor acessa todos
+            "Administrador" => targetUserProfile != "Desenvolvedor", // Admin não vê Desenvolvedor
+            "Usuário" => false, // Usuário não vê outros (apenas próprio perfil)
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Obtém todos os usuários filtrados baseado no perfil do usuário atual
+    /// </summary>
+    public async Task<ApiResponseDto<IEnumerable<UserDto>>> GetAllFilteredAsync(string currentUserEmail)
+    {
+        try
+        {
+            var currentUser = await _userRepository.GetByEmailAsync(currentUserEmail);
+            if (currentUser == null)
+            {
+                return new ApiResponseDto<IEnumerable<UserDto>>
+                {
+                    Success = false,
+                    Message = "Usuário atual não encontrado"
+                };
+            }
+
+            var currentUserProfile = await _profileRepository.GetByIdAsync(currentUser.ProfileId);
+            var allUsers = await _userRepository.GetAllWithProfilesAsync();
+
+            var filteredUsers = allUsers.Where(user =>
+            {
+                // Se for o próprio usuário, sempre pode ver
+                if (user.Email == currentUserEmail)
+                    return true;
+
+                // Aplicar filtro baseado na hierarquia
+                return CanAccessUser(currentUserProfile?.Name, user.Profile?.Name);
+            });
+
+            var responseDtos = filteredUsers.Select(MapToUserDto);
+            return new ApiResponseDto<IEnumerable<UserDto>>
+            {
+                Success = true,
+                Data = responseDtos
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ApiResponseDto<IEnumerable<UserDto>>
             {
                 Success = false,
                 Message = $"Erro interno: {ex.Message}"

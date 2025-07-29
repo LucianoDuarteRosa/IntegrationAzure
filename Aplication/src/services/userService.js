@@ -68,6 +68,11 @@ const userService = {
     async changePassword(id, passwordData) {
         const response = await api.patch(`/users/${id}/change-password`, passwordData);
         return response.data;
+    },
+
+    async adminChangePassword(id, passwordData) {
+        const response = await api.patch(`/users/${id}/admin-change-password`, passwordData);
+        return response.data;
     }
 };
 

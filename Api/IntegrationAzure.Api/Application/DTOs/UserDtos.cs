@@ -116,3 +116,17 @@ public class LoginDto
     [Required(ErrorMessage = "A senha é obrigatória")]
     public string Password { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// DTO para alteração de senha por hierarquia (sem senha atual)
+/// </summary>
+public class AdminChangePasswordDto
+{
+    [Required(ErrorMessage = "A nova senha é obrigatória")]
+    [StringLength(255, MinimumLength = 6, ErrorMessage = "A nova senha deve ter entre 6 e 255 caracteres")]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "A confirmação de senha é obrigatória")]
+    [Compare("NewPassword", ErrorMessage = "A confirmação de senha não confere")]
+    public string ConfirmPassword { get; set; } = string.Empty;
+}

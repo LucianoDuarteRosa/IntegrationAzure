@@ -19,7 +19,7 @@ import {
     VpnKey as VpnKeyIcon
 } from '@mui/icons-material';
 
-export function ChangePasswordModal({ open, onClose, onSave, userName }) {
+export function ChangePasswordModal({ open, onClose, onSave, userName, isAdminChange = false }) {
     const [loading, setLoading] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -51,7 +51,8 @@ export function ChangePasswordModal({ open, onClose, onSave, userName }) {
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.currentPassword) {
+        // Senha atual só é obrigatória se não for alteração administrativa
+        if (!isAdminChange && !formData.currentPassword) {
             newErrors.currentPassword = 'Senha atual é obrigatória';
         }
 
@@ -67,7 +68,8 @@ export function ChangePasswordModal({ open, onClose, onSave, userName }) {
             newErrors.confirmPassword = 'Confirmação de senha não confere';
         }
 
-        if (formData.currentPassword === formData.newPassword) {
+        // Verificar se nova senha é diferente da atual apenas se senha atual foi informada
+        if (formData.currentPassword && formData.currentPassword === formData.newPassword) {
             newErrors.newPassword = 'A nova senha deve ser diferente da senha atual';
         }
 
@@ -83,10 +85,14 @@ export function ChangePasswordModal({ open, onClose, onSave, userName }) {
         setLoading(true);
         try {
             const passwordData = {
-                currentPassword: formData.currentPassword,
                 newPassword: formData.newPassword,
                 confirmPassword: formData.confirmPassword
             };
+
+            // Incluir senha atual apenas se não for alteração administrativa
+            if (!isAdminChange) {
+                passwordData.currentPassword = formData.currentPassword;
+            }
 
             await onSave(passwordData);
             handleClose();
@@ -124,7 +130,7 @@ export function ChangePasswordModal({ open, onClose, onSave, userName }) {
                 <Box display="flex" alignItems="center" gap={1}>
                     <VpnKeyIcon />
                     <Typography variant="h6">
-                        Alterar Senha
+                        {isAdminChange ? 'Alterar Senha (Administrativo)' : 'Alterar Senha'}
                     </Typography>
                 </Box>
                 {userName && (
@@ -142,30 +148,32 @@ export function ChangePasswordModal({ open, onClose, onSave, userName }) {
                     </Alert>
 
                     <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Senha Atual"
-                                type={showCurrentPassword ? 'text' : 'password'}
-                                value={formData.currentPassword}
-                                onChange={handleInputChange('currentPassword')}
-                                error={!!errors.currentPassword}
-                                helperText={errors.currentPassword}
-                                required
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                                edge="end"
-                                            >
-                                                {showCurrentPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    )
-                                }}
-                            />
-                        </Grid>
+                        {!isAdminChange && (
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    label="Senha Atual"
+                                    type={showCurrentPassword ? 'text' : 'password'}
+                                    value={formData.currentPassword}
+                                    onChange={handleInputChange('currentPassword')}
+                                    error={!!errors.currentPassword}
+                                    helperText={errors.currentPassword}
+                                    required
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                    edge="end"
+                                                >
+                                                    {showCurrentPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }}
+                                />
+                            </Grid>
+                        )}
 
                         <Grid item xs={12}>
                             <TextField

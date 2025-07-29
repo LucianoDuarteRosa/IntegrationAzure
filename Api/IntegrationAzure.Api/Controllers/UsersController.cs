@@ -128,4 +128,23 @@ public class UsersController : BaseController
         var result = await _userService.ChangePasswordAsync(id, dto, currentUser);
         return ProcessServiceResponse(result);
     }
+
+    /// <summary>
+    /// Altera a senha de um usuário por hierarquia (sem senha atual)
+    /// </summary>
+    /// <param name="id">ID do usuário</param>
+    /// <param name="dto">Dados da nova senha</param>
+    /// <returns>Resultado da operação</returns>
+    [HttpPatch("{id:guid}/admin-change-password")]
+    public async Task<ActionResult<ApiResponseDto<bool>>> AdminChangePassword(Guid id, [FromBody] AdminChangePasswordDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationErrorResponse<bool>(ModelState);
+        }
+
+        var currentUser = GetCurrentUser();
+        var result = await _userService.AdminChangePasswordAsync(id, dto, currentUser);
+        return ProcessServiceResponse(result);
+    }
 }
