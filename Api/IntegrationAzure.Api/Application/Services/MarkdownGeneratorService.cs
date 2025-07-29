@@ -51,7 +51,7 @@ public class MarkdownGeneratorService
     {
         if (userStory == null) return;
 
-        md.AppendLine("# História do Usuário");
+        md.AppendLine("# 📖 História do Usuário");
         md.AppendLine();
 
         if (!string.IsNullOrWhiteSpace(userStory.Como))
@@ -312,10 +312,9 @@ public class MarkdownGeneratorService
         // 1. Informações Básicas
         md.AppendLine("## 🐛 Informações da Falha");
         md.AppendLine();
-        md.AppendLine($"**📋 Número:** {dto.FailureNumber}");
-        md.AppendLine($"**📅 Ocorrência:** {dto.OccurredAt:dd/MM/yyyy HH:mm:ss}");
         md.AppendLine($"**🌐 Ambiente:** {dto.Environment}");
         md.AppendLine($"**⚠️ Severidade:** {GetSeverityText(dto.Severity)}");
+        md.AppendLine("---");
         md.AppendLine();
 
         // 2. Impactos da Falha
