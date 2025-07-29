@@ -13,18 +13,15 @@ namespace IntegrationAzure.Api.Controllers
         private readonly UserStoryService _userStoryService;
         private readonly LogService _logService;
         private readonly IValidator<CreateUserStoryDto>? _createValidator;
-        private readonly IValidator<UpdateUserStoryDto>? _updateValidator;
 
         public UserStoriesController(
             UserStoryService userStoryService,
             LogService logService,
-            IValidator<CreateUserStoryDto>? createValidator = null,
-            IValidator<UpdateUserStoryDto>? updateValidator = null)
+            IValidator<CreateUserStoryDto>? createValidator = null)
         {
             _userStoryService = userStoryService;
             _logService = logService;
             _createValidator = createValidator;
-            _updateValidator = updateValidator;
         }
 
         /// <summary>
@@ -166,69 +163,6 @@ namespace IntegrationAzure.Api.Controllers
                 );
 
                 return ErrorResponse<UserStoryDto>(
-                    "Erro interno do servidor",
-                    new List<string> { ex.Message },
-                    500
-                );
-            }
-        }
-
-        /// <summary>
-        /// Atualiza uma história de usuário existente
-        /// </summary>
-        /// <param name="id">ID da história de usuário</param>
-        /// <param name="updateDto">Dados atualizados da história de usuário</param>
-        /// <returns>História de usuário atualizada</returns>
-        [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponseDto<UserStoryDto>>> Update(Guid id, [FromBody] UpdateUserStoryDto updateDto)
-        {
-            try
-            {
-                // Validação manual se o validador estiver disponível
-                if (_updateValidator != null)
-                {
-                    var validationResult = await _updateValidator.ValidateAsync(updateDto);
-                    if (!validationResult.IsValid)
-                    {
-                        var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                        return ErrorResponse<UserStoryDto>(
-                            "Dados de entrada inválidos",
-                            errors,
-                            400
-                        );
-                    }
-                }
-
-                var currentUser = GetCurrentUser();
-                var result = await _userStoryService.UpdateAsync(id, updateDto, currentUser);
-                return ProcessServiceResponse(result);
-            }
-            catch (Exception ex)
-            {
-                return ErrorResponse<UserStoryDto>(
-                    "Erro interno do servidor",
-                    new List<string> { ex.Message },
-                    500
-                );
-            }
-        }
-
-        /// <summary>
-        /// Exclui uma história de usuário
-        /// </summary>
-        /// <param name="id">ID da história de usuário</param>
-        /// <returns>Confirmação da exclusão</returns>
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<ApiResponseDto<bool>>> Delete(Guid id)
-        {
-            try
-            {
-                var result = await _userStoryService.DeleteAsync(id);
-                return ProcessServiceResponse(result);
-            }
-            catch (Exception ex)
-            {
-                return ErrorResponse<bool>(
                     "Erro interno do servidor",
                     new List<string> { ex.Message },
                     500

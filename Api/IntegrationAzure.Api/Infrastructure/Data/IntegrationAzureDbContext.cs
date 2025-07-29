@@ -35,7 +35,6 @@ public class IntegrationAzureDbContext : DbContext
             entity.Property(e => e.Title).HasMaxLength(255).IsRequired();
             entity.Property(e => e.AcceptanceCriteria).IsRequired();
             entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
 
             // Índices para performance
             entity.HasIndex(e => e.DemandNumber);

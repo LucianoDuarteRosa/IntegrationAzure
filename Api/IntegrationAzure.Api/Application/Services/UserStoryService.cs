@@ -144,105 +144,6 @@ public class UserStoryService
     }
 
     /// <summary>
-    /// Atualiza uma história de usuário
-    /// </summary>
-    public async Task<ApiResponseDto<UserStoryDto>> UpdateAsync(Guid id, UpdateUserStoryDto dto, string currentUser)
-    {
-        try
-        {
-            var userStory = await _userStoryRepository.GetWithAttachmentsAsync(id);
-
-            if (userStory == null)
-            {
-                return new ApiResponseDto<UserStoryDto>
-                {
-                    Success = false,
-                    Message = "História não encontrada"
-                };
-            }
-
-            // Atualizar propriedades não nulas
-            if (!string.IsNullOrEmpty(dto.Title))
-                userStory.Title = dto.Title;
-
-            if (!string.IsNullOrEmpty(dto.AcceptanceCriteria))
-                userStory.AcceptanceCriteria = dto.AcceptanceCriteria;
-
-            if (!string.IsNullOrEmpty(dto.Description))
-                userStory.Description = dto.Description;
-
-            if (dto.Status.HasValue)
-                userStory.Status = dto.Status.Value;
-
-            if (dto.Priority.HasValue)
-                userStory.Priority = dto.Priority.Value;
-
-            userStory.UpdatedBy = currentUser;
-            userStory.UpdatedAt = DateTime.UtcNow;
-
-            await _userStoryRepository.UpdateAsync(userStory);
-            await _userStoryRepository.SaveChangesAsync();
-
-            var updatedUserStory = await _userStoryRepository.GetCompleteAsync(id);
-
-            return new ApiResponseDto<UserStoryDto>
-            {
-                Success = true,
-                Message = "História atualizada com sucesso",
-                Data = MapToDto(updatedUserStory!)
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ApiResponseDto<UserStoryDto>
-            {
-                Success = false,
-                Message = "Erro interno do servidor",
-                Errors = new List<string> { ex.Message }
-            };
-        }
-    }
-
-    /// <summary>
-    /// Exclui uma história de usuário
-    /// </summary>
-    public async Task<ApiResponseDto<bool>> DeleteAsync(Guid id)
-    {
-        try
-        {
-            var userStory = await _userStoryRepository.GetByIdAsync(id);
-
-            if (userStory == null)
-            {
-                return new ApiResponseDto<bool>
-                {
-                    Success = false,
-                    Message = "História não encontrada"
-                };
-            }
-
-            await _userStoryRepository.DeleteAsync(id);
-            await _userStoryRepository.SaveChangesAsync();
-
-            return new ApiResponseDto<bool>
-            {
-                Success = true,
-                Message = "História excluída com sucesso",
-                Data = true
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ApiResponseDto<bool>
-            {
-                Success = false,
-                Message = "Erro interno do servidor",
-                Errors = new List<string> { ex.Message }
-            };
-        }
-    }
-
-    /// <summary>
     /// Mapeia entidade para DTO
     /// </summary>
     private static UserStoryDto MapToDto(UserStory userStory)
@@ -257,9 +158,7 @@ public class UserStoryService
             Status = userStory.Status,
             Priority = userStory.Priority,
             CreatedAt = userStory.CreatedAt,
-            UpdatedAt = userStory.UpdatedAt,
             CreatedBy = userStory.CreatedBy,
-            UpdatedBy = userStory.UpdatedBy,
             Attachments = userStory.Attachments.Select(a => new AttachmentDto
             {
                 Id = a.Id,

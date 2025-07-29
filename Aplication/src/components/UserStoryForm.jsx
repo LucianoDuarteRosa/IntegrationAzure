@@ -407,10 +407,7 @@ export function UserStoryForm() {
             },
         ],
     });
-    const [acceptanceCriteria, setAcceptanceCriteria] = useState({
-        notApplicable: false,
-        content: '',
-    });
+    const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
 
     const [loading, setLoading] = useState(false);
 
@@ -432,6 +429,13 @@ export function UserStoryForm() {
         setLoading(true);
 
         try {
+            // Validação personalizada para critérios de aceite
+            if (!acceptanceCriteria.trim()) {
+                showError('Critérios de aceite são obrigatórios');
+                setLoading(false);
+                return;
+            }
+
             // Mapeamento dos valores de prioridade para os números do enum
             const priorityMap = {
                 'Low': 1,
@@ -445,7 +449,7 @@ export function UserStoryForm() {
                 DemandNumber: data.demandNumber,
                 Title: data.title,
                 Priority: priorityMap[data.priority] || 2, // Default para Medium
-                AcceptanceCriteria: acceptanceCriteria.content || 'Não especificado',
+                AcceptanceCriteria: acceptanceCriteria,
 
                 // História do usuário (como/quero/para)
                 UserStory: {
@@ -713,22 +717,13 @@ export function UserStoryForm() {
 
                             <Section
                                 title="Critérios de Aceite"
-                                notApplicable={acceptanceCriteria.notApplicable}
-                                onNotApplicableChange={(checked) => setAcceptanceCriteria({
-                                    ...acceptanceCriteria,
-                                    notApplicable: checked
-                                })}
                             >
                                 <TextField
                                     fullWidth
                                     multiline
                                     rows={4}
-                                    value={acceptanceCriteria.content}
-                                    onChange={(e) => setAcceptanceCriteria({
-                                        ...acceptanceCriteria,
-                                        content: e.target.value
-                                    })}
-                                    disabled={acceptanceCriteria.notApplicable}
+                                    value={acceptanceCriteria}
+                                    onChange={(e) => setAcceptanceCriteria(e.target.value)}
                                     required
                                 />
                             </Section>

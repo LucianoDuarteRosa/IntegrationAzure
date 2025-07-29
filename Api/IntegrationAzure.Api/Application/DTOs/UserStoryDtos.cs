@@ -148,18 +148,6 @@ public class FileInfoDto
 }
 
 /// <summary>
-/// DTO para atualização de história de usuário
-/// </summary>
-public class UpdateUserStoryDto
-{
-    public string? Title { get; set; }
-    public string? AcceptanceCriteria { get; set; }
-    public string? Description { get; set; }
-    public UserStoryStatus? Status { get; set; }
-    public Priority? Priority { get; set; }
-}
-
-/// <summary>
 /// DTO para retorno de história de usuário
 /// </summary>
 public class UserStoryDto
@@ -172,9 +160,7 @@ public class UserStoryDto
     public UserStoryStatus Status { get; set; }
     public Priority Priority { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
-    public string? UpdatedBy { get; set; }
     public List<AttachmentDto> Attachments { get; set; } = new();
 }
 

@@ -6,7 +6,7 @@ namespace IntegrationAzure.Api.Domain.Entities;
 /// Entidade que representa uma História de Usuário
 /// Baseada no formulário StoryForm.jsx da aplicação React
 /// </summary>
-public class UserStory : BaseEntity
+public class UserStory : SimpleBaseEntity
 {
     [Required]
     [StringLength(50)]
