@@ -16,6 +16,29 @@ public class CreateFailureDto
     public string? Environment { get; set; }
     public Guid? IssueId { get; set; }
     public Guid? UserStoryId { get; set; }
+    public List<FailureScenarioDto>? Scenarios { get; set; }
+    public string? Observations { get; set; }
+    public List<FailureAttachmentDto>? Attachments { get; set; }
+}
+
+/// <summary>
+/// DTO para representar cenários de falha (Dado que/Quando/Então)
+/// </summary>
+public class FailureScenarioDto
+{
+    public string Given { get; set; } = string.Empty;
+    public string When { get; set; } = string.Empty;
+    public string Then { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// DTO para representar anexos/evidências de falha
+/// </summary>
+public class FailureAttachmentDto
+{
+    public string Name { get; set; } = string.Empty;
+    public long Size { get; set; }
+    public string Type { get; set; } = string.Empty;
 }
 
 /// <summary>

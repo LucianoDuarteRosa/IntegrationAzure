@@ -30,7 +30,8 @@ public class CreateFailureDtoValidator : AbstractValidator<CreateFailureDto>
             .NotEmpty()
             .WithMessage("Descrição é obrigatória")
             .MinimumLength(10)
-            .WithMessage("Descrição deve ter pelo menos 10 caracteres");
+            .WithMessage("Descrição deve ter pelo menos 10 caracteres")
+            .When(x => x.Scenarios == null || !x.Scenarios.Any()); // Só exige descrição se não há cenários estruturados
 
         RuleFor(x => x.Severity)
             .IsInEnum()
@@ -51,5 +52,28 @@ public class CreateFailureDtoValidator : AbstractValidator<CreateFailureDto>
             .MaximumLength(200)
             .WithMessage("Ambiente deve ter no máximo 200 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Environment));
+
+        // Validação para cenários estruturados
+        RuleFor(x => x.Scenarios)
+            .Must(scenarios => scenarios == null || scenarios.Any())
+            .WithMessage("Pelo menos um cenário deve ser informado quando usar cenários estruturados")
+            .When(x => string.IsNullOrEmpty(x.Description));
+
+        RuleForEach(x => x.Scenarios)
+            .ChildRules(scenario =>
+            {
+                scenario.RuleFor(s => s.Given)
+                    .NotEmpty()
+                    .WithMessage("'Processo Atual' é obrigatório");
+
+                scenario.RuleFor(s => s.When)
+                    .NotEmpty()
+                    .WithMessage("'Ação Executada' é obrigatória");
+
+                scenario.RuleFor(s => s.Then)
+                    .NotEmpty()
+                    .WithMessage("'Melhoria Esperada' é obrigatória");
+            })
+            .When(x => x.Scenarios != null && x.Scenarios.Any());
     }
 }

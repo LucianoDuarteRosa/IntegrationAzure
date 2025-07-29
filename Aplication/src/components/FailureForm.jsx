@@ -46,7 +46,7 @@ const schema = yup.object().shape({
             when: yup.string().trim(),
             then: yup.string().trim(),
         })
-    ).test('at-least-one-complete', 'Pelo menos um cenário completo é obrigatório', function (value) {
+    ).test('at-least-one-complete', 'Pelo menos um impacto completo é obrigatório', function (value) {
         if (!value || value.length === 0) return false;
         return value.some(scenario =>
             scenario.given?.trim() &&
@@ -146,7 +146,7 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                 >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="subtitle1" fontWeight="medium">
-                            Cenário {index + 1}
+                            Impacto {index + 1}
                         </Typography>
                         <IconButton
                             onClick={() => onRemove(index)}
@@ -161,39 +161,39 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                     <Stack spacing={2}>
                         <TextField
                             fullWidth
-                            label="Dado que"
+                            label="Processo Atual"
                             multiline
                             rows={2}
                             value={scenario.given}
                             onChange={(e) => onScenarioChange(index, 'given', e.target.value)}
                             disabled={disabled}
-                            placeholder="Descreva o contexto inicial da falha"
+                            placeholder="Descreva o processo atual que apresenta a falha"
                             error={!!(errors?.givenWhenThen?.[index]?.given)}
                             helperText={errors?.givenWhenThen?.[index]?.given?.message}
                             required
                         />
                         <TextField
                             fullWidth
-                            label="Quando"
+                            label="Ação Executada"
                             multiline
                             rows={2}
                             value={scenario.when}
                             onChange={(e) => onScenarioChange(index, 'when', e.target.value)}
                             disabled={disabled}
-                            placeholder="Descreva a ação que causou a falha"
+                            placeholder="Descreva a ação que foi executada quando a falha ocorreu"
                             error={!!(errors?.givenWhenThen?.[index]?.when)}
                             helperText={errors?.givenWhenThen?.[index]?.when?.message}
                             required
                         />
                         <TextField
                             fullWidth
-                            label="Então"
+                            label="Melhoria Esperada"
                             multiline
                             rows={2}
                             value={scenario.then}
                             onChange={(e) => onScenarioChange(index, 'then', e.target.value)}
                             disabled={disabled}
-                            placeholder="Descreva o comportamento incorreto observado"
+                            placeholder="Descreva como o processo deveria funcionar corretamente"
                             error={!!(errors?.givenWhenThen?.[index]?.then)}
                             helperText={errors?.givenWhenThen?.[index]?.then?.message}
                             required
@@ -210,7 +210,7 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
                     disabled={disabled}
                     sx={{ width: '50%' }}
                 >
-                    Adicionar Cenário
+                    Adicionar Impacto
                 </Button>
             </Box>
 
@@ -323,56 +323,89 @@ export function FailureForm() {
                 'Critical': 4
             };
 
-            // Montar cenários completos (Dado que/Quando/Então)
+            // Montar cenários completos (Dado que/Quando/Então) para criar os Impactos
             const completedScenarios = givenWhenThen.filter(scenario =>
                 scenario.given?.trim() &&
                 scenario.when?.trim() &&
                 scenario.then?.trim()
             );
 
-            // Montar a descrição com os cenários no formato Gherkin
-            let description = '';
-            if (completedScenarios.length > 0) {
-                description = completedScenarios.map((scenario, index) =>
-                    `**Cenário ${index + 1}:**\n` +
-                    `**Dado que** ${scenario.given}\n` +
-                    `**Quando** ${scenario.when}\n` +
-                    `**Então** ${scenario.then}\n`
-                ).join('\n');
-            }
+            // Mapear os cenários para o formato esperado pela API
+            const scenariosForApi = completedScenarios.map(scenario => ({
+                Given: scenario.given.trim(),
+                When: scenario.when.trim(),
+                Then: scenario.then.trim()
+            }));
 
-            // Adicionar observações se existirem
-            if (data.observations?.trim()) {
-                description += `\n**Observações:**\n${data.observations}`;
-            }
-
-            // Preparar dados para envio
+            // Preparar dados para envio seguindo exatamente o formato do CreateFailureDto
             const failureData = {
-                FailureNumber: `FAIL-${Date.now()}`, // Gerar número único
+                FailureNumber: `FLH-${String(Date.now()).slice(-6)}`, // Formato correto: FLH-XXXXXX
                 Title: data.title,
-                Description: description,
-                Severity: severityMap[data.severity],
+                Description: '', // A API vai gerar a descrição em Markdown
+                Severity: severityMap[data.severity], // Valor numérico (1-4)
                 OccurredAt: new Date().toISOString(),
                 Environment: data.environment,
-                UserStoryId: data.userStoryId,
-                StepsToReproduce: description, // Usar a mesma descrição para reprodução
+                UserStoryId: null, // Sempre null até a integração com Azure estar pronta
+                ReportedBy: null, // Opcional
+                IssueId: null, // Opcional
+                Scenarios: scenariosForApi, // Cenários estruturados para a API
+                Observations: data.observations?.trim() || null, // Observações
+                Attachments: attachments.map(att => ({ // Evidências
+                    Name: att.name,
+                    Size: att.size,
+                    Type: att.type
+                }))
             };
 
             // Enviar para a API
             const response = await failureService.create(failureData);
 
-            if (response.success) {
+            // A API retorna um ApiResponseDto<T> com propriedade Success (maiúscula)
+            // Axios retorna response.data, então verificamos diferentes formatos possíveis
+            const isSuccess = response && (
+                response.Success === true ||           // Formato da API C# (maiúscula)
+                response.success === true ||           // Formato JavaScript (minúscula)
+                (response.data && response.data.Success === true) || // Se estiver aninhado em data
+                (response.data && response.data.success === true)    // Se estiver aninhado em data (minúscula)
+            );
+
+            if (isSuccess) {
                 showSuccess('Falha registrada com sucesso!');
                 navigate('/dashboard');
             } else {
-                throw new Error(response.message || 'Erro ao registrar falha');
+                // Se não tem success=true, tratar como erro
+                const errorMessage = response?.Message || response?.message || 'Erro ao registrar falha';
+                const errorList = response?.Errors || response?.errors || [];
+                throw new Error(JSON.stringify({ message: errorMessage, errors: errorList }));
             }
-
         } catch (error) {
-            console.error('Erro ao registrar falha:', error);
-
             // Tratamento específico para diferentes tipos de erro
-            if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
+            if (error.response?.status === 400) {
+                // Erro de validação (400 Bad Request)
+                const errorData = error.response.data;
+
+                if (errorData.errors && Array.isArray(errorData.errors)) {
+                    showError(`Erro de validação: ${errorData.errors.join(', ')}`);
+                } else if (errorData.Errors && Array.isArray(errorData.Errors)) {
+                    showError(`Erro de validação: ${errorData.Errors.join(', ')}`);
+                } else if (errorData.message || errorData.Message) {
+                    showError(errorData.message || errorData.Message);
+                } else {
+                    showError('Erro de validação. Verifique os dados informados.');
+                }
+            } else if (error.errors && typeof error.errors === 'object') {
+                // Se errors é um objeto com propriedades (como $.UserStoryId)
+                const errorMessages = [];
+                Object.keys(error.errors).forEach(key => {
+                    const errorArray = error.errors[key];
+                    if (Array.isArray(errorArray)) {
+                        errorMessages.push(...errorArray);
+                    } else {
+                        errorMessages.push(errorArray);
+                    }
+                });
+                showError(errorMessages.join(', '));
+            } else if (error.errors && Array.isArray(error.errors)) {
                 showError(error.errors.join(', '));
             } else if (error.message) {
                 showError(error.message);
@@ -611,9 +644,9 @@ export function FailureForm() {
                                 </Box>
                             </Section>
 
-                            {/* Cenários da Falha */}
+                            {/* Cenários de Falha */}
                             <Section
-                                title="Cenários da Falha"
+                                title="Cenários de Falha"
                             >
                                 <GivenWhenThenFields
                                     scenarios={givenWhenThen}

@@ -75,7 +75,7 @@ public class FailureService
             }
 
             // Gerar a descrição em Markdown a partir dos dados estruturados
-            var markdownDescription = _markdownGenerator.GenerateFailureDescription(dto);
+            var markdownDescription = _markdownGenerator.GenerateFailureDescription(dto, dto.Scenarios, dto.Observations);
 
             var failure = new Failure
             {

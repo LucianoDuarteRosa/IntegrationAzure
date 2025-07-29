@@ -318,41 +318,52 @@ public class MarkdownGeneratorService
         md.AppendLine($"**⚠️ Severidade:** {GetSeverityText(dto.Severity)}");
         md.AppendLine();
 
-        // 2. Cenários da Falha (Dado que/Quando/Então)
+        // 2. Impactos da Falha
         if (scenarios != null && scenarios.Any())
         {
-            md.AppendLine("## 🔄 Cenários da Falha");
+            md.AppendLine("## Impacto");
             md.AppendLine();
 
             for (int i = 0; i < scenarios.Count; i++)
             {
                 var scenario = scenarios[i];
-                md.AppendLine($"### Cenário {i + 1}");
+                md.AppendLine($"### Impacto {i + 1}");
                 md.AppendLine();
-                md.AppendLine($"**🎯 Dado que:** {scenario.Given}");
+                md.AppendLine($"**Processo Atual:**");
+                md.AppendLine(scenario.Given);
                 md.AppendLine();
-                md.AppendLine($"**▶️ Quando:** {scenario.When}");
-                md.AppendLine();
-                md.AppendLine($"**❌ Então:** {scenario.Then}");
+                md.AppendLine($"**Melhoria Esperada:**");
+                md.AppendLine(scenario.Then);
                 md.AppendLine();
             }
+
+            md.AppendLine("---");
+            md.AppendLine();
         }
 
-        // 3. Observações Adicionais
+        // 3. Observações
         if (!string.IsNullOrEmpty(observations))
         {
-            md.AppendLine("## 📝 Observações Adicionais");
+            md.AppendLine("## Observação");
             md.AppendLine();
-            md.AppendLine(observations);
+            md.AppendLine($"- {observations}");
+            md.AppendLine();
+            md.AppendLine("---");
             md.AppendLine();
         }
 
-        // 4. Informações de Relatório
-        if (!string.IsNullOrEmpty(dto.ReportedBy))
+        // 4. Evidências
+        if (dto.Attachments != null && dto.Attachments.Any())
         {
-            md.AppendLine("## 👤 Informações do Relato");
+            md.AppendLine("## Evidências");
             md.AppendLine();
-            md.AppendLine($"**Reportado por:** {dto.ReportedBy}");
+
+            foreach (var attachment in dto.Attachments)
+            {
+                var sizeFormatted = FormatFileSize(attachment.Size);
+                md.AppendLine($"- **{attachment.Name}** ({sizeFormatted})");
+            }
+
             md.AppendLine();
         }
 
@@ -370,14 +381,4 @@ public class MarkdownGeneratorService
             _ => "❓ Não especificada"
         };
     }
-}
-
-/// <summary>
-/// DTO para representar cenários de falha (Dado que/Quando/Então)
-/// </summary>
-public class FailureScenarioDto
-{
-    public string Given { get; set; } = string.Empty;
-    public string When { get; set; } = string.Empty;
-    public string Then { get; set; } = string.Empty;
 }
