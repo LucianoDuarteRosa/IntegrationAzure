@@ -14,11 +14,13 @@ public class UserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IProfileRepository _profileRepository;
+    private readonly IWebHostEnvironment _environment;
 
-    public UserService(IUserRepository userRepository, IProfileRepository profileRepository)
+    public UserService(IUserRepository userRepository, IProfileRepository profileRepository, IWebHostEnvironment environment)
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _profileRepository = profileRepository ?? throw new ArgumentNullException(nameof(profileRepository));
+        _environment = environment ?? throw new ArgumentNullException(nameof(environment));
     }
 
     /// <summary>
@@ -202,6 +204,23 @@ public class UserService
                 };
             }
 
+            // Gerenciar substituição de imagem de perfil
+            var oldImagePath = user.ProfileImagePath;
+            var newImagePath = dto.ProfileImagePath;
+
+            // Se a imagem mudou, deletar a antiga
+            if (!string.IsNullOrEmpty(oldImagePath) &&
+                !string.IsNullOrEmpty(newImagePath) &&
+                oldImagePath != newImagePath)
+            {
+                DeleteProfileImage(oldImagePath);
+            }
+            // Se removeu a imagem (novo valor é null ou vazio), deletar a antiga
+            else if (!string.IsNullOrEmpty(oldImagePath) && string.IsNullOrEmpty(newImagePath))
+            {
+                DeleteProfileImage(oldImagePath);
+            }
+
             user.Name = dto.Name;
             user.Nickname = dto.Nickname;
             user.Email = dto.Email;
@@ -253,6 +272,13 @@ public class UserService
             user.IsActive = false;
             user.UpdatedAt = DateTime.UtcNow;
             user.UpdatedBy = currentUser;
+
+            // Deletar imagem de perfil se existir
+            if (!string.IsNullOrEmpty(user.ProfileImagePath))
+            {
+                DeleteProfileImage(user.ProfileImagePath);
+                user.ProfileImagePath = null; // Limpar referência no banco
+            }
 
             await _userRepository.UpdateAsync(user);
             await _userRepository.SaveChangesAsync();
@@ -625,6 +651,40 @@ public class UserService
         return hashedInput == hashedPassword;
     }
 
+    /// <summary>
+    /// Remove uma imagem de perfil do diretório de uploads
+    /// </summary>
+    /// <param name="fileName">Nome do arquivo a ser removido</param>
+    private void DeleteProfileImage(string fileName)
+    {
+        if (string.IsNullOrEmpty(fileName))
+            return;
+
+        try
+        {
+            // Garantir que é apenas o nome do arquivo (sem path traversal)
+            var cleanFileName = Path.GetFileName(fileName);
+            if (cleanFileName != fileName || fileName.Contains(".."))
+                return;
+
+            var uploadsDir = Path.Combine(_environment.WebRootPath ?? _environment.ContentRootPath, "uploads", "users");
+            var fullPath = Path.Combine(uploadsDir, cleanFileName);
+
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log do erro mas não falha a operação principal
+            Console.WriteLine($"Erro ao deletar imagem de perfil {fileName}: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Mapeia uma entidade User para UserDto
+    /// </summary>
     private static UserDto MapToUserDto(User user)
     {
         return new UserDto

@@ -27,7 +27,7 @@ import {
     Add as AddIcon,
     PhotoCamera as PhotoCameraIcon
 } from '@mui/icons-material';
-import { profileService } from '../services';
+import { profileService, fileUploadService } from '../services';
 
 export function UserModal({
     open,
@@ -44,6 +44,7 @@ export function UserModal({
     const [errors, setErrors] = useState({});
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState('');
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -60,17 +61,18 @@ export function UserModal({
         if (open) {
             loadProfiles();
             if (isEditing && user) {
+                const imagePath = user.profileImagePath || user.ProfileImagePath;
                 setFormData({
-                    name: user.name || '',
-                    nickname: user.nickname || '',
-                    email: user.email || '',
+                    name: user.name || user.Name || '',
+                    nickname: user.nickname || user.Nickname || '',
+                    email: user.email || user.Email || '',
                     password: '',
                     confirmPassword: '',
-                    profileImagePath: user.profileImagePath || '',
-                    profileId: user.profile?.id || ''
+                    profileImagePath: imagePath || '',
+                    profileId: (user.profile || user.Profile)?.id || (user.profile || user.Profile)?.Id || ''
                 });
 
-                // Para usuários existentes, limpar preview (imagem será carregada do src do Avatar)
+                // Para usuários existentes, não mostrar preview local
                 setSelectedImage(null);
                 setImagePreview('');
             } else {
@@ -89,6 +91,7 @@ export function UserModal({
                 setImagePreview('');
             }
             setErrors({});
+            setUploadingImage(false);
         }
     }, [open, isEditing, user]);
 
@@ -136,30 +139,59 @@ export function UserModal({
         }
     };
 
-    const handleImageChange = (event) => {
+    const handleImageChange = async (event) => {
         const file = event.target.files[0];
         if (file) {
-            setSelectedImage(file);
-
-            // Criar preview da imagem
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setImagePreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
-
-            // Atualizar o formData com o nome do arquivo
-            setFormData(prev => ({
-                ...prev,
-                profileImagePath: file.name
-            }));
-
-            // Limpar erro do campo se existir
-            if (errors.profileImagePath) {
+            // Validar arquivo
+            const validation = fileUploadService.validateImageFile(file);
+            if (!validation.isValid) {
                 setErrors(prev => ({
                     ...prev,
-                    profileImagePath: null
+                    profileImagePath: validation.errors.join(', ')
                 }));
+                return;
+            }
+
+            setUploadingImage(true);
+            try {
+                // Fazer upload da imagem
+                const response = await fileUploadService.uploadUserProfileImage(file);
+
+                if (response.success) {
+                    const imagePath = response.data;
+
+                    // Atualizar o formData com o caminho da imagem
+                    setFormData(prev => ({
+                        ...prev,
+                        profileImagePath: imagePath
+                    }));
+
+                    // Criar preview da imagem usando a URL da API
+                    const imageUrl = fileUploadService.getImageUrl(imagePath);
+                    setImagePreview(imageUrl);
+                    setSelectedImage(file);
+
+                    // Limpar erro se existir
+                    if (errors.profileImagePath) {
+                        setErrors(prev => ({
+                            ...prev,
+                            profileImagePath: null
+                        }));
+                    }
+                } else {
+                    setErrors(prev => ({
+                        ...prev,
+                        profileImagePath: response.message || 'Erro ao fazer upload da imagem'
+                    }));
+                }
+            } catch (error) {
+                console.error('Erro ao fazer upload da imagem:', error);
+                setErrors(prev => ({
+                    ...prev,
+                    profileImagePath: 'Erro ao fazer upload da imagem. Tente novamente.'
+                }));
+            } finally {
+                setUploadingImage(false);
             }
         }
     };
@@ -242,6 +274,7 @@ export function UserModal({
         // Limpar estados de imagem ao fechar
         setSelectedImage(null);
         setImagePreview('');
+        setUploadingImage(false);
         onClose();
     };
 
@@ -282,7 +315,10 @@ export function UserModal({
                                     mb: 2,
                                     bgcolor: 'primary.main'
                                 }}
-                                src={imagePreview || formData.profileImagePath}
+                                src={
+                                    imagePreview ||
+                                    (formData.profileImagePath ? fileUploadService.getImageUrl(formData.profileImagePath) : null)
+                                }
                             >
                                 <PersonIcon sx={{ fontSize: 40 }} />
                             </Avatar>
@@ -291,8 +327,8 @@ export function UserModal({
                                 <TextField
                                     fullWidth
                                     label="Imagem de Perfil"
-                                    value={formData.profileImagePath}
-                                    placeholder="Nenhum arquivo selecionado"
+                                    value={formData.profileImagePath ? 'Imagem selecionada' : 'Nenhuma imagem selecionada'}
+                                    placeholder="Nenhuma imagem selecionada"
                                     size="small"
                                     InputProps={{ readOnly: true }}
                                     error={!!errors.profileImagePath}
@@ -304,6 +340,7 @@ export function UserModal({
                                     id="image-upload"
                                     type="file"
                                     onChange={handleImageChange}
+                                    disabled={uploadingImage}
                                 />
                                 <label htmlFor="image-upload">
                                     <Button
@@ -311,8 +348,9 @@ export function UserModal({
                                         component="span"
                                         startIcon={<PhotoCameraIcon />}
                                         size="small"
+                                        disabled={uploadingImage}
                                     >
-                                        Buscar
+                                        {uploadingImage ? 'Enviando...' : 'Buscar'}
                                     </Button>
                                 </label>
                             </Box>

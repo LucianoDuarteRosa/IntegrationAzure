@@ -7,6 +7,7 @@ using IntegrationAzure.Api.Application.Services;
 using IntegrationAzure.Api.Application.Validators;
 using IntegrationAzure.Api.Application.DTOs;
 using IntegrationAzure.Api.Domain.Entities;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -122,6 +123,15 @@ if (app.Environment.IsDevelopment())
 
 // Middlewares
 // app.UseHttpsRedirection(); // Comentado para desenvolvimento - usar HTTP
+
+// Configurar servir arquivos estáticos para uploads
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(app.Environment.WebRootPath ?? app.Environment.ContentRootPath, "uploads")),
+    RequestPath = "/uploads"
+});
+
 app.UseCors("AllowReactApp");
 app.UseRouting();
 

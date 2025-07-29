@@ -6,4 +6,5 @@ export { logService } from './logService';
 export { configurationService } from './configurationService';
 export { authService } from './authService';
 export { userService, profileService } from './userService';
+export { fileUploadService } from './fileUploadService';
 export { default as api } from './api';

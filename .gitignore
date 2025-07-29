@@ -405,3 +405,7 @@ debug-config.html
 crop_favicons.*
 *.debug.js
 *.debug.html
+
+# Upload files - não versionar arquivos enviados pelos usuários
+Api/IntegrationAzure.Api/uploads/
+!Api/IntegrationAzure.Api/uploads/.gitkeep

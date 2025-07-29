@@ -45,7 +45,7 @@ import {
 import { Navbar } from '../components/Navbar';
 import { UserModal } from '../components/UserModal';
 import { ChangePasswordModal } from '../components/ChangePasswordModal';
-import { userService, profileService } from '../services';
+import { userService, profileService, fileUploadService } from '../services';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -380,7 +380,7 @@ export function UsersPage() {
                 <Box
                     sx={{
                         width: '100%',
-                        maxWidth: '1400px',
+                        maxWidth: '1200px',
                         display: 'flex',
                         flexDirection: 'column',
                     }}
@@ -587,7 +587,11 @@ export function UsersPage() {
                                                 <TableCell>
                                                     <Box display="flex" alignItems="center" gap={2}>
                                                         <Avatar
-                                                            src={user.ProfileImagePath || user.profileImagePath}
+                                                            src={
+                                                                (user.ProfileImagePath || user.profileImagePath)
+                                                                    ? fileUploadService.getImageUrl(user.ProfileImagePath || user.profileImagePath)
+                                                                    : null
+                                                            }
                                                             sx={{ width: 40, height: 40 }}
                                                         >
                                                             <PersonIcon />
