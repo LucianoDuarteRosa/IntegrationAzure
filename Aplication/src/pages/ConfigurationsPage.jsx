@@ -297,7 +297,7 @@ export function ConfigurationsPage() {
                                                 </IconButton>
                                                 <IconButton
                                                     size="small"
-                                                    onClick={() => handleDelete(config.Id || config.id)}
+                                                    onClick={() => handleDelete(config)}
                                                     color="error"
                                                 >
                                                     <DeleteIcon fontSize="small" />

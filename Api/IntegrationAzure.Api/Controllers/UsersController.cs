@@ -13,10 +13,12 @@ namespace IntegrationAzure.Api.Controllers;
 public class UsersController : BaseController
 {
     private readonly UserService _userService;
+    private readonly LogService _logService;
 
-    public UsersController(UserService userService)
+    public UsersController(UserService userService, LogService logService)
     {
         _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+        _logService = logService ?? throw new ArgumentNullException(nameof(logService));
     }
 
     /// <summary>
@@ -26,8 +28,36 @@ public class UsersController : BaseController
     [HttpGet]
     public async Task<ActionResult<ApiResponseDto<IEnumerable<UserDto>>>> GetAll()
     {
-        var result = await _userService.GetAllAsync();
-        return ProcessServiceResponse(result);
+        try
+        {
+            var result = await _userService.GetAllAsync();
+
+            if (result.Success)
+            {
+                await _logService.LogActionAsync(
+                    "GET_ALL",
+                    "User",
+                    null,
+                    GetCurrentUser(),
+                    $"Retrieved {result.Data?.Count() ?? 0} users",
+                    Domain.Entities.LogLevel.Info
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "GET_ALL_ERROR",
+                "User",
+                null,
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -38,8 +68,47 @@ public class UsersController : BaseController
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> GetById(Guid id)
     {
-        var result = await _userService.GetByIdAsync(id);
-        return ProcessServiceResponse(result);
+        try
+        {
+            var result = await _userService.GetByIdAsync(id);
+
+            if (result.Success)
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_ID",
+                    "User",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    $"Retrieved user: {result.Data?.Name}",
+                    Domain.Entities.LogLevel.Info
+                );
+            }
+            else
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_ID_NOT_FOUND",
+                    "User",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    "User not found",
+                    Domain.Entities.LogLevel.Warning
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "GET_BY_ID_ERROR",
+                "User",
+                id.ToString(),
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -50,8 +119,36 @@ public class UsersController : BaseController
     [HttpGet("profile/{profileId:guid}")]
     public async Task<ActionResult<ApiResponseDto<IEnumerable<SimpleUserDto>>>> GetByProfile(Guid profileId)
     {
-        var result = await _userService.GetByProfileAsync(profileId);
-        return ProcessServiceResponse(result);
+        try
+        {
+            var result = await _userService.GetByProfileAsync(profileId);
+
+            if (result.Success)
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_PROFILE",
+                    "User",
+                    profileId.ToString(),
+                    GetCurrentUser(),
+                    $"Retrieved {result.Data?.Count() ?? 0} users for profile {profileId}",
+                    Domain.Entities.LogLevel.Info
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "GET_BY_PROFILE_ERROR",
+                "User",
+                profileId.ToString(),
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -62,20 +159,64 @@ public class UsersController : BaseController
     [HttpPost]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> Create([FromBody] CreateUserDto dto)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return ValidationErrorResponse<UserDto>(ModelState);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList();
+
+                await _logService.LogActionAsync(
+                    "CREATE_FAILED",
+                    "User",
+                    null,
+                    GetCurrentUser(),
+                    $"Validation errors: {string.Join(", ", errors)}",
+                    Domain.Entities.LogLevel.Warning
+                );
+
+                return ValidationErrorResponse<UserDto>(ModelState);
+            }
+
+            var currentUser = GetCurrentUser();
+            var result = await _userService.CreateAsync(dto, currentUser);
+
+            if (result.Success && result.Data != null)
+            {
+                await _logService.LogActionAsync(
+                    "CREATE_SUCCESS",
+                    "User",
+                    result.Data.Id.ToString(),
+                    currentUser,
+                    $"Created user: {result.Data.Name} ({result.Data.Email})",
+                    Domain.Entities.LogLevel.Success
+                );
+
+                return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
+            }
+
+            await _logService.LogActionAsync(
+                "CREATE_FAILED",
+                "User",
+                null,
+                currentUser,
+                result.Message,
+                Domain.Entities.LogLevel.Error
+            );
+
+            return ProcessServiceResponse(result);
         }
-
-        var currentUser = GetCurrentUser();
-        var result = await _userService.CreateAsync(dto, currentUser);
-
-        if (result.Success)
+        catch (Exception ex)
         {
-            return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result);
+            await _logService.LogActionAsync(
+                "CREATE_ERROR",
+                "User",
+                null,
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
         }
-
-        return ProcessServiceResponse(result);
     }
 
     /// <summary>
@@ -87,14 +228,64 @@ public class UsersController : BaseController
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponseDto<UserDto>>> Update(Guid id, [FromBody] UpdateUserDto dto)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return ValidationErrorResponse<UserDto>(ModelState);
-        }
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList();
 
-        var currentUser = GetCurrentUser();
-        var result = await _userService.UpdateAsync(id, dto, currentUser);
-        return ProcessServiceResponse(result);
+                await _logService.LogActionAsync(
+                    "UPDATE_FAILED",
+                    "User",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    $"Validation errors: {string.Join(", ", errors)}",
+                    Domain.Entities.LogLevel.Warning
+                );
+
+                return ValidationErrorResponse<UserDto>(ModelState);
+            }
+
+            var currentUser = GetCurrentUser();
+            var result = await _userService.UpdateAsync(id, dto, currentUser);
+
+            if (result.Success && result.Data != null)
+            {
+                await _logService.LogActionAsync(
+                    "UPDATE_SUCCESS",
+                    "User",
+                    id.ToString(),
+                    currentUser,
+                    $"Updated user: {result.Data.Name} ({result.Data.Email})",
+                    Domain.Entities.LogLevel.Success
+                );
+            }
+            else
+            {
+                await _logService.LogActionAsync(
+                    "UPDATE_FAILED",
+                    "User",
+                    id.ToString(),
+                    currentUser,
+                    result.Message,
+                    Domain.Entities.LogLevel.Error
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "UPDATE_ERROR",
+                "User",
+                id.ToString(),
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -105,9 +296,48 @@ public class UsersController : BaseController
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponseDto<bool>>> Delete(Guid id)
     {
-        var currentUser = GetCurrentUser();
-        var result = await _userService.DeleteAsync(id, currentUser);
-        return ProcessServiceResponse(result);
+        try
+        {
+            var currentUser = GetCurrentUser();
+            var result = await _userService.DeleteAsync(id, currentUser);
+
+            if (result.Success)
+            {
+                await _logService.LogActionAsync(
+                    "DELETE_SUCCESS",
+                    "User",
+                    id.ToString(),
+                    currentUser,
+                    "User deleted successfully",
+                    Domain.Entities.LogLevel.Success
+                );
+            }
+            else
+            {
+                await _logService.LogActionAsync(
+                    "DELETE_FAILED",
+                    "User",
+                    id.ToString(),
+                    currentUser,
+                    result.Message,
+                    Domain.Entities.LogLevel.Error
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "DELETE_ERROR",
+                "User",
+                id.ToString(),
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -119,14 +349,64 @@ public class UsersController : BaseController
     [HttpPatch("{id:guid}/change-password")]
     public async Task<ActionResult<ApiResponseDto<bool>>> ChangePassword(Guid id, [FromBody] ChangePasswordDto dto)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return ValidationErrorResponse<bool>(ModelState);
-        }
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList();
 
-        var currentUser = GetCurrentUser();
-        var result = await _userService.ChangePasswordAsync(id, dto, currentUser);
-        return ProcessServiceResponse(result);
+                await _logService.LogActionAsync(
+                    "CHANGE_PASSWORD_FAILED",
+                    "User",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    $"Validation errors: {string.Join(", ", errors)}",
+                    Domain.Entities.LogLevel.Warning
+                );
+
+                return ValidationErrorResponse<bool>(ModelState);
+            }
+
+            var currentUser = GetCurrentUser();
+            var result = await _userService.ChangePasswordAsync(id, dto, currentUser);
+
+            if (result.Success)
+            {
+                await _logService.LogActionAsync(
+                    "CHANGE_PASSWORD_SUCCESS",
+                    "User",
+                    id.ToString(),
+                    currentUser,
+                    "Password changed successfully",
+                    Domain.Entities.LogLevel.Success
+                );
+            }
+            else
+            {
+                await _logService.LogActionAsync(
+                    "CHANGE_PASSWORD_FAILED",
+                    "User",
+                    id.ToString(),
+                    currentUser,
+                    result.Message,
+                    Domain.Entities.LogLevel.Warning
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "CHANGE_PASSWORD_ERROR",
+                "User",
+                id.ToString(),
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -138,13 +418,63 @@ public class UsersController : BaseController
     [HttpPatch("{id:guid}/admin-change-password")]
     public async Task<ActionResult<ApiResponseDto<bool>>> AdminChangePassword(Guid id, [FromBody] AdminChangePasswordDto dto)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return ValidationErrorResponse<bool>(ModelState);
-        }
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList();
 
-        var currentUser = GetCurrentUser();
-        var result = await _userService.AdminChangePasswordAsync(id, dto, currentUser);
-        return ProcessServiceResponse(result);
+                await _logService.LogActionAsync(
+                    "ADMIN_CHANGE_PASSWORD_FAILED",
+                    "User",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    $"Validation errors: {string.Join(", ", errors)}",
+                    Domain.Entities.LogLevel.Warning
+                );
+
+                return ValidationErrorResponse<bool>(ModelState);
+            }
+
+            var currentUser = GetCurrentUser();
+            var result = await _userService.AdminChangePasswordAsync(id, dto, currentUser);
+
+            if (result.Success)
+            {
+                await _logService.LogActionAsync(
+                    "ADMIN_CHANGE_PASSWORD_SUCCESS",
+                    "User",
+                    id.ToString(),
+                    currentUser,
+                    "Password changed successfully by admin",
+                    Domain.Entities.LogLevel.Success
+                );
+            }
+            else
+            {
+                await _logService.LogActionAsync(
+                    "ADMIN_CHANGE_PASSWORD_FAILED",
+                    "User",
+                    id.ToString(),
+                    currentUser,
+                    result.Message,
+                    Domain.Entities.LogLevel.Warning
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "ADMIN_CHANGE_PASSWORD_ERROR",
+                "User",
+                id.ToString(),
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 }

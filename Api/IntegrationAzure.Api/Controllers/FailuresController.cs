@@ -16,13 +16,16 @@ namespace IntegrationAzure.Api.Controllers;
 public class FailuresController : BaseController
 {
     private readonly FailureService _failureService;
+    private readonly LogService _logService;
     private readonly IValidator<CreateFailureDto> _createValidator;
 
     public FailuresController(
         FailureService failureService,
+        LogService logService,
         IValidator<CreateFailureDto> createValidator)
     {
         _failureService = failureService ?? throw new ArgumentNullException(nameof(failureService));
+        _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
     }
 
@@ -37,8 +40,36 @@ public class FailuresController : BaseController
     [ProducesResponseType(typeof(ApiResponseDto<object>), 500)]
     public async Task<ActionResult<ApiResponseDto<List<FailureSummaryDto>>>> GetAll()
     {
-        var result = await _failureService.GetAllAsync();
-        return ProcessServiceResponse(result);
+        try
+        {
+            var result = await _failureService.GetAllAsync();
+
+            if (result.Success)
+            {
+                await _logService.LogActionAsync(
+                    "GET_ALL",
+                    "Failure",
+                    null,
+                    GetCurrentUser(),
+                    $"Retrieved {result.Data?.Count ?? 0} failures",
+                    Domain.Entities.LogLevel.Info
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "GET_ALL_ERROR",
+                "Failure",
+                null,
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -55,13 +86,61 @@ public class FailuresController : BaseController
     [ProducesResponseType(typeof(ApiResponseDto<object>), 500)]
     public async Task<ActionResult<ApiResponseDto<FailureDto>>> GetById(Guid id)
     {
-        if (id == Guid.Empty)
+        try
         {
-            return ErrorResponse<FailureDto>("ID inválido");
-        }
+            if (id == Guid.Empty)
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_ID_FAILED",
+                    "Failure",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    "Invalid ID provided",
+                    Domain.Entities.LogLevel.Warning
+                );
 
-        var result = await _failureService.GetByIdAsync(id);
-        return ProcessServiceResponse(result);
+                return ErrorResponse<FailureDto>("ID inválido");
+            }
+
+            var result = await _failureService.GetByIdAsync(id);
+
+            if (result.Success && result.Data != null)
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_ID",
+                    "Failure",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    $"Retrieved failure: {result.Data.Title}",
+                    Domain.Entities.LogLevel.Info
+                );
+            }
+            else
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_ID_NOT_FOUND",
+                    "Failure",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    "Failure not found",
+                    Domain.Entities.LogLevel.Warning
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "GET_BY_ID_ERROR",
+                "Failure",
+                id.ToString(),
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -78,22 +157,65 @@ public class FailuresController : BaseController
     [ProducesResponseType(typeof(ApiResponseDto<object>), 500)]
     public async Task<ActionResult<ApiResponseDto<FailureDto>>> Create([FromBody] CreateFailureDto dto)
     {
-        // Validação dos dados de entrada
-        var validationResult = await _createValidator.ValidateAsync(dto);
-        if (!validationResult.IsValid)
+        try
         {
-            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-            return ErrorResponse<FailureDto>("Dados de entrada inválidos", errors);
+            // Validação dos dados de entrada
+            var validationResult = await _createValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+
+                await _logService.LogActionAsync(
+                    "CREATE_FAILED",
+                    "Failure",
+                    null,
+                    GetCurrentUser(),
+                    $"Validation errors: {string.Join(", ", errors)}",
+                    Domain.Entities.LogLevel.Warning
+                );
+
+                return ErrorResponse<FailureDto>("Dados de entrada inválidos", errors);
+            }
+
+            var currentUser = GetCurrentUser();
+            var result = await _failureService.CreateAsync(dto, currentUser);
+
+            if (result.Success && result.Data != null)
+            {
+                await _logService.LogActionAsync(
+                    "CREATE_SUCCESS",
+                    "Failure",
+                    result.Data.Id.ToString(),
+                    currentUser,
+                    $"Created failure: {result.Data.Title}",
+                    Domain.Entities.LogLevel.Success
+                );
+
+                return Created($"/api/failures/{result.Data.Id}", result);
+            }
+
+            await _logService.LogActionAsync(
+                "CREATE_FAILED",
+                "Failure",
+                null,
+                currentUser,
+                result.Message,
+                Domain.Entities.LogLevel.Error
+            );
+
+            return ProcessServiceResponse(result);
         }
-
-        var currentUser = GetCurrentUser();
-        var result = await _failureService.CreateAsync(dto, currentUser);
-
-        if (result.Success)
+        catch (Exception ex)
         {
-            return Created($"/api/failures/{result.Data!.Id}", result);
+            await _logService.LogActionAsync(
+                "CREATE_ERROR",
+                "Failure",
+                null,
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
         }
-
-        return ProcessServiceResponse(result);
     }
 }
