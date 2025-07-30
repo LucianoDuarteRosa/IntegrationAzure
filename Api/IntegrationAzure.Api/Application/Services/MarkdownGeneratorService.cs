@@ -380,4 +380,133 @@ public class MarkdownGeneratorService
             _ => "❓ Não especificada"
         };
     }
+
+    /// <summary>
+    /// Gera a descrição completa em Markdown para uma issue
+    /// </summary>
+    public string GenerateIssueDescription(CreateIssueDto dto, string? observations = null)
+    {
+        var md = new StringBuilder();
+
+        // 1. Informações Básicas
+        md.AppendLine("## 🎯 Informações da Issue");
+        md.AppendLine();
+        md.AppendLine($"**🌐 Ambiente:** {dto.Environment ?? "Não especificado"}");
+        md.AppendLine("---");
+        md.AppendLine();
+
+        // 2. Cenários da Issue
+        if (dto.Scenarios != null && dto.Scenarios.Any())
+        {
+            md.AppendLine("## Cenários");
+            md.AppendLine();
+
+            for (int i = 0; i < dto.Scenarios.Count; i++)
+            {
+                var scenario = dto.Scenarios[i];
+                md.AppendLine($"### Cenário {i + 1}");
+                md.AppendLine();
+
+                if (!string.IsNullOrWhiteSpace(scenario.Given))
+                {
+                    md.AppendLine($"**Dado que:** {scenario.Given}");
+                    md.AppendLine();
+                }
+
+                if (!string.IsNullOrWhiteSpace(scenario.When))
+                {
+                    md.AppendLine($"**Quando:** {scenario.When}");
+                    md.AppendLine();
+                }
+
+                if (!string.IsNullOrWhiteSpace(scenario.Then))
+                {
+                    md.AppendLine($"**Então:** {scenario.Then}");
+                    md.AppendLine();
+                }
+            }
+
+            md.AppendLine("---");
+            md.AppendLine();
+        }
+
+        // 3. Observações
+        if (!string.IsNullOrEmpty(observations) || !string.IsNullOrEmpty(dto.Observations))
+        {
+            md.AppendLine("## Observações");
+            md.AppendLine();
+
+            if (!string.IsNullOrEmpty(observations))
+            {
+                md.AppendLine($"- {observations}");
+            }
+
+            if (!string.IsNullOrEmpty(dto.Observations))
+            {
+                md.AppendLine($"- {dto.Observations}");
+            }
+
+            md.AppendLine();
+            md.AppendLine("---");
+            md.AppendLine();
+        }
+
+        // 4. Anexos
+        if (dto.Attachments != null && dto.Attachments.Any())
+        {
+            md.AppendLine("## Anexos");
+            md.AppendLine();
+
+            foreach (var attachment in dto.Attachments)
+            {
+                var sizeFormatted = FormatFileSize(attachment.Size);
+                md.AppendLine($"- **{attachment.Name}** ({sizeFormatted})");
+            }
+
+            md.AppendLine();
+        }
+
+        return md.ToString().Trim();
+    }
+
+    private string GetIssueTypeText(IssueType type)
+    {
+        return type switch
+        {
+            IssueType.Bug => "🐛 Bug",
+            IssueType.Feature => "✨ Nova Funcionalidade",
+            IssueType.Improvement => "🚀 Melhoria",
+            IssueType.Task => "📋 Tarefa",
+            _ => "❓ Não especificado"
+        };
+    }
+
+    private string GetPriorityText(Priority priority)
+    {
+        return priority switch
+        {
+            Priority.Low => "🟢 Baixa",
+            Priority.Medium => "🟡 Média",
+            Priority.High => "🟠 Alta",
+            Priority.Critical => "🔴 Crítica",
+            _ => "❓ Não especificada"
+        };
+    }
+
+    private string GetOccurrenceTypeText(int occurrenceType)
+    {
+        return occurrenceType switch
+        {
+            1 => "Apoio Operacional",
+            2 => "Desempenho",
+            3 => "Dúvida ou Erro de Procedimento",
+            4 => "Erro de Migração de Dados",
+            5 => "Erro de Sistema",
+            6 => "Erro em Ambiente",
+            7 => "Problema de Banco de Dados",
+            8 => "Problema de Infraestrutura",
+            9 => "Problema de Parametrizações",
+            _ => "Não especificado"
+        };
+    }
 }

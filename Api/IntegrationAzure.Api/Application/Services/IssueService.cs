@@ -12,13 +12,16 @@ public class IssueService
 {
     private readonly IIssueRepository _issueRepository;
     private readonly IUserStoryRepository _userStoryRepository;
+    private readonly MarkdownGeneratorService _markdownGeneratorService;
 
     public IssueService(
         IIssueRepository issueRepository,
-        IUserStoryRepository userStoryRepository)
+        IUserStoryRepository userStoryRepository,
+        MarkdownGeneratorService markdownGeneratorService)
     {
         _issueRepository = issueRepository ?? throw new ArgumentNullException(nameof(issueRepository));
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
+        _markdownGeneratorService = markdownGeneratorService ?? throw new ArgumentNullException(nameof(markdownGeneratorService));
     }
 
     /// <summary>
@@ -28,11 +31,14 @@ public class IssueService
     {
         try
         {
+            // Gerar a descrição em Markdown usando os dados estruturados
+            var markdownDescription = _markdownGeneratorService.GenerateIssueDescription(dto);
+
             var issue = new Issue
             {
                 IssueNumber = dto.IssueNumber,
                 Title = dto.Title,
-                Description = dto.Description,
+                Description = markdownDescription, // Usar a descrição gerada em Markdown
                 Type = dto.Type,
                 Priority = dto.Priority,
                 OccurrenceType = dto.OccurrenceType,

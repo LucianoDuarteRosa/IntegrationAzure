@@ -15,6 +15,29 @@ public class CreateIssueDto
     public int OccurrenceType { get; set; } = 5;
     public string? Environment { get; set; }
     public Guid? UserStoryId { get; set; }
+    public List<IssueScenarioDto>? Scenarios { get; set; }
+    public string? Observations { get; set; }
+    public List<IssueAttachmentDto>? Attachments { get; set; }
+}
+
+/// <summary>
+/// DTO para representar cenários de issue (Dado que/Quando/Então)
+/// </summary>
+public class IssueScenarioDto
+{
+    public string Given { get; set; } = string.Empty;
+    public string When { get; set; } = string.Empty;
+    public string Then { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// DTO para representar anexos de issue
+/// </summary>
+public class IssueAttachmentDto
+{
+    public string Name { get; set; } = string.Empty;
+    public long Size { get; set; }
+    public string Type { get; set; } = string.Empty;
 }
 
 /// <summary>
