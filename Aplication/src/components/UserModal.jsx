@@ -305,101 +305,98 @@ export function UserModal({
             <DialogContent>
                 <Box sx={{ pt: 1 }}>
                     <Grid container spacing={3}>
-                        {/* Avatar/Imagem */}
-                        <Grid item xs={12} sx={{ textAlign: 'center', mb: 2 }}>
-                            <Avatar
-                                sx={{
-                                    width: 80,
-                                    height: 80,
-                                    mx: 'auto',
-                                    mb: 2,
-                                    bgcolor: 'primary.main'
-                                }}
-                                src={
-                                    imagePreview ||
-                                    (formData.profileImagePath ? fileUploadService.getImageUrl(formData.profileImagePath) : null)
-                                }
-                            >
-                                <PersonIcon sx={{ fontSize: 40 }} />
-                            </Avatar>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'center' }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'center', marginBottom: 1 }}>
+                                <Avatar
+                                    sx={{
+                                        width: 80,
+                                        height: 80,
+                                        bgcolor: 'primary.main'
+                                    }}
+                                    src={
+                                        imagePreview ||
+                                        (formData.profileImagePath ? fileUploadService.getImageUrl(formData.profileImagePath) : null)
+                                    }
+                                >
+                                    <PersonIcon sx={{ fontSize: 40 }} />
+                                </Avatar>
+                            </Box>
+                            <Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+                                    <TextField
+                                        fullWidth
+                                        label="Imagem de Perfil"
+                                        value={formData.profileImagePath ? 'Imagem selecionada' : 'Nenhuma imagem selecionada'}
+                                        placeholder="Nenhuma imagem selecionada"
+                                        size="small"
+                                        InputProps={{ readOnly: true }}
+                                        error={!!errors.profileImagePath}
+                                        helperText={errors.profileImagePath}
+                                    />
+                                    <input
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        id="image-upload"
+                                        type="file"
+                                        onChange={handleImageChange}
+                                        disabled={uploadingImage}
+                                    />
+                                    <label htmlFor="image-upload">
+                                        <Button
+                                            variant="outlined"
+                                            component="span"
+                                            startIcon={<PhotoCameraIcon />}
+                                            size="small"
+                                            disabled={uploadingImage}
+                                        >
+                                            {uploadingImage ? 'Enviando...' : 'Buscar'}
+                                        </Button>
+                                    </label>
+                                </Box>
+                            </Box>
+                        </Box>
 
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ marginLeft: 5 }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, marginBottom: 2 }}>
+                                <Grid sx={{ width: '100%' }}>
+                                    <TextField
+                                        fullWidth
+                                        label="Nome Completo"
+                                        value={formData.name}
+                                        onChange={handleInputChange('name')}
+                                        error={!!errors.name}
+                                        helperText={errors.name}
+                                        required
+                                    />
+                                </Grid>
+
+                                <Grid sx={{ width: '100%' }}>
+                                    <TextField
+                                        fullWidth
+                                        label="Nickname"
+                                        value={formData.nickname}
+                                        onChange={handleInputChange('nickname')}
+                                        error={!!errors.nickname}
+                                        helperText={errors.nickname}
+                                        required
+                                    />
+                                </Grid>
+                            </Box>
+                            <Grid>
                                 <TextField
                                     fullWidth
-                                    label="Imagem de Perfil"
-                                    value={formData.profileImagePath ? 'Imagem selecionada' : 'Nenhuma imagem selecionada'}
-                                    placeholder="Nenhuma imagem selecionada"
-                                    size="small"
-                                    InputProps={{ readOnly: true }}
-                                    error={!!errors.profileImagePath}
-                                    helperText={errors.profileImagePath}
+                                    label="Email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange('email')}
+                                    error={!!errors.email}
+                                    helperText={errors.email}
+                                    required
                                 />
-                                <input
-                                    accept="image/*"
-                                    style={{ display: 'none' }}
-                                    id="image-upload"
-                                    type="file"
-                                    onChange={handleImageChange}
-                                    disabled={uploadingImage}
-                                />
-                                <label htmlFor="image-upload">
-                                    <Button
-                                        variant="outlined"
-                                        component="span"
-                                        startIcon={<PhotoCameraIcon />}
-                                        size="small"
-                                        disabled={uploadingImage}
-                                    >
-                                        {uploadingImage ? 'Enviando...' : 'Buscar'}
-                                    </Button>
-                                </label>
-                            </Box>
-                        </Grid>
+                            </Grid>
+                        </Box>
 
-                        <Grid item xs={12}>
-                            <Divider />
-                        </Grid>
-
-                        {/* Dados Pessoais */}
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Nome Completo"
-                                value={formData.name}
-                                onChange={handleInputChange('name')}
-                                error={!!errors.name}
-                                helperText={errors.name}
-                                required
-                            />
-                        </Grid>
-
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                label="Nickname"
-                                value={formData.nickname}
-                                onChange={handleInputChange('nickname')}
-                                error={!!errors.nickname}
-                                helperText={errors.nickname}
-                                required
-                            />
-                        </Grid>
-
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleInputChange('email')}
-                                error={!!errors.email}
-                                helperText={errors.email}
-                                required
-                            />
-                        </Grid>
-
-                        {/* Perfil */}
-                        <Grid item xs={12}>
+                        <Box sx={{ width: '100%' }}>
                             <FormControl fullWidth error={!!errors.profileId} required>
                                 <InputLabel>Perfil</InputLabel>
                                 <Select
@@ -424,68 +421,57 @@ export function UserModal({
                                     </Typography>
                                 )}
                             </FormControl>
-                        </Grid>
+                        </Box>
 
-                        {/* Senha - apenas para novos usuários */}
+
                         {!isEditing && (
-                            <>
-                                <Grid item xs={12}>
-                                    <Divider />
-                                    <Typography variant="subtitle2" sx={{ mt: 1, mb: 1 }}>
-                                        Senha de Acesso
-                                    </Typography>
-                                </Grid>
+                            <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', gap: 2 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Senha"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={formData.password}
+                                    onChange={handleInputChange('password')}
+                                    error={!!errors.password}
+                                    helperText={errors.password}
+                                    required
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    edge="end"
+                                                >
+                                                    {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }}
+                                />
 
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Senha"
-                                        type={showPassword ? 'text' : 'password'}
-                                        value={formData.password}
-                                        onChange={handleInputChange('password')}
-                                        error={!!errors.password}
-                                        helperText={errors.password}
-                                        required
-                                        InputProps={{
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        edge="end"
-                                                    >
-                                                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            )
-                                        }}
-                                    />
-                                </Grid>
-
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Confirmar Senha"
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        value={formData.confirmPassword}
-                                        onChange={handleInputChange('confirmPassword')}
-                                        error={!!errors.confirmPassword}
-                                        helperText={errors.confirmPassword}
-                                        required
-                                        InputProps={{
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                        edge="end"
-                                                    >
-                                                        {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            )
-                                        }}
-                                    />
-                                </Grid>
-                            </>
+                                <TextField
+                                    fullWidth
+                                    label="Confirmar Senha"
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    value={formData.confirmPassword}
+                                    onChange={handleInputChange('confirmPassword')}
+                                    error={!!errors.confirmPassword}
+                                    helperText={errors.confirmPassword}
+                                    required
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    edge="end"
+                                                >
+                                                    {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }}
+                                />
+                            </Box>
                         )}
 
                         {/* Informações para edição */}
