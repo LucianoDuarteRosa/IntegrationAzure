@@ -267,7 +267,7 @@ export function IssueForm() {
         resolver: yupResolver(schema),
         defaultValues: {
             demandNumber: '',
-            userStoryId: null, // null por padrão para "Nenhuma história específica"
+            userStoryId: '', // string vazia por padrão para o Material-UI
             title: '',
             type: 1, // Bug por padrão
             priority: 2, // Média por padrão
@@ -283,7 +283,7 @@ export function IssueForm() {
         // Reset do react-hook-form
         reset({
             demandNumber: '',
-            userStoryId: null, // null por padrão para "Nenhuma história específica"
+            userStoryId: '', // string vazia por padrão para o Material-UI
             title: '',
             type: 1, // Bug por padrão
             priority: 2, // Média por padrão
@@ -388,7 +388,7 @@ export function IssueForm() {
                 Priority: parseInt(data.priority), // Priority enum (1-4)
                 OccurrenceType: parseInt(data.occurrenceType), // Tipo de ocorrência (1-9)
                 Environment: data.environment,
-                UserStoryId: data.userStoryId, // null se "Nenhuma história específica" ou GUID
+                UserStoryId: data.userStoryId || null, // null se string vazia ou GUID válido
             };
 
             // Enviar para a API
@@ -555,10 +555,9 @@ export function IssueForm() {
                                                     <Select
                                                         {...field}
                                                         label="História do Usuário"
-                                                        disabled={isSubmitting}
-                                                        displayEmpty
+                                                        disabled={isSubmitting || availableStories.length === 0}
                                                     >
-                                                        <MenuItem value={" "}>
+                                                        <MenuItem value=" ">
                                                             <em>Nenhuma história específica</em>
                                                         </MenuItem>
                                                         {availableStories.length === 0 && selectedDemand ? (
