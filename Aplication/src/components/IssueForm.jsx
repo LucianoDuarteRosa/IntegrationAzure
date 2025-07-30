@@ -17,7 +17,6 @@ import {
     IconButton,
     Stack,
     Divider,
-    Grid,
     Alert,
     CircularProgress,
     Chip,
@@ -85,8 +84,8 @@ const historiasPorDemanda = {
 const issueTypes = [
     { value: 1, label: 'Bug', color: '#f44336' },
     { value: 2, label: 'Feature', color: '#4caf50' },
-    { value: 3, label: 'Improvement', color: '#2196f3' },
-    { value: 4, label: 'Task', color: '#ff9800' },
+    { value: 3, label: 'Melhoria', color: '#2196f3' },
+    { value: 4, label: 'Tarefa', color: '#ff9800' },
 ];
 
 const priorities = [
