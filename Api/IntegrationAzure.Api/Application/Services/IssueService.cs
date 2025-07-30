@@ -31,8 +31,25 @@ public class IssueService
     {
         try
         {
+            // Debug: verificar se os cenários e observações estão chegando
+            Console.WriteLine($"DEBUG - Scenarios count: {dto.Scenarios?.Count ?? 0}");
+            Console.WriteLine($"DEBUG - Observations: '{dto.Observations ?? "null"}'");
+            Console.WriteLine($"DEBUG - Attachments count: {dto.Attachments?.Count ?? 0}");
+
+            if (dto.Scenarios != null)
+            {
+                for (int i = 0; i < dto.Scenarios.Count; i++)
+                {
+                    var scenario = dto.Scenarios[i];
+                    Console.WriteLine($"DEBUG - Scenario {i + 1}: Given='{scenario.Given}', When='{scenario.When}', Then='{scenario.Then}'");
+                }
+            }
+
             // Gerar a descrição em Markdown usando os dados estruturados
             var markdownDescription = _markdownGeneratorService.GenerateIssueDescription(dto);
+
+            Console.WriteLine($"DEBUG - Generated markdown description:");
+            Console.WriteLine(markdownDescription);
 
             var issue = new Issue
             {

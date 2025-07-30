@@ -391,7 +391,10 @@ public class MarkdownGeneratorService
         // 1. Informações Básicas
         md.AppendLine("## 🎯 Informações da Issue");
         md.AppendLine();
+        md.AppendLine($"**📋 Tipo:** {GetIssueTypeText(dto.Type)}");
+        md.AppendLine($"**⚡ Prioridade:** {GetPriorityText(dto.Priority)}");
         md.AppendLine($"**🌐 Ambiente:** {dto.Environment ?? "Não especificado"}");
+        md.AppendLine($"**🔧 Tipo de Ocorrência:** {GetOccurrenceTypeText(dto.OccurrenceType)}");
         md.AppendLine("---");
         md.AppendLine();
 

@@ -345,6 +345,20 @@ export function IssueForm() {
             // Enviar descrição simples - API gerenciará o formato final
             const description = data.description?.trim() || `Issue registrada: ${data.title}`;
 
+            // Montar cenários completos (Dado que/Quando/Então) para criar os Cenários
+            const completedScenarios = scenarioDetails.filter(scenario =>
+                scenario.given?.trim() &&
+                scenario.when?.trim() &&
+                scenario.then?.trim()
+            );
+
+            // Mapear os cenários para o formato esperado pela API
+            const scenariosForApi = completedScenarios.map(scenario => ({
+                Given: scenario.given.trim(),
+                When: scenario.when.trim(),
+                Then: scenario.then.trim()
+            }));
+
             // Preparar dados para envio seguindo o formato do CreateIssueDto
             const issueData = {
                 IssueNumber: `ISS-${String(Date.now()).slice(-6)}`, // Formato: ISS-XXXXXX
@@ -355,7 +369,16 @@ export function IssueForm() {
                 OccurrenceType: parseInt(data.occurrenceType), // Tipo de ocorrência (1-9)
                 Environment: data.environment,
                 UserStoryId: data.userStoryId && data.userStoryId.trim() && data.userStoryId !== " " ? data.userStoryId : null, // null se string vazia, espaço ou GUID válido
+                Scenarios: scenariosForApi, // Cenários estruturados para a API
+                Observations: data.description?.trim() || null, // Observações (usando o campo description)
+                Attachments: attachments.map(att => ({ // Evidências
+                    Name: att.name,
+                    Size: att.size,
+                    Type: att.type
+                }))
             };
+
+            console.log('Enviando dados para API:', issueData); // Debug
 
             // Enviar para a API
             const response = await issueService.create(issueData);
