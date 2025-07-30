@@ -7,6 +7,7 @@ import { Login } from './pages/Login';
 import { Home } from './components/Home';
 import { UserStoryForm } from './components/UserStoryForm';
 import { FailureForm } from './components/FailureForm';
+import { IssuesPage } from './pages/IssuesPage';
 import { LogsPage } from './pages/LogsPage';
 import { ConfigurationsPage } from './pages/ConfigurationsPage';
 import { UsersPage } from './pages/UsersPage';
@@ -67,7 +68,7 @@ function App() {
                 path="/nova-issue"
                 element={
                   <PrivateRoute>
-                    <div>Em desenvolvimento</div>
+                    <IssuesPage />
                   </PrivateRoute>
                 }
               />
