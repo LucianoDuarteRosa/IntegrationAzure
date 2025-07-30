@@ -23,7 +23,7 @@ public class Failure : SimpleBaseEntity
 
     public FailureStatus Status { get; set; } = FailureStatus.Reported;
 
-    public FailureOccurrenceType OccurrenceType { get; set; } = FailureOccurrenceType.ErroDeSistema;
+    public int OccurrenceType { get; set; } = 5;
 
     [Required]
     public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
@@ -72,7 +72,7 @@ public enum FailureOccurrenceType
     DuvidaOuErroDeProcedimento = 3,
     ErroDeMigracaoDeDados = 4,
     ErroDeSistema = 5,
-    ErroEmProducao = 6,
+    ErroEmAmbiente = 6,
     ProblemaDeBancoDeDados = 7,
     ProblemaDeInfraestrutura = 8,
     ProblemaDeParametrizacoes = 9

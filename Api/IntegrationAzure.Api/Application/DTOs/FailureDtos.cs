@@ -51,7 +51,7 @@ public class FailureDto
     public string Description { get; set; } = string.Empty;
     public FailureSeverity Severity { get; set; }
     public FailureStatus Status { get; set; }
-    public FailureOccurrenceType OccurrenceType { get; set; }
+    public int OccurrenceType { get; set; }
     public DateTime OccurredAt { get; set; }
     public string? Environment { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -71,7 +71,7 @@ public class FailureSummaryDto
     public string Title { get; set; } = string.Empty;
     public FailureSeverity Severity { get; set; }
     public FailureStatus Status { get; set; }
-    public FailureOccurrenceType OccurrenceType { get; set; }
+    public int OccurrenceType { get; set; }
     public DateTime OccurredAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;

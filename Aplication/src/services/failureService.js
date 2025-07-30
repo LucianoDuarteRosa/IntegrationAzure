@@ -6,11 +6,23 @@ import api from './api';
  */
 export const failureService = {
     /**
-     * Obtém todas as falhas
+     * Obtém todos os falhas
      */
     async getAll() {
         try {
             const response = await api.get('/failures');
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    },
+
+    /**
+     * Obtém todos os tipos de ocorrência disponíveis
+     */
+    async getOccurrenceTypes() {
+        try {
+            const response = await api.get('/failures/occurrence-types');
             return response.data;
         } catch (error) {
             throw this.handleError(error);

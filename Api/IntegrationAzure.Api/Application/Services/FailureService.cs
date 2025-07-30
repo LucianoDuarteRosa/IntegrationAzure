@@ -31,32 +31,6 @@ public class FailureService
     {
         try
         {
-            // Verificar se já existe uma falha com o mesmo número
-            var existingFailure = await _failureRepository.FirstOrDefaultAsync(f => f.FailureNumber == dto.FailureNumber);
-            if (existingFailure != null)
-            {
-                return new ApiResponseDto<FailureDto>
-                {
-                    Success = false,
-                    Message = "Já existe uma falha com este número",
-                    Errors = new List<string> { "Número de falha duplicado" }
-                };
-            }
-
-            // Verificar se a história de usuário existe (se fornecida)
-            if (dto.UserStoryId.HasValue)
-            {
-                var userStory = await _userStoryRepository.GetByIdAsync(dto.UserStoryId.Value);
-                if (userStory == null)
-                {
-                    return new ApiResponseDto<FailureDto>
-                    {
-                        Success = false,
-                        Message = "História de usuário não encontrada"
-                    };
-                }
-            }
-
             // Gerar a descrição em Markdown a partir dos dados estruturados
             var markdownDescription = _markdownGenerator.GenerateFailureDescription(dto, dto.Scenarios, dto.Observations);
 
@@ -66,7 +40,7 @@ public class FailureService
                 Title = dto.Title,
                 Description = markdownDescription, // Descrição gerada em Markdown
                 Severity = dto.Severity,
-                OccurrenceType = dto.OccurrenceType,
+                OccurrenceType = (int)dto.OccurrenceType,
                 OccurredAt = dto.OccurredAt,
                 Environment = dto.Environment,
                 UserStoryId = dto.UserStoryId,
@@ -204,7 +178,7 @@ public class FailureService
             Description = failure.Description,
             Severity = failure.Severity,
             Status = failure.Status,
-            OccurrenceType = failure.OccurrenceType,
+            OccurrenceType = (int)failure.OccurrenceType,
             OccurredAt = failure.OccurredAt,
             Environment = failure.Environment,
             CreatedAt = failure.CreatedAt,

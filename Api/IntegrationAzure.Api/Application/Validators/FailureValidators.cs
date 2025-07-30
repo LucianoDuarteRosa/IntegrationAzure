@@ -1,5 +1,6 @@
 using FluentValidation;
 using IntegrationAzure.Api.Application.DTOs;
+using IntegrationAzure.Api.Domain.Entities;
 
 namespace IntegrationAzure.Api.Application.Validators;
 

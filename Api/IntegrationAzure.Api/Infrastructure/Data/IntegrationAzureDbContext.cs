@@ -82,10 +82,6 @@ public class IntegrationAzureDbContext : DbContext
             entity.Property(e => e.Description).IsRequired();
             entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
 
-            entity.HasOne(e => e.UserStory)
-                  .WithMany()
-                  .HasForeignKey(e => e.UserStoryId)
-                  .OnDelete(DeleteBehavior.SetNull);
 
             // Índices para performance
             entity.HasIndex(e => e.FailureNumber);
@@ -156,6 +152,8 @@ public class IntegrationAzureDbContext : DbContext
         modelBuilder.Entity<Failure>()
             .Property(e => e.Status)
             .HasConversion<string>();
+
+        // OccurrenceType será gravado como integer (ID do enum)
 
         // Configurações para Log
         modelBuilder.Entity<Log>(entity =>

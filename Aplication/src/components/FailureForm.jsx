@@ -26,8 +26,7 @@ import {
     Delete as DeleteIcon,
     Add as AddIcon,
     AttachFile as AttachFileIcon,
-    BugReport as BugReportIcon,
-    Warning as WarningIcon,
+    BugReport as BugReportIcon
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
@@ -38,6 +37,7 @@ const schema = yup.object().shape({
     userStoryId: yup.string().required('História do usuário é obrigatória'),
     title: yup.string().required('Título é obrigatório'),
     severity: yup.string().required('Severidade é obrigatória'),
+    occurrenceType: yup.number().required('Tipo de ocorrência é obrigatório'),
     environment: yup.string().required('Ambiente é obrigatório'),
     observations: yup.string(), // Opcional
     givenWhenThen: yup.array().of(
@@ -65,19 +65,19 @@ const demandas = [
 
 const historiasPorDemanda = {
     'DEM-001': [
-        { id: 'US-001-1', title: 'Como usuário, quero fazer login no sistema' },
-        { id: 'US-001-2', title: 'Como usuário, quero recuperar minha senha' },
-        { id: 'US-001-3', title: 'Como admin, quero gerenciar permissões' },
+        { id: '550e8400-e29b-41d4-a716-446655440001', title: 'Como usuário, quero fazer login no sistema' },
+        { id: '550e8400-e29b-41d4-a716-446655440002', title: 'Como usuário, quero recuperar minha senha' },
+        { id: '550e8400-e29b-41d4-a716-446655440003', title: 'Como admin, quero gerenciar permissões' },
     ],
     'DEM-002': [
-        { id: 'US-002-1', title: 'Como usuário, quero criar um relatório' },
-        { id: 'US-002-2', title: 'Como usuário, quero exportar dados' },
-        { id: 'US-002-3', title: 'Como gestor, quero visualizar dashboard' },
+        { id: '550e8400-e29b-41d4-a716-446655440004', title: 'Como usuário, quero criar um relatório' },
+        { id: '550e8400-e29b-41d4-a716-446655440005', title: 'Como usuário, quero exportar dados' },
+        { id: '550e8400-e29b-41d4-a716-446655440006', title: 'Como gestor, quero visualizar dashboard' },
     ],
     'DEM-003': [
-        { id: 'US-003-1', title: 'Como usuário, quero integrar com API externa' },
-        { id: 'US-003-2', title: 'Como admin, quero configurar webhooks' },
-        { id: 'US-003-3', title: 'Como dev, quero monitorar performance' },
+        { id: '550e8400-e29b-41d4-a716-446655440007', title: 'Como usuário, quero integrar com API externa' },
+        { id: '550e8400-e29b-41d4-a716-446655440008', title: 'Como admin, quero configurar webhooks' },
+        { id: '550e8400-e29b-41d4-a716-446655440009', title: 'Como dev, quero monitorar performance' },
     ],
 };
 
@@ -86,6 +86,15 @@ const severidades = [
     { value: 'Medium', label: 'Média', color: '#ff9800' },
     { value: 'High', label: 'Alta', color: '#f44336' },
     { value: 'Critical', label: 'Crítica', color: '#d32f2f' },
+];
+
+const tiposOcorrencia = [
+    { value: 4, label: 'Erro de Migração de Dados' },
+    { value: 5, label: 'Erro de Sistema' },
+    { value: 6, label: 'Erro em Ambiente' },
+    { value: 7, label: 'Problema de Banco de Dados' },
+    { value: 8, label: 'Problema de Infraestrutura' },
+    { value: 9, label: 'Problema de Parametrizações' },
 ];
 
 const ambientes = [
@@ -234,6 +243,7 @@ export function FailureForm() {
     ]);
     const [selectedDemand, setSelectedDemand] = useState('');
     const [availableStories, setAvailableStories] = useState([]);
+    // Usar apenas os tipos hardcoded específicos para falhas (não buscar da API)
 
     const {
         control,
@@ -250,6 +260,7 @@ export function FailureForm() {
             userStoryId: '',
             title: '',
             severity: 'Medium',
+            occurrenceType: 5, // Valor padrão: "Erro de Sistema"
             environment: 'Production',
             observations: '',
             givenWhenThen: [{ given: '', when: '', then: '' }],
@@ -264,6 +275,7 @@ export function FailureForm() {
             userStoryId: '',
             title: '',
             severity: 'Medium',
+            occurrenceType: 5, // Valor padrão: "Erro de Sistema"
             environment: 'Production',
             observations: '',
             givenWhenThen: [{ given: '', when: '', then: '' }],
@@ -364,11 +376,10 @@ export function FailureForm() {
                 Title: data.title,
                 Description: '', // A API vai gerar a descrição em Markdown
                 Severity: severityMap[data.severity], // Valor numérico (1-4)
+                OccurrenceType: parseInt(data.occurrenceType), // Valor numérico do tipo de ocorrência
                 OccurredAt: new Date().toISOString(),
                 Environment: data.environment,
-                UserStoryId: null, // Sempre null até a integração com Azure estar pronta
-                ReportedBy: null, // Opcional
-                IssueId: null, // Opcional
+                UserStoryId: data.userStoryId || null, // Usar o GUID selecionado ou null
                 Scenarios: scenariosForApi, // Cenários estruturados para a API
                 Observations: data.observations?.trim() || null, // Observações
                 Attachments: attachments.map(att => ({ // Evidências
@@ -565,7 +576,7 @@ export function FailureForm() {
                                     </Box>
 
                                     {/* Segunda linha: Título (2fr), Severidade (1fr) e Ambiente (1fr) */}
-                                    <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 3 }}>
+                                    <Box sx={{ display: 'grid', gridTemplateColumns: '4fr 1fr 3fr 2fr', gap: 2 }}>
                                         <Controller
                                             name="title"
                                             control={control}
@@ -630,7 +641,34 @@ export function FailureForm() {
                                                 </FormControl>
                                             )}
                                         />
-
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 3 }}>
+                                            <Controller
+                                                name="occurrenceType"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <FormControl fullWidth error={!!errors.occurrenceType} required>
+                                                        <InputLabel>Tipo de Ocorrência</InputLabel>
+                                                        <Select
+                                                            {...field}
+                                                            label="Tipo de Ocorrência"
+                                                            disabled={isSubmitting}
+                                                            required
+                                                        >
+                                                            {tiposOcorrencia.map((tipo) => (
+                                                                <MenuItem key={tipo.value} value={tipo.value}>
+                                                                    {tipo.label}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                        {errors.occurrenceType && (
+                                                            <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                                                                {errors.occurrenceType.message}
+                                                            </Typography>
+                                                        )}
+                                                    </FormControl>
+                                                )}
+                                            />
+                                        </Box>
                                         <Controller
                                             name="environment"
                                             control={control}
