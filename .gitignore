@@ -409,3 +409,6 @@ crop_favicons.*
 # Upload files - não versionar arquivos enviados pelos usuários
 Api/IntegrationAzure.Api/uploads/
 !Api/IntegrationAzure.Api/uploads/.gitkeep
+
+# Entity Framework Migrations - não versionar migrations para evitar conflitos
+Api/IntegrationAzure.Api/Migrations/
