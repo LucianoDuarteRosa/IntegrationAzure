@@ -33,9 +33,8 @@ public class Failure : SimpleBaseEntity
     // Relacionamento com anexos
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
-    // Para associar a uma história (opcional)
+    // Para associar a uma história (opcional) - apenas ID, sem FK constraint
     public Guid? UserStoryId { get; set; }
-    public virtual UserStory? UserStory { get; set; }
 }
 
 /// <summary>

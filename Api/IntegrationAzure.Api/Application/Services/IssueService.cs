@@ -61,12 +61,8 @@ public class IssueService
                 Description = dto.Description,
                 Type = dto.Type,
                 Priority = dto.Priority,
-                AssignedTo = dto.AssignedTo,
-                Reporter = dto.Reporter,
+                OccurrenceType = dto.OccurrenceType,
                 Environment = dto.Environment,
-                StepsToReproduce = dto.StepsToReproduce,
-                ExpectedResult = dto.ExpectedResult,
-                ActualResult = dto.ActualResult,
                 UserStoryId = dto.UserStoryId,
                 CreatedBy = currentUser,
                 Status = IssueStatus.Open
@@ -81,7 +77,7 @@ public class IssueService
             {
                 Success = true,
                 Message = "Issue criada com sucesso",
-                Data = await MapToDtoAsync(createdIssue!)
+                Data = MapToDto(createdIssue!)
             };
         }
         catch (Exception ex)
@@ -117,7 +113,7 @@ public class IssueService
             {
                 Success = true,
                 Message = "Issue encontrada",
-                Data = await MapToDtoAsync(issue)
+                Data = MapToDto(issue)
             };
         }
         catch (Exception ex)
@@ -148,10 +144,10 @@ public class IssueService
                 Type = i.Type,
                 Priority = i.Priority,
                 Status = i.Status,
-                AssignedTo = i.AssignedTo,
+                OccurrenceType = i.OccurrenceType,
                 CreatedAt = i.CreatedAt,
                 CreatedBy = i.CreatedBy,
-                UserStoryTitle = i.UserStory?.Title,
+                UserStoryTitle = null, // Não há relacionamento direto
                 AttachmentsCount = i.Attachments.Count
             }).ToList();
 
@@ -219,37 +215,16 @@ public class IssueService
                 issue.Priority = dto.Priority.Value;
 
             if (dto.Status.HasValue)
-            {
                 issue.Status = dto.Status.Value;
-                if (dto.Status.Value == IssueStatus.Resolved)
-                {
-                    issue.ResolvedAt = DateTime.UtcNow;
-                }
-            }
 
-            if (dto.AssignedTo != null)
-                issue.AssignedTo = dto.AssignedTo;
+            if (dto.OccurrenceType.HasValue)
+                issue.OccurrenceType = dto.OccurrenceType.Value;
 
             if (dto.Environment != null)
                 issue.Environment = dto.Environment;
 
-            if (dto.StepsToReproduce != null)
-                issue.StepsToReproduce = dto.StepsToReproduce;
-
-            if (dto.ExpectedResult != null)
-                issue.ExpectedResult = dto.ExpectedResult;
-
-            if (dto.ActualResult != null)
-                issue.ActualResult = dto.ActualResult;
-
-            if (dto.Resolution != null)
-                issue.Resolution = dto.Resolution;
-
             if (dto.UserStoryId != issue.UserStoryId)
                 issue.UserStoryId = dto.UserStoryId;
-
-            issue.UpdatedBy = currentUser;
-            issue.UpdatedAt = DateTime.UtcNow;
 
             await _issueRepository.UpdateAsync(issue);
             await _issueRepository.SaveChangesAsync();
@@ -260,7 +235,7 @@ public class IssueService
             {
                 Success = true,
                 Message = "Issue atualizada com sucesso",
-                Data = await MapToDtoAsync(updatedIssue!)
+                Data = MapToDto(updatedIssue!)
             };
         }
         catch (Exception ex)
@@ -316,24 +291,8 @@ public class IssueService
     /// <summary>
     /// Mapeia entidade para DTO
     /// </summary>
-    private async Task<IssueDto> MapToDtoAsync(Issue issue)
+    private IssueDto MapToDto(Issue issue)
     {
-        UserStorySummaryDto? userStorySummary = null;
-        if (issue.UserStory != null)
-        {
-            userStorySummary = new UserStorySummaryDto
-            {
-                Id = issue.UserStory.Id,
-                DemandNumber = issue.UserStory.DemandNumber,
-                Title = issue.UserStory.Title,
-                Status = issue.UserStory.Status,
-                Priority = issue.UserStory.Priority,
-                CreatedAt = issue.UserStory.CreatedAt,
-                CreatedBy = issue.UserStory.CreatedBy,
-                AttachmentsCount = issue.UserStory.Attachments.Count
-            };
-        }
-
         return new IssueDto
         {
             Id = issue.Id,
@@ -343,20 +302,12 @@ public class IssueService
             Type = issue.Type,
             Priority = issue.Priority,
             Status = issue.Status,
-            AssignedTo = issue.AssignedTo,
-            Reporter = issue.Reporter,
+            OccurrenceType = issue.OccurrenceType,
             Environment = issue.Environment,
-            StepsToReproduce = issue.StepsToReproduce,
-            ExpectedResult = issue.ExpectedResult,
-            ActualResult = issue.ActualResult,
-            Resolution = issue.Resolution,
             CreatedAt = issue.CreatedAt,
-            UpdatedAt = issue.UpdatedAt,
-            ResolvedAt = issue.ResolvedAt,
             CreatedBy = issue.CreatedBy,
-            UpdatedBy = issue.UpdatedBy,
             UserStoryId = issue.UserStoryId,
-            UserStory = userStorySummary,
+            UserStory = null, // Não há relacionamento direto
             Attachments = issue.Attachments.Select(a => new AttachmentDto
             {
                 Id = a.Id,

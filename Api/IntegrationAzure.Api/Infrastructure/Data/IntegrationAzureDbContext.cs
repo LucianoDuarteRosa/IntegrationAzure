@@ -53,23 +53,16 @@ public class IntegrationAzureDbContext : DbContext
             entity.Property(e => e.IssueNumber).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Title).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Description).IsRequired();
-            entity.Property(e => e.AssignedTo).HasMaxLength(100);
-            entity.Property(e => e.Reporter).HasMaxLength(100);
             entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
 
-            // Relacionamento com UserStory (opcional)
-            entity.HasOne(e => e.UserStory)
-                  .WithMany()
-                  .HasForeignKey(e => e.UserStoryId)
-                  .OnDelete(DeleteBehavior.SetNull);
+            // UserStoryId como campo opcional sem FK constraint
+            entity.Property(e => e.UserStoryId).IsRequired(false);
 
             // Índices para performance
             entity.HasIndex(e => e.IssueNumber);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Type);
             entity.HasIndex(e => e.Priority);
-            entity.HasIndex(e => e.AssignedTo);
         });
 
         // Configurações para Failure
@@ -82,6 +75,8 @@ public class IntegrationAzureDbContext : DbContext
             entity.Property(e => e.Description).IsRequired();
             entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
 
+            // UserStoryId como campo opcional sem FK constraint
+            entity.Property(e => e.UserStoryId).IsRequired(false);
 
             // Índices para performance
             entity.HasIndex(e => e.FailureNumber);

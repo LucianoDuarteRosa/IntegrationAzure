@@ -39,17 +39,6 @@ public class IssueRepository : Repository<Issue>, IIssueRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Issue>> GetByAssigneeAsync(string assignee)
-    {
-        if (string.IsNullOrWhiteSpace(assignee))
-            throw new ArgumentException("Assignee cannot be null or empty", nameof(assignee));
-
-        return await _dbSet
-            .Where(i => i.AssignedTo == assignee)
-            .OrderByDescending(i => i.CreatedAt)
-            .ToListAsync();
-    }
-
     public async Task<Issue?> GetWithAttachmentsAsync(Guid id)
     {
         return await _dbSet
@@ -68,7 +57,6 @@ public class IssueRepository : Repository<Issue>, IIssueRepository
     public override async Task<IEnumerable<Issue>> GetAllAsync()
     {
         return await _dbSet
-            .Include(i => i.UserStory)
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync();
     }

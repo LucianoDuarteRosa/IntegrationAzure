@@ -6,7 +6,7 @@ namespace IntegrationAzure.Api.Domain.Entities;
 /// Entidade que representa uma Issue/Problema
 /// Para rastreamento de bugs, melhorias e tarefas
 /// </summary>
-public class Issue : BaseEntity
+public class Issue : SimpleBaseEntity
 {
     [Required]
     [StringLength(50)]
@@ -25,30 +25,15 @@ public class Issue : BaseEntity
 
     public IssueStatus Status { get; set; } = IssueStatus.Open;
 
-    [StringLength(100)]
-    public string? AssignedTo { get; set; }
-
-    [StringLength(100)]
-    public string? Reporter { get; set; }
+    public int OccurrenceType { get; set; } = 5;
 
     public string? Environment { get; set; }
-
-    public string? StepsToReproduce { get; set; }
-
-    public string? ExpectedResult { get; set; }
-
-    public string? ActualResult { get; set; }
 
     // Relacionamento com anexos
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
-    // Para associar a uma história específica (opcional)
+    // Para associar a uma história específica (opcional) - apenas ID, sem FK constraint
     public Guid? UserStoryId { get; set; }
-    public virtual UserStory? UserStory { get; set; }
-
-    public DateTime? ResolvedAt { get; set; }
-
-    public string? Resolution { get; set; }
 }
 
 /// <summary>

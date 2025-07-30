@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using IntegrationAzure.Api.Application.DTOs;
 using IntegrationAzure.Api.Application.Services;
 using IntegrationAzure.Api.Application.Validators;
+using IntegrationAzure.Api.Domain.Extensions;
 using FluentValidation;
 
 namespace IntegrationAzure.Api.Controllers;
@@ -16,15 +17,18 @@ namespace IntegrationAzure.Api.Controllers;
 public class IssuesController : BaseController
 {
     private readonly IssueService _issueService;
+    private readonly LogService _logService;
     private readonly IValidator<CreateIssueDto> _createValidator;
     private readonly IValidator<UpdateIssueDto> _updateValidator;
 
     public IssuesController(
         IssueService issueService,
+        LogService logService,
         IValidator<CreateIssueDto> createValidator,
         IValidator<UpdateIssueDto> updateValidator)
     {
         _issueService = issueService ?? throw new ArgumentNullException(nameof(issueService));
+        _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
         _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
     }
@@ -40,8 +44,36 @@ public class IssuesController : BaseController
     [ProducesResponseType(typeof(ApiResponseDto<object>), 500)]
     public async Task<ActionResult<ApiResponseDto<List<IssueSummaryDto>>>> GetAll()
     {
-        var result = await _issueService.GetAllAsync();
-        return ProcessServiceResponse(result);
+        try
+        {
+            var result = await _issueService.GetAllAsync();
+
+            if (result.Success)
+            {
+                await _logService.LogActionAsync(
+                    "GET_ALL",
+                    "Issue",
+                    null,
+                    GetCurrentUser(),
+                    $"Retrieved {result.Data?.Count ?? 0} issues",
+                    Domain.Entities.LogLevel.Info
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "GET_ALL_ERROR",
+                "Issue",
+                null,
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -58,13 +90,61 @@ public class IssuesController : BaseController
     [ProducesResponseType(typeof(ApiResponseDto<object>), 500)]
     public async Task<ActionResult<ApiResponseDto<IssueDto>>> GetById(Guid id)
     {
-        if (id == Guid.Empty)
+        try
         {
-            return ErrorResponse<IssueDto>("ID inválido");
-        }
+            if (id == Guid.Empty)
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_ID_FAILED",
+                    "Issue",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    "Invalid ID provided",
+                    Domain.Entities.LogLevel.Warning
+                );
 
-        var result = await _issueService.GetByIdAsync(id);
-        return ProcessServiceResponse(result);
+                return ErrorResponse<IssueDto>("ID inválido");
+            }
+
+            var result = await _issueService.GetByIdAsync(id);
+
+            if (result.Success && result.Data != null)
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_ID",
+                    "Issue",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    $"Retrieved issue: {result.Data.Title}",
+                    Domain.Entities.LogLevel.Info
+                );
+            }
+            else
+            {
+                await _logService.LogActionAsync(
+                    "GET_BY_ID_NOT_FOUND",
+                    "Issue",
+                    id.ToString(),
+                    GetCurrentUser(),
+                    "Issue not found",
+                    Domain.Entities.LogLevel.Warning
+                );
+            }
+
+            return ProcessServiceResponse(result);
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogActionAsync(
+                "GET_BY_ID_ERROR",
+                "Issue",
+                id.ToString(),
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
+        }
     }
 
     /// <summary>
@@ -81,23 +161,66 @@ public class IssuesController : BaseController
     [ProducesResponseType(typeof(ApiResponseDto<object>), 500)]
     public async Task<ActionResult<ApiResponseDto<IssueDto>>> Create([FromBody] CreateIssueDto dto)
     {
-        // Validação dos dados de entrada
-        var validationResult = await _createValidator.ValidateAsync(dto);
-        if (!validationResult.IsValid)
+        try
         {
-            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-            return ErrorResponse<IssueDto>("Dados de entrada inválidos", errors);
+            // Validação dos dados de entrada
+            var validationResult = await _createValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+
+                await _logService.LogActionAsync(
+                    "CREATE_FAILED",
+                    "Issue",
+                    null,
+                    GetCurrentUser(),
+                    $"Validation errors: {string.Join(", ", errors)}",
+                    Domain.Entities.LogLevel.Warning
+                );
+
+                return ErrorResponse<IssueDto>("Dados de entrada inválidos", errors);
+            }
+
+            var currentUser = GetCurrentUser();
+            var result = await _issueService.CreateAsync(dto, currentUser);
+
+            if (result.Success && result.Data != null)
+            {
+                await _logService.LogActionAsync(
+                    "CREATE_SUCCESS",
+                    "Issue",
+                    result.Data.Id.ToString(),
+                    currentUser,
+                    $"Created issue: {result.Data.Title}",
+                    Domain.Entities.LogLevel.Success
+                );
+
+                return Created($"/api/issues/{result.Data.Id}", result);
+            }
+
+            await _logService.LogActionAsync(
+                "CREATE_FAILED",
+                "Issue",
+                null,
+                currentUser,
+                result.Message,
+                Domain.Entities.LogLevel.Error
+            );
+
+            return ProcessServiceResponse(result);
         }
-
-        var currentUser = GetCurrentUser();
-        var result = await _issueService.CreateAsync(dto, currentUser);
-
-        if (result.Success)
+        catch (Exception ex)
         {
-            return Created($"/api/issues/{result.Data!.Id}", result);
+            await _logService.LogActionAsync(
+                "CREATE_ERROR",
+                "Issue",
+                null,
+                GetCurrentUser(),
+                $"Exception: {ex.Message}",
+                Domain.Entities.LogLevel.Error
+            );
+            throw;
         }
-
-        return ProcessServiceResponse(result);
     }
 
     /// <summary>
@@ -157,5 +280,19 @@ public class IssuesController : BaseController
 
         var result = await _issueService.DeleteAsync(id);
         return ProcessServiceResponse(result);
+    }
+
+    /// <summary>
+    /// Obtém todos os tipos de ocorrência disponíveis
+    /// </summary>
+    /// <returns>Dicionário com os tipos de ocorrência</returns>
+    /// <response code="200">Tipos de ocorrência obtidos com sucesso</response>
+    [HttpGet("occurrence-types")]
+    [ProducesResponseType(typeof(ApiResponseDto<Dictionary<int, string>>), 200)]
+    public ActionResult<ApiResponseDto<Dictionary<int, string>>> GetOccurrenceTypes()
+    {
+        var occurrenceTypes = EnumExtensions.GetAllOccurrenceTypes();
+
+        return SuccessResponse(occurrenceTypes, "Tipos de ocorrência obtidos com sucesso");
     }
 }

@@ -127,7 +127,7 @@ public class FailureService
                 OccurredAt = f.OccurredAt,
                 CreatedAt = f.CreatedAt,
                 CreatedBy = f.CreatedBy,
-                UserStoryTitle = f.UserStory?.Title,
+                UserStoryTitle = null, // Não há relacionamento direto
                 AttachmentsCount = f.Attachments.Count
             }).ToList();
 
@@ -154,22 +154,6 @@ public class FailureService
     /// </summary>
     private FailureDto MapToDto(Failure failure)
     {
-        UserStorySummaryDto? userStorySummary = null;
-        if (failure.UserStory != null)
-        {
-            userStorySummary = new UserStorySummaryDto
-            {
-                Id = failure.UserStory.Id,
-                DemandNumber = failure.UserStory.DemandNumber,
-                Title = failure.UserStory.Title,
-                Status = failure.UserStory.Status,
-                Priority = failure.UserStory.Priority,
-                CreatedAt = failure.UserStory.CreatedAt,
-                CreatedBy = failure.UserStory.CreatedBy,
-                AttachmentsCount = failure.UserStory.Attachments.Count
-            };
-        }
-
         return new FailureDto
         {
             Id = failure.Id,
@@ -184,7 +168,7 @@ public class FailureService
             CreatedAt = failure.CreatedAt,
             CreatedBy = failure.CreatedBy,
             UserStoryId = failure.UserStoryId,
-            UserStory = userStorySummary,
+            UserStory = null, // Não há relacionamento direto
             Attachments = failure.Attachments.Select(a => new AttachmentDto
             {
                 Id = a.Id,

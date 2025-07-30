@@ -18,6 +18,18 @@ export const issueService = {
     },
 
     /**
+     * Obtém todos os tipos de ocorrência disponíveis
+     */
+    async getOccurrenceTypes() {
+        try {
+            const response = await api.get('/issues/occurrence-types');
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    },
+
+    /**
      * Obtém uma issue específica por ID
      */
     async getById(id) {

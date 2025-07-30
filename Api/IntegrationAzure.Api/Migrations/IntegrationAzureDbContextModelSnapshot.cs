@@ -222,13 +222,6 @@ namespace IntegrationAzure.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ActualResult")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AssignedTo")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -244,36 +237,20 @@ namespace IntegrationAzure.Api.Migrations
                     b.Property<string>("Environment")
                         .HasColumnType("text");
 
-                    b.Property<string>("ExpectedResult")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("IssueNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int>("OccurrenceType")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Reporter")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Resolution")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("StepsToReproduce")
                         .HasColumnType("text");
 
                     b.Property<string>("Title")
@@ -285,19 +262,10 @@ namespace IntegrationAzure.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<Guid?>("UserStoryId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AssignedTo");
 
                     b.HasIndex("IssueNumber");
 
@@ -306,8 +274,6 @@ namespace IntegrationAzure.Api.Migrations
                     b.HasIndex("Status");
 
                     b.HasIndex("Type");
-
-                    b.HasIndex("UserStoryId");
 
                     b.ToTable("issues", (string)null);
                 });
@@ -569,16 +535,6 @@ namespace IntegrationAzure.Api.Migrations
                     b.Navigation("Failure");
 
                     b.Navigation("Issue");
-
-                    b.Navigation("UserStory");
-                });
-
-            modelBuilder.Entity("IntegrationAzure.Api.Domain.Entities.Issue", b =>
-                {
-                    b.HasOne("IntegrationAzure.Api.Domain.Entities.UserStory", "UserStory")
-                        .WithMany()
-                        .HasForeignKey("UserStoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("UserStory");
                 });

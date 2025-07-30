@@ -40,15 +40,9 @@ public class CreateIssueDtoValidator : AbstractValidator<CreateIssueDto>
             .IsInEnum()
             .WithMessage("Prioridade deve ser um valor válido");
 
-        RuleFor(x => x.AssignedTo)
-            .MaximumLength(100)
-            .WithMessage("Responsável deve ter no máximo 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.AssignedTo));
-
-        RuleFor(x => x.Reporter)
-            .MaximumLength(100)
-            .WithMessage("Relator deve ter no máximo 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.Reporter));
+        RuleFor(x => x.OccurrenceType)
+            .GreaterThan(0)
+            .WithMessage("Tipo de ocorrência deve ser um valor válido");
 
         RuleFor(x => x.Environment)
             .MaximumLength(200)
@@ -90,11 +84,6 @@ public class UpdateIssueDtoValidator : AbstractValidator<UpdateIssueDto>
             .IsInEnum()
             .WithMessage("Status deve ser um valor válido")
             .When(x => x.Status.HasValue);
-
-        RuleFor(x => x.AssignedTo)
-            .MaximumLength(100)
-            .WithMessage("Responsável deve ter no máximo 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.AssignedTo));
 
         RuleFor(x => x.Environment)
             .MaximumLength(200)
