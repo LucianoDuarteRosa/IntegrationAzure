@@ -10,19 +10,8 @@ import {
     Card,
     CardContent,
     CardActions,
-    Switch,
-    FormControlLabel,
     Chip,
     IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    Divider,
     Alert
 } from '@mui/material';
 import {
@@ -35,6 +24,7 @@ import {
     Cloud as CloudIcon
 } from '@mui/icons-material';
 import { Navbar } from '../components/Navbar';
+import { ConfigurationModal } from '../components/ConfigurationModal';
 import { configurationService } from '../services';
 import { useNotifications } from '../hooks/useNotifications';
 
@@ -42,17 +32,9 @@ export function ConfigurationsPage() {
     const { showSuccess, showError } = useNotifications();
     const [configurations, setConfigurations] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [openDialog, setOpenDialog] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
     const [editingConfig, setEditingConfig] = useState(null);
     const [visibleSecrets, setVisibleSecrets] = useState({});
-    const [formData, setFormData] = useState({
-        key: '',
-        value: '',
-        description: '',
-        category: 'Azure',
-        isSecret: false,
-        isActive: true
-    });
 
     useEffect(() => {
         loadConfigurations();
@@ -74,45 +56,17 @@ export function ConfigurationsPage() {
         }
     };
 
-    const handleOpenDialog = (config = null) => {
-        if (config) {
-            setEditingConfig(config);
-            setFormData({
-                key: config.Key || config.key || '',
-                value: (config.Value || config.value) === '*****' ? '' : (config.Value || config.value || ''),
-                description: config.Description || config.description || '',
-                category: config.Category || config.category || '',
-                isSecret: config.IsSecret ?? config.isSecret ?? false,
-                isActive: config.IsActive ?? config.isActive ?? true
-            });
-        } else {
-            setEditingConfig(null);
-            setFormData({
-                key: '',
-                value: '',
-                description: '',
-                category: 'Azure',
-                isSecret: false,
-                isActive: true
-            });
-        }
-        setOpenDialog(true);
+    const handleOpenModal = (config = null) => {
+        setEditingConfig(config);
+        setOpenModal(true);
     };
 
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
+    const handleCloseModal = () => {
+        setOpenModal(false);
         setEditingConfig(null);
-        setFormData({
-            key: '',
-            value: '',
-            description: '',
-            category: 'Azure',
-            isSecret: false,
-            isActive: true
-        });
     };
 
-    const handleSave = async () => {
+    const handleSaveConfiguration = async (formData) => {
         try {
             if (!formData.key || !formData.value) {
                 showError('Dados obrigatórios', 'Chave e valor são obrigatórios');
@@ -137,7 +91,7 @@ export function ConfigurationsPage() {
                 }
             }
 
-            handleCloseDialog();
+            handleCloseModal();
             loadConfigurations();
         } catch (error) {
             showError('Erro ao salvar', error.response?.data?.message || 'Erro ao salvar configuração');
@@ -217,7 +171,7 @@ export function ConfigurationsPage() {
                                 <Button
                                     variant="contained"
                                     startIcon={<AddIcon />}
-                                    onClick={() => handleOpenDialog()}
+                                    onClick={() => handleOpenModal()}
                                 >
                                     Nova Configuração
                                 </Button>
@@ -290,7 +244,7 @@ export function ConfigurationsPage() {
                                             <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
                                                 <IconButton
                                                     size="small"
-                                                    onClick={() => handleOpenDialog(config)}
+                                                    onClick={() => handleOpenModal(config)}
                                                     color="primary"
                                                 >
                                                     <EditIcon fontSize="small" />
@@ -323,7 +277,7 @@ export function ConfigurationsPage() {
                             <Button
                                 variant="contained"
                                 startIcon={<AddIcon />}
-                                onClick={() => handleOpenDialog()}
+                                onClick={() => handleOpenModal()}
                                 size="large"
                             >
                                 Nova Configuração
@@ -333,93 +287,13 @@ export function ConfigurationsPage() {
                 </Box>
             </Container>
 
-            {/* Dialog para criar/editar configuração */}
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-                <DialogTitle>
-                    {editingConfig ? 'Editar Configuração' : 'Nova Configuração'}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ pt: 1 }}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Chave"
-                                    value={formData.key}
-                                    onChange={(e) => setFormData({ ...formData, key: e.target.value })}
-                                    disabled={editingConfig} // Não permite editar a chave
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Valor"
-                                    value={formData.value}
-                                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                                    type={formData.isSecret ? 'password' : 'text'}
-                                    required
-                                    placeholder={editingConfig?.IsSecret ? 'Digite para alterar...' : ''}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Descrição"
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    multiline
-                                    rows={2}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Categoria</InputLabel>
-                                    <Select
-                                        value={formData.category}
-                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        label="Categoria"
-                                    >
-                                        <MenuItem value="Azure">Azure</MenuItem>
-                                        <MenuItem value="Database">Database</MenuItem>
-                                        <MenuItem value="Email">Email</MenuItem>
-                                        <MenuItem value="General">General</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Box sx={{ pt: 1 }}>
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={formData.isSecret}
-                                                onChange={(e) => setFormData({ ...formData, isSecret: e.target.checked })}
-                                            />
-                                        }
-                                        label="Valor secreto"
-                                    />
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={formData.isActive}
-                                                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                            />
-                                        }
-                                        label="Ativo"
-                                        sx={{ ml: 2 }}
-                                    />
-                                </Box>
-                            </Grid>
-                        </Grid>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancelar</Button>
-                    <Button onClick={handleSave} variant="contained">
-                        {editingConfig ? 'Atualizar' : 'Criar'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ConfigurationModal
+                open={openModal}
+                onClose={handleCloseModal}
+                onSave={handleSaveConfiguration}
+                editingConfig={editingConfig}
+                loading={loading}
+            />
         </>
     );
 }
