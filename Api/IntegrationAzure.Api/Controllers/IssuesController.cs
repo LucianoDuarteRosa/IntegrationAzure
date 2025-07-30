@@ -19,18 +19,15 @@ public class IssuesController : BaseController
     private readonly IssueService _issueService;
     private readonly LogService _logService;
     private readonly IValidator<CreateIssueDto> _createValidator;
-    private readonly IValidator<UpdateIssueDto> _updateValidator;
 
     public IssuesController(
         IssueService issueService,
         LogService logService,
-        IValidator<CreateIssueDto> createValidator,
-        IValidator<UpdateIssueDto> updateValidator)
+        IValidator<CreateIssueDto> createValidator)
     {
         _issueService = issueService ?? throw new ArgumentNullException(nameof(issueService));
         _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         _createValidator = createValidator ?? throw new ArgumentNullException(nameof(createValidator));
-        _updateValidator = updateValidator ?? throw new ArgumentNullException(nameof(updateValidator));
     }
 
     /// <summary>

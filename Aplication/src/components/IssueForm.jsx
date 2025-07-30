@@ -33,7 +33,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 const schema = yup.object().shape({
     demandNumber: yup.string().required('Demanda é obrigatória'),
-    userStoryId: yup.string(), // Opcional - pode não ter história associada
+    userStoryId: yup.string(), // Removendo validação GUID complexa temporariamente
     title: yup.string().required('Título é obrigatório'),
     type: yup.number().required('Tipo de issue é obrigatório'),
     priority: yup.number().required('Prioridade é obrigatória'),
@@ -46,14 +46,7 @@ const schema = yup.object().shape({
             when: yup.string().trim(),
             then: yup.string().trim(),
         })
-    ).test('at-least-one-complete', 'Pelo menos um cenário completo é obrigatório', function (value) {
-        if (!value || value.length === 0) return false;
-        return value.some(scenario =>
-            scenario.given?.trim() &&
-            scenario.when?.trim() &&
-            scenario.then?.trim()
-        );
-    }),
+    ), // Removendo validação complexa - API gerará descrição se necessário
 });
 
 // Dados simulados para demandas e histórias
@@ -189,7 +182,6 @@ const ScenarioDetailsFields = ({ scenarios, onAdd, onRemove, onScenarioChange, d
                             placeholder="Descreva o contexto atual relacionado à issue"
                             error={!!(errors?.scenarioDetails?.[index]?.given)}
                             helperText={errors?.scenarioDetails?.[index]?.given?.message}
-                            required
                         />
                         <TextField
                             fullWidth
@@ -202,7 +194,6 @@ const ScenarioDetailsFields = ({ scenarios, onAdd, onRemove, onScenarioChange, d
                             placeholder="Descreva quando/como a issue ocorre"
                             error={!!(errors?.scenarioDetails?.[index]?.when)}
                             helperText={errors?.scenarioDetails?.[index]?.when?.message}
-                            required
                         />
                         <TextField
                             fullWidth
@@ -215,7 +206,6 @@ const ScenarioDetailsFields = ({ scenarios, onAdd, onRemove, onScenarioChange, d
                             placeholder="Descreva o resultado esperado ou a solução desejada"
                             error={!!(errors?.scenarioDetails?.[index]?.then)}
                             helperText={errors?.scenarioDetails?.[index]?.then?.message}
-                            required
                         />
                     </Stack>
                 </Paper>
@@ -232,13 +222,6 @@ const ScenarioDetailsFields = ({ scenarios, onAdd, onRemove, onScenarioChange, d
                     Adicionar Cenário
                 </Button>
             </Box>
-
-            {/* Exibe erro geral dos cenários */}
-            {errors?.scenarioDetails?.message && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                    {errors.scenarioDetails.message}
-                </Alert>
-            )}
         </Stack>
     );
 };
@@ -359,35 +342,19 @@ export function IssueForm() {
         setIsSubmitting(true);
 
         try {
-            // Preparar cenários completos
-            const completedScenarios = scenarioDetails.filter(scenario =>
-                scenario.given?.trim() &&
-                scenario.when?.trim() &&
-                scenario.then?.trim()
-            );
-
-            // Gerar descrição baseada nos cenários
-            let description = data.description?.trim() || '';
-            if (completedScenarios.length > 0) {
-                description += '\n\n## Cenários:\n\n';
-                completedScenarios.forEach((scenario, index) => {
-                    description += `**Cenário ${index + 1}:**\n`;
-                    description += `- **Contexto:** ${scenario.given}\n`;
-                    description += `- **Situação:** ${scenario.when}\n`;
-                    description += `- **Resultado Esperado:** ${scenario.then}\n\n`;
-                });
-            }
+            // Enviar descrição simples - API gerenciará o formato final
+            const description = data.description?.trim() || `Issue registrada: ${data.title}`;
 
             // Preparar dados para envio seguindo o formato do CreateIssueDto
             const issueData = {
                 IssueNumber: `ISS-${String(Date.now()).slice(-6)}`, // Formato: ISS-XXXXXX
                 Title: data.title,
-                Description: description || 'Issue registrada via sistema',
+                Description: description,
                 Type: parseInt(data.type), // IssueType enum (1-4)
                 Priority: parseInt(data.priority), // Priority enum (1-4)
                 OccurrenceType: parseInt(data.occurrenceType), // Tipo de ocorrência (1-9)
                 Environment: data.environment,
-                UserStoryId: data.userStoryId || null, // null se string vazia ou GUID válido
+                UserStoryId: data.userStoryId && data.userStoryId.trim() && data.userStoryId !== " " ? data.userStoryId : null, // null se string vazia, espaço ou GUID válido
             };
 
             // Enviar para a API
@@ -408,8 +375,16 @@ export function IssueForm() {
                 throw new Error(JSON.stringify({ message: errorMessage, errors: errorList }));
             }
         } catch (error) {
+
             // Tratamento específico para diferentes tipos de erro
-            if (error.response?.status === 400) {
+            if (error.response?.status === 500) {
+                // Erro interno do servidor (500)
+                const errorData = error.response.data;
+
+                showError('Erro interno do servidor',
+                    errorData?.message || errorData?.Message ||
+                    'Erro interno no servidor. Verifique os logs da API.');
+            } else if (error.response?.status === 400) {
                 // Erro de validação (400 Bad Request)
                 const errorData = error.response.data;
 
@@ -510,7 +485,12 @@ export function IssueForm() {
                             maxWidth: '1150px'
                         }}
                     >
-                        <form onSubmit={handleSubmit(onSubmit)}>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleSubmit((data) => {
+                                onSubmit(data);
+                            })(e);
+                        }}>
                             {/* Informações Básicas */}
                             <Section title="Informações Básicas" isFirst>
                                 <Box sx={{ display: 'grid', gap: 3 }}>
@@ -767,8 +747,8 @@ export function IssueForm() {
                                 />
                             </Section>
 
-                            {/* Informações Adicionais */}
-                            <Section title="Informações Adicionais">
+                            {/* Descrição Detalhada */}
+                            <Section title="Descrição Detalhada">
                                 <Controller
                                     name="description"
                                     control={control}
@@ -776,11 +756,13 @@ export function IssueForm() {
                                         <TextField
                                             {...field}
                                             fullWidth
-                                            label="Descrição Adicional"
+                                            label="Descrição Detalhada"
                                             multiline
                                             rows={4}
                                             disabled={isSubmitting}
-                                            placeholder="Descrição adicional, contexto, workarounds temporários, etc."
+                                            placeholder="Descreva detalhadamente a issue: o que acontece, quando acontece, qual o impacto, passos para reproduzir, etc."
+                                            error={!!errors.description}
+                                            helperText={errors.description?.message}
                                         />
                                     )}
                                 />

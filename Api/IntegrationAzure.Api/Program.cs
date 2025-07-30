@@ -41,7 +41,6 @@ builder.Services.AddScoped<MarkdownGeneratorService>();
 // Registro dos validadores
 builder.Services.AddScoped<IValidator<CreateUserStoryDto>, CreateUserStoryDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateIssueDto>, CreateIssueDtoValidator>();
-builder.Services.AddScoped<IValidator<UpdateIssueDto>, UpdateIssueDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateFailureDto>, CreateFailureDtoValidator>();
 builder.Services.AddScoped<IValidator<CreateProfileDto>, CreateProfileDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateProfileDto>, UpdateProfileDtoValidator>();

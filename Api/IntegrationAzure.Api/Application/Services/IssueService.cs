@@ -28,32 +28,6 @@ public class IssueService
     {
         try
         {
-            // Verificar se já existe uma issue com o mesmo número
-            var existingIssue = await _issueRepository.FirstOrDefaultAsync(i => i.IssueNumber == dto.IssueNumber);
-            if (existingIssue != null)
-            {
-                return new ApiResponseDto<IssueDto>
-                {
-                    Success = false,
-                    Message = "Já existe uma issue com este número",
-                    Errors = new List<string> { "Número de issue duplicado" }
-                };
-            }
-
-            // Verificar se a história de usuário existe (se fornecida)
-            if (dto.UserStoryId.HasValue)
-            {
-                var userStory = await _userStoryRepository.GetByIdAsync(dto.UserStoryId.Value);
-                if (userStory == null)
-                {
-                    return new ApiResponseDto<IssueDto>
-                    {
-                        Success = false,
-                        Message = "História de usuário não encontrada"
-                    };
-                }
-            }
-
             var issue = new Issue
             {
                 IssueNumber = dto.IssueNumber,

@@ -49,6 +49,8 @@ export const issueService = {
             const response = await api.post('/issues', issueData);
             return response.data;
         } catch (error) {
+            console.error('Erro na API:', error);
+            console.error('Erro response:', error.response);
             throw this.handleError(error);
         }
     },
