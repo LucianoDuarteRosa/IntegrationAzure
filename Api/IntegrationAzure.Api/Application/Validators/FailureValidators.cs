@@ -37,16 +37,15 @@ public class CreateFailureDtoValidator : AbstractValidator<CreateFailureDto>
             .IsInEnum()
             .WithMessage("Severidade deve ser um valor válido");
 
+        RuleFor(x => x.OccurrenceType)
+            .IsInEnum()
+            .WithMessage("Tipo de ocorrência deve ser um valor válido");
+
         RuleFor(x => x.OccurredAt)
             .NotEmpty()
             .WithMessage("Data de ocorrência é obrigatória")
             .LessThanOrEqualTo(DateTime.UtcNow.AddMinutes(5))
             .WithMessage("Data de ocorrência não pode ser no futuro");
-
-        RuleFor(x => x.ReportedBy)
-            .MaximumLength(100)
-            .WithMessage("Relator deve ter no máximo 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.ReportedBy));
 
         RuleFor(x => x.Environment)
             .MaximumLength(200)

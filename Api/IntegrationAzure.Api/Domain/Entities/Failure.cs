@@ -23,21 +23,17 @@ public class Failure : SimpleBaseEntity
 
     public FailureStatus Status { get; set; } = FailureStatus.Reported;
 
+    public FailureOccurrenceType OccurrenceType { get; set; } = FailureOccurrenceType.ErroDeSistema;
+
     [Required]
     public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
-
-    [StringLength(100)]
-    public string? ReportedBy { get; set; }
 
     public string? Environment { get; set; }
 
     // Relacionamento com anexos
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
-    // Para associar a uma issue ou história (opcional)
-    public Guid? IssueId { get; set; }
-    public virtual Issue? Issue { get; set; }
-
+    // Para associar a uma história (opcional)
     public Guid? UserStoryId { get; set; }
     public virtual UserStory? UserStory { get; set; }
 }
@@ -64,4 +60,20 @@ public enum FailureStatus
     Resolved = 4,
     Closed = 5,
     Monitoring = 6
+}
+
+/// <summary>
+/// Enumeration para tipo de ocorrência da falha
+/// </summary>
+public enum FailureOccurrenceType
+{
+    ApoioOperacional = 1,
+    Desempenho = 2,
+    DuvidaOuErroDeProcedimento = 3,
+    ErroDeMigracaoDeDados = 4,
+    ErroDeSistema = 5,
+    ErroEmProducao = 6,
+    ProblemaDeBancoDeDados = 7,
+    ProblemaDeInfraestrutura = 8,
+    ProblemaDeParametrizacoes = 9
 }

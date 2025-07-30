@@ -73,7 +73,6 @@ public class FailureRepository : Repository<Failure>, IFailureRepository
     public override async Task<IEnumerable<Failure>> GetAllAsync()
     {
         return await _dbSet
-            .Include(f => f.Issue)
             .Include(f => f.UserStory)
             .OrderByDescending(f => f.OccurredAt)
             .ToListAsync();

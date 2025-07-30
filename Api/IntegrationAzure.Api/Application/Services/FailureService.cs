@@ -11,18 +11,15 @@ namespace IntegrationAzure.Api.Application.Services;
 public class FailureService
 {
     private readonly IFailureRepository _failureRepository;
-    private readonly IIssueRepository _issueRepository;
     private readonly IUserStoryRepository _userStoryRepository;
     private readonly MarkdownGeneratorService _markdownGenerator;
 
     public FailureService(
         IFailureRepository failureRepository,
-        IIssueRepository issueRepository,
         IUserStoryRepository userStoryRepository,
         MarkdownGeneratorService markdownGenerator)
     {
         _failureRepository = failureRepository ?? throw new ArgumentNullException(nameof(failureRepository));
-        _issueRepository = issueRepository ?? throw new ArgumentNullException(nameof(issueRepository));
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
         _markdownGenerator = markdownGenerator ?? throw new ArgumentNullException(nameof(markdownGenerator));
     }
@@ -44,20 +41,6 @@ public class FailureService
                     Message = "Já existe uma falha com este número",
                     Errors = new List<string> { "Número de falha duplicado" }
                 };
-            }
-
-            // Verificar se a issue existe (se fornecida)
-            if (dto.IssueId.HasValue)
-            {
-                var issue = await _issueRepository.GetByIdAsync(dto.IssueId.Value);
-                if (issue == null)
-                {
-                    return new ApiResponseDto<FailureDto>
-                    {
-                        Success = false,
-                        Message = "Issue não encontrada"
-                    };
-                }
             }
 
             // Verificar se a história de usuário existe (se fornecida)
@@ -83,10 +66,9 @@ public class FailureService
                 Title = dto.Title,
                 Description = markdownDescription, // Descrição gerada em Markdown
                 Severity = dto.Severity,
+                OccurrenceType = dto.OccurrenceType,
                 OccurredAt = dto.OccurredAt,
-                ReportedBy = dto.ReportedBy,
                 Environment = dto.Environment,
-                IssueId = dto.IssueId,
                 UserStoryId = dto.UserStoryId,
                 CreatedBy = currentUser,
                 Status = FailureStatus.Reported
@@ -167,10 +149,10 @@ public class FailureService
                 Title = f.Title,
                 Severity = f.Severity,
                 Status = f.Status,
+                OccurrenceType = f.OccurrenceType,
                 OccurredAt = f.OccurredAt,
                 CreatedAt = f.CreatedAt,
                 CreatedBy = f.CreatedBy,
-                IssueTitle = f.Issue?.Title,
                 UserStoryTitle = f.UserStory?.Title,
                 AttachmentsCount = f.Attachments.Count
             }).ToList();
@@ -198,25 +180,6 @@ public class FailureService
     /// </summary>
     private FailureDto MapToDto(Failure failure)
     {
-        IssueSummaryDto? issueSummary = null;
-        if (failure.Issue != null)
-        {
-            issueSummary = new IssueSummaryDto
-            {
-                Id = failure.Issue.Id,
-                IssueNumber = failure.Issue.IssueNumber,
-                Title = failure.Issue.Title,
-                Type = failure.Issue.Type,
-                Priority = failure.Issue.Priority,
-                Status = failure.Issue.Status,
-                AssignedTo = failure.Issue.AssignedTo,
-                CreatedAt = failure.Issue.CreatedAt,
-                CreatedBy = failure.Issue.CreatedBy,
-                UserStoryTitle = failure.Issue.UserStory?.Title,
-                AttachmentsCount = failure.Issue.Attachments.Count
-            };
-        }
-
         UserStorySummaryDto? userStorySummary = null;
         if (failure.UserStory != null)
         {
@@ -241,13 +204,11 @@ public class FailureService
             Description = failure.Description,
             Severity = failure.Severity,
             Status = failure.Status,
+            OccurrenceType = failure.OccurrenceType,
             OccurredAt = failure.OccurredAt,
-            ReportedBy = failure.ReportedBy,
             Environment = failure.Environment,
             CreatedAt = failure.CreatedAt,
             CreatedBy = failure.CreatedBy,
-            IssueId = failure.IssueId,
-            Issue = issueSummary,
             UserStoryId = failure.UserStoryId,
             UserStory = userStorySummary,
             Attachments = failure.Attachments.Select(a => new AttachmentDto

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using IntegrationAzure.Api.Application.DTOs;
 using IntegrationAzure.Api.Application.Services;
 using IntegrationAzure.Api.Application.Validators;
+using IntegrationAzure.Api.Domain.Extensions;
 using FluentValidation;
 
 namespace IntegrationAzure.Api.Controllers;
@@ -217,5 +218,19 @@ public class FailuresController : BaseController
             );
             throw;
         }
+    }
+
+    /// <summary>
+    /// Obtém todos os tipos de ocorrência disponíveis
+    /// </summary>
+    /// <returns>Dicionário com os tipos de ocorrência</returns>
+    /// <response code="200">Tipos de ocorrência obtidos com sucesso</response>
+    [HttpGet("occurrence-types")]
+    [ProducesResponseType(typeof(ApiResponseDto<Dictionary<int, string>>), 200)]
+    public ActionResult<ApiResponseDto<Dictionary<int, string>>> GetOccurrenceTypes()
+    {
+        var occurrenceTypes = EnumExtensions.GetAllOccurrenceTypes();
+
+        return SuccessResponse(occurrenceTypes, "Tipos de ocorrência obtidos com sucesso");
     }
 }

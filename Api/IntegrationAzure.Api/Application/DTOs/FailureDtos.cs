@@ -11,10 +11,9 @@ public class CreateFailureDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public FailureSeverity Severity { get; set; } = FailureSeverity.Medium;
+    public FailureOccurrenceType OccurrenceType { get; set; } = FailureOccurrenceType.ErroDeSistema;
     public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
-    public string? ReportedBy { get; set; }
     public string? Environment { get; set; }
-    public Guid? IssueId { get; set; }
     public Guid? UserStoryId { get; set; }
     public List<FailureScenarioDto>? Scenarios { get; set; }
     public string? Observations { get; set; }
@@ -52,13 +51,11 @@ public class FailureDto
     public string Description { get; set; } = string.Empty;
     public FailureSeverity Severity { get; set; }
     public FailureStatus Status { get; set; }
+    public FailureOccurrenceType OccurrenceType { get; set; }
     public DateTime OccurredAt { get; set; }
-    public string? ReportedBy { get; set; }
     public string? Environment { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
-    public Guid? IssueId { get; set; }
-    public IssueSummaryDto? Issue { get; set; }
     public Guid? UserStoryId { get; set; }
     public UserStorySummaryDto? UserStory { get; set; }
     public List<AttachmentDto> Attachments { get; set; } = new();
@@ -74,10 +71,10 @@ public class FailureSummaryDto
     public string Title { get; set; } = string.Empty;
     public FailureSeverity Severity { get; set; }
     public FailureStatus Status { get; set; }
+    public FailureOccurrenceType OccurrenceType { get; set; }
     public DateTime OccurredAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
-    public string? IssueTitle { get; set; }
     public string? UserStoryTitle { get; set; }
     public int AttachmentsCount { get; set; }
 }

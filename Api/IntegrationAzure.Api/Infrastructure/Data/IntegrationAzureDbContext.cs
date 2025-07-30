@@ -80,14 +80,7 @@ public class IntegrationAzureDbContext : DbContext
             entity.Property(e => e.FailureNumber).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Title).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Description).IsRequired();
-            entity.Property(e => e.ReportedBy).HasMaxLength(100);
             entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
-
-            // Relacionamentos opcionais
-            entity.HasOne(e => e.Issue)
-                  .WithMany()
-                  .HasForeignKey(e => e.IssueId)
-                  .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(e => e.UserStory)
                   .WithMany()
