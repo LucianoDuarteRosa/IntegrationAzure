@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AppBar, Box, Toolbar, Button } from '@mui/material';
+import { AppBar, Box, Toolbar, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { IntegrationLogo } from './IntegrationLogo';
 import { UserMenu } from './UserMenu';
@@ -77,7 +77,17 @@ export function Navbar() {
                             <IntegrationLogo size="small" isNavbar={true} />
                         </Button>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Typography 
+                            variant="body1" 
+                            sx={{ 
+                                color: 'white',
+                                fontWeight: 500,
+                                display: { xs: 'none', sm: 'block' }
+                            }}
+                        >
+                            Olá, {user?.nickname || user?.Nickname || 'Usuário'}
+                        </Typography>
                         <UserMenu
                             onEditProfile={handleEditProfile}
                             onChangePassword={handleChangePassword}
