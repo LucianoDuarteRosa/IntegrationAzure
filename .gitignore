@@ -412,3 +412,6 @@ Api/IntegrationAzure.Api/uploads/
 
 # Entity Framework Migrations - não versionar migrations para evitar conflitos
 Api/IntegrationAzure.Api/Migrations/
+
+# Arquivos de credenciais e chaves de acesso - não versionar por segurança
+ChaveAcessoAzure.txt
