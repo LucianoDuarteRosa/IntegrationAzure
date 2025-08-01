@@ -501,23 +501,9 @@ export function UserStoryForm() {
                                                             ))
                                                         )}
                                                     </Select>
-                                                    {errors.demandNumber && (
-                                                        <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
-                                                            {errors.demandNumber?.message}
-                                                        </Typography>
-                                                    )}
                                                 </FormControl>
                                             )}
-                                        />
-                                        <Button
-                                            variant="outlined"
-                                            onClick={loadAzureProjects}
-                                            disabled={loading || loadingProjects}
-                                            sx={{ mt: 0.5, minWidth: 'auto', px: 2 }}
-                                            title="Recarregar projetos do Azure DevOps"
-                                        >
-                                            {loadingProjects ? <CircularProgress size={20} /> : '↻'}
-                                        </Button>
+                                        />                             
                                     </Box>
                                     <Controller
                                         name="title"

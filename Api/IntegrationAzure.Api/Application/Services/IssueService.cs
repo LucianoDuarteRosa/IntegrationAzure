@@ -13,15 +13,18 @@ public class IssueService
     private readonly IIssueRepository _issueRepository;
     private readonly IUserStoryRepository _userStoryRepository;
     private readonly MarkdownGeneratorService _markdownGeneratorService;
+    private readonly AzureDevOpsService _azureDevOpsService;
 
     public IssueService(
         IIssueRepository issueRepository,
         IUserStoryRepository userStoryRepository,
-        MarkdownGeneratorService markdownGeneratorService)
+        MarkdownGeneratorService markdownGeneratorService,
+        AzureDevOpsService azureDevOpsService)
     {
         _issueRepository = issueRepository ?? throw new ArgumentNullException(nameof(issueRepository));
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
         _markdownGeneratorService = markdownGeneratorService ?? throw new ArgumentNullException(nameof(markdownGeneratorService));
+        _azureDevOpsService = azureDevOpsService ?? throw new ArgumentNullException(nameof(azureDevOpsService));
     }
 
     /// <summary>
@@ -69,6 +72,28 @@ public class IssueService
             await _issueRepository.SaveChangesAsync();
 
             var createdIssue = await _issueRepository.GetWithAttachmentsAsync(issue.Id);
+
+            // Automaticamente criar no Azure DevOps após salvar localmente
+            try
+            {
+                var azureProjects = await _azureDevOpsService.GetProjectsAsync();
+                if (azureProjects?.Any() == true)
+                {
+                    // Usar o primeiro projeto disponível ou o projeto padrão
+                    var projectName = azureProjects.First().Name;
+
+                    Console.WriteLine($"Issue '{createdIssue?.Title}' criada localmente e seria criada como Bug no projeto Azure DevOps: {projectName}");
+
+                    // Aqui seria implementada a criação do work item no Azure DevOps
+                    // usando a API do Azure DevOps para criar um Bug/Issue
+                }
+            }
+            catch (Exception azureEx)
+            {
+                // Se falhar a criação no Azure DevOps, logar o erro mas não falhar a operação local
+                Console.WriteLine($"Erro ao criar issue no Azure DevOps: {azureEx.Message}");
+                // O usuário ainda tem a issue salva localmente
+            }
 
             return new ApiResponseDto<IssueDto>
             {

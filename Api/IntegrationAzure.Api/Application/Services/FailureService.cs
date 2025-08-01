@@ -13,15 +13,18 @@ public class FailureService
     private readonly IFailureRepository _failureRepository;
     private readonly IUserStoryRepository _userStoryRepository;
     private readonly MarkdownGeneratorService _markdownGenerator;
+    private readonly AzureDevOpsService _azureDevOpsService;
 
     public FailureService(
         IFailureRepository failureRepository,
         IUserStoryRepository userStoryRepository,
-        MarkdownGeneratorService markdownGenerator)
+        MarkdownGeneratorService markdownGenerator,
+        AzureDevOpsService azureDevOpsService)
     {
         _failureRepository = failureRepository ?? throw new ArgumentNullException(nameof(failureRepository));
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
         _markdownGenerator = markdownGenerator ?? throw new ArgumentNullException(nameof(markdownGenerator));
+        _azureDevOpsService = azureDevOpsService ?? throw new ArgumentNullException(nameof(azureDevOpsService));
     }
 
     /// <summary>
@@ -52,6 +55,28 @@ public class FailureService
             await _failureRepository.SaveChangesAsync();
 
             var createdFailure = await _failureRepository.GetWithAttachmentsAsync(failure.Id);
+
+            // Automaticamente criar no Azure DevOps após salvar localmente
+            try
+            {
+                var azureProjects = await _azureDevOpsService.GetProjectsAsync();
+                if (azureProjects?.Any() == true)
+                {
+                    // Usar o primeiro projeto disponível ou o projeto padrão
+                    var projectName = azureProjects.First().Name;
+
+                    Console.WriteLine($"Falha '{createdFailure?.Title}' criada localmente e seria criada como Bug no projeto Azure DevOps: {projectName}");
+
+                    // Aqui seria implementada a criação do work item no Azure DevOps
+                    // usando a API do Azure DevOps para criar um Bug com alta prioridade
+                }
+            }
+            catch (Exception azureEx)
+            {
+                // Se falhar a criação no Azure DevOps, logar o erro mas não falhar a operação local
+                Console.WriteLine($"Erro ao criar falha no Azure DevOps: {azureEx.Message}");
+                // O usuário ainda tem a falha salva localmente
+            }
 
             return new ApiResponseDto<FailureDto>
             {

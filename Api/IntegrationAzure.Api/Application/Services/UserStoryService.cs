@@ -46,12 +46,34 @@ public class UserStoryService
                 Status = UserStoryStatus.New
             };
 
-            // Adicionar a história
+            // Salvar no banco de dados local
             await _userStoryRepository.AddAsync(userStory);
             await _userStoryRepository.SaveChangesAsync();
 
             // Buscar a história completa para retorno
             var completeUserStory = await _userStoryRepository.GetCompleteAsync(userStory.Id);
+
+            // Automaticamente criar no Azure DevOps após salvar localmente
+            try
+            {
+                var azureProjects = await _azureDevOpsService.GetProjectsAsync();
+                if (azureProjects?.Any() == true)
+                {
+                    // Usar o primeiro projeto disponível ou o projeto padrão
+                    var projectName = azureProjects.First().Name;
+
+                    Console.WriteLine($"História de usuário '{completeUserStory?.Title}' criada localmente e seria criada no projeto Azure DevOps: {projectName}");
+
+                    // Aqui seria implementada a criação do work item no Azure DevOps
+                    // usando a API do Azure DevOps para criar um User Story
+                }
+            }
+            catch (Exception azureEx)
+            {
+                // Se falhar a criação no Azure DevOps, logar o erro mas não falhar a operação local
+                Console.WriteLine($"Erro ao criar história de usuário no Azure DevOps: {azureEx.Message}");
+                // O usuário ainda tem a história salva localmente
+            }
 
             return new ApiResponseDto<UserStoryDto>
             {

@@ -211,7 +211,7 @@ const GivenWhenThenFields = ({ scenarios, onAdd, onRemove, onScenarioChange, dis
 
 export function FailureForm() {
     const navigate = useNavigate();
-    const { showSuccess, showError } = useNotifications();
+    const { showSuccess, showError, showInfo } = useNotifications();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attachments, setAttachments] = useState([]);
     const [givenWhenThen, setGivenWhenThen] = useState([
@@ -277,15 +277,24 @@ export function FailureForm() {
         setLoadingProjects(true);
         try {
             const projects = await azureDevOpsService.getProjects();
-            setAzureProjects(projects);
+            setAzureProjects(projects || []);
         } catch (error) {
             console.error('Erro ao carregar projetos do Azure:', error);
-            showError('Erro ao carregar projetos', 'Não foi possível carregar os projetos do Azure DevOps. Verifique as configurações.');
-            // Em caso de erro, usar projetos mock para não quebrar a funcionalidade
-            setAzureProjects([
-                { id: 'mock-1', name: 'Projeto Mock 1', description: 'Projeto de exemplo (configuração offline)' },
-                { id: 'mock-2', name: 'Projeto Mock 2', description: 'Projeto de exemplo (configuração offline)' },
-            ]);
+            // Verifica se é erro de configuração/conectividade ou apenas não há projetos
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                showError('Erro de autenticação', 'Verifique as credenciais do Azure DevOps nas configurações.');
+            } else if (error.response?.status === 404 || error.message?.includes('not found')) {
+                console.info('Nenhum projeto encontrado na organização do Azure DevOps.');
+                showInfo('Informação sobre projetos', 'Nenhum projeto foi encontrado na organização do Azure DevOps. Verifique as configurações de integração.');
+                setAzureProjects([]);
+            } else if (error.code === 'NETWORK_ERROR' || error.message?.includes('network')) {
+                showError('Erro de conexão', 'Não foi possível conectar ao Azure DevOps. Verifique sua conexão e as configurações.');
+            } else {
+                showError('Erro ao carregar projetos', 'Não foi possível carregar os projetos do Azure DevOps. Verifique as configurações.');
+            }
+
+            // Não usar projetos mock, deixar vazio
+            setAzureProjects([]);
         } finally {
             setLoadingProjects(false);
         }
@@ -303,12 +312,21 @@ export function FailureForm() {
     const loadWorkItems = async (projectId) => {
         try {
             const workItems = await azureDevOpsService.getWorkItems(projectId, 'User Story');
-            setAvailableStories(workItems);
+            setAvailableStories(workItems || []);
             setValue('userStoryId', ''); // Limpa a história selecionada
         } catch (error) {
             console.error('Erro ao carregar work items:', error);
-            showError('Erro ao carregar histórias', 'Não foi possível carregar as histórias do usuário do projeto selecionado.');
-            setAvailableStories([]);
+            // Verifica se é realmente um erro ou apenas não há dados
+            if (error.response?.status === 404 || error.message?.includes('not found') || error.message?.includes('No work items')) {
+                // Não é um erro real, apenas não há histórias - mostrar como informação
+                console.info('Projeto não possui histórias de usuário cadastradas.');
+                showInfo('Informação sobre histórias', 'Este projeto não possui histórias de usuário cadastradas. Selecione um projeto que contenha histórias para continuar.');
+                setAvailableStories([]);
+            } else {
+                // Erro real de conectividade ou configuração
+                showError('Erro ao carregar histórias', 'Não foi possível carregar as histórias do usuário. Verifique a conexão com o Azure DevOps.');
+                setAvailableStories([]);
+            }
         }
     };
 
@@ -538,7 +556,14 @@ export function FailureForm() {
                                                             </MenuItem>
                                                         ) : azureProjects.length === 0 ? (
                                                             <MenuItem disabled>
-                                                                Nenhum projeto disponível
+                                                                <Box sx={{ textAlign: 'center', py: 1 }}>
+                                                                    <Typography variant="body2" color="text.secondary">
+                                                                        Nenhum projeto disponível
+                                                                    </Typography>
+                                                                    <Typography variant="caption" color="text.secondary">
+                                                                        Verifique as configurações do Azure DevOps
+                                                                    </Typography>
+                                                                </Box>
                                                             </MenuItem>
                                                         ) : (
                                                             azureProjects.map((project) => (
@@ -583,7 +608,19 @@ export function FailureForm() {
                                                     >
                                                         {availableStories.length === 0 ? (
                                                             <MenuItem disabled>
-                                                                {watchedDemand ? 'Nenhuma história disponível' : 'Selecione um projeto primeiro'}
+                                                                <Box sx={{ textAlign: 'center', py: 1 }}>
+                                                                    <Typography variant="body2" color="text.secondary">
+                                                                        {!watchedDemand
+                                                                            ? 'Selecione um projeto primeiro'
+                                                                            : 'Não existem histórias associadas ao projeto'
+                                                                        }
+                                                                    </Typography>
+                                                                    {watchedDemand && (
+                                                                        <Typography variant="caption" color="text.secondary">
+                                                                            Selecione um projeto que contenha histórias para continuar
+                                                                        </Typography>
+                                                                    )}
+                                                                </Box>
                                                             </MenuItem>
                                                         ) : (
                                                             availableStories.map((story) => (
