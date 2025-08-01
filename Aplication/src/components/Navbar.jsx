@@ -78,9 +78,9 @@ export function Navbar() {
                         </Button>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography 
-                            variant="body1" 
-                            sx={{ 
+                        <Typography
+                            variant="body1"
+                            sx={{
                                 color: 'white',
                                 fontWeight: 500,
                                 display: { xs: 'none', sm: 'block' }

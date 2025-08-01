@@ -234,7 +234,7 @@ export function ProfileModal({ open, onClose }) {
                 <Box sx={{ pt: 1 }}>
                     <Grid container spacing={3}>
                         {/* Avatar/Imagem */}
-                        <Grid item xs={12} sx={{ textAlign: 'center', mb: 2 }}>
+                        <Box item xs={12} sx={{ width: '100%', textAlign: 'center', mb: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <Avatar
                                 sx={{
                                     width: 80,
@@ -279,45 +279,37 @@ export function ProfileModal({ open, onClose }) {
                                     </Button>
                                 </label>
                             </Box>
-                        </Grid>
+                        </Box>
 
                         {/* Dados Pessoais */}
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Nome Completo"
-                                value={formData.name}
-                                onChange={handleInputChange('name')}
-                                error={!!errors.name}
-                                helperText={errors.name}
-                                required
-                            />
-                        </Grid>
-
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Nickname"
-                                value={formData.nickname}
-                                onChange={handleInputChange('nickname')}
-                                error={!!errors.nickname}
-                                helperText={errors.nickname}
-                                required
-                            />
-                        </Grid>
-
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleInputChange('email')}
-                                error={!!errors.email}
-                                helperText={errors.email}
-                                required
-                            />
-                        </Grid>
+                        <TextField
+                            fullWidth
+                            label="Nome Completo"
+                            value={formData.name}
+                            onChange={handleInputChange('name')}
+                            error={!!errors.name}
+                            helperText={errors.name}
+                            required
+                        />
+                        <TextField
+                            fullWidth
+                            label="Nickname"
+                            value={formData.nickname}
+                            onChange={handleInputChange('nickname')}
+                            error={!!errors.nickname}
+                            helperText={errors.nickname}
+                            required
+                        />
+                        <TextField
+                            fullWidth
+                            label="Email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleInputChange('email')}
+                            error={!!errors.email}
+                            helperText={errors.email}
+                            required
+                        />
 
                         <Grid item xs={12}>
                             <Alert severity="info">

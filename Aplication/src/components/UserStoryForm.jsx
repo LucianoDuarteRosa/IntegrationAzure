@@ -22,6 +22,7 @@ import {
     Grid,
     Alert,
     CircularProgress,
+    Chip,
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
@@ -44,6 +45,13 @@ const demandas = [
     { id: 'DEM-001', title: 'Demanda 1' },
     { id: 'DEM-002', title: 'Demanda 2' },
     { id: 'DEM-003', title: 'Demanda 3' },
+];
+
+const priorities = [
+    { value: 'Low', label: 'Baixa', color: '#4caf50' },
+    { value: 'Medium', label: 'Média', color: '#ff9800' },
+    { value: 'High', label: 'Alta', color: '#f44336' },
+    { value: 'Critical', label: 'Crítica', color: '#d32f2f' },
 ];
 
 const Section = ({ title, children, notApplicable, onNotApplicableChange, isFirst }) => {
@@ -90,261 +98,6 @@ const Section = ({ title, children, notApplicable, onNotApplicableChange, isFirs
         </Box>
     );
 };
-
-const DynamicFields = ({ fields, onAdd, onRemove, onFieldChange, disabled }) => {
-    return (
-        <Stack spacing={3}>
-            {fields.map((field, index) => (
-                <Paper
-                    key={index}
-                    sx={{
-                        p: 3,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        backgroundColor: 'background.default'
-                    }}
-                >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="subtitle1" fontWeight="medium">
-                            Item {index + 1}
-                        </Typography>
-                        <IconButton
-                            onClick={() => onRemove(index)}
-                            disabled={fields.length === 1 || disabled}
-                            size="small"
-                        >
-                            <DeleteIcon />
-                        </IconButton>
-                    </Box>
-                    <TextField
-                        fullWidth
-                        multiline
-                        rows={3}
-                        value={field.content}
-                        onChange={(e) => onFieldChange(index, e.target.value)}
-                        disabled={disabled}
-                        placeholder="Digite o conteúdo aqui..."
-                    />
-                </Paper>
-            ))}
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                <Button
-                    startIcon={<AddIcon />}
-                    onClick={onAdd}
-                    variant="outlined"
-                    disabled={disabled}
-                    sx={{ width: '50%' }}
-                >
-                    Adicionar
-                </Button>
-            </Box>
-        </Stack>
-    );
-};
-
-const ImpactFields = ({ items, onAdd, onRemove, onFieldChange, disabled }) => {
-    return (
-        <Stack spacing={3}>
-            {items.map((item, index) => (
-                <Paper
-                    key={item.id}
-                    sx={{
-                        p: 3,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        backgroundColor: 'background.default'
-                    }}
-                >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="subtitle1" fontWeight="medium">
-                            Impacto {index + 1}
-                        </Typography>
-                        {items.length > 1 && (
-                            <IconButton
-                                onClick={() => onRemove(item.id)}
-                                disabled={disabled}
-                                size="small"
-                            >
-                                <DeleteIcon />
-                            </IconButton>
-                        )}
-                    </Box>
-                    <Stack spacing={2}>
-                        <TextField
-                            fullWidth
-                            label="Processo Atual"
-                            value={item.current}
-                            onChange={(e) => onFieldChange(item.id, 'current', e.target.value)}
-                            disabled={disabled}
-                            multiline
-                            rows={3}
-                            placeholder="Ex: Atualmente o processo é realizado de forma manual..."
-                        />
-                        <TextField
-                            fullWidth
-                            label="Melhoria Esperada"
-                            value={item.expected}
-                            onChange={(e) => onFieldChange(item.id, 'expected', e.target.value)}
-                            disabled={disabled}
-                            multiline
-                            rows={3}
-                            placeholder="Ex: Com a automação, esperamos que..."
-                        />
-                    </Stack>
-                </Paper>
-            ))}
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                <Button
-                    startIcon={<AddIcon />}
-                    onClick={onAdd}
-                    variant="outlined"
-                    disabled={disabled}
-                    sx={{ width: '50%' }}
-                >
-                    Adicionar Impacto
-                </Button>
-            </Box>
-        </Stack>
-    );
-};
-
-const ScenariosFields = ({ scenarios, onAdd, onRemove, onFieldChange, disabled }) => {
-    return (
-        <Stack spacing={3}>
-            {scenarios.map((scenario, index) => (
-                <Paper
-                    key={scenario.id}
-                    sx={{
-                        p: 3,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        backgroundColor: 'background.default'
-                    }}
-                >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="subtitle1" fontWeight="medium">
-                            Cenário {index + 1}
-                        </Typography>
-                        {scenarios.length > 1 && (
-                            <IconButton
-                                onClick={() => onRemove(scenario.id)}
-                                disabled={disabled}
-                                size="small"
-                            >
-                                <DeleteIcon />
-                            </IconButton>
-                        )}
-                    </Box>
-                    <Stack spacing={2}>
-                        <TextField
-                            fullWidth
-                            label="Dado que"
-                            value={scenario.given}
-                            onChange={(e) => onFieldChange(scenario.id, 'given', e.target.value)}
-                            disabled={disabled}
-                            multiline
-                            rows={2}
-                            placeholder="Ex: Dado que estou na tela de cadastro..."
-                        />
-                        <TextField
-                            fullWidth
-                            label="Quando"
-                            value={scenario.when}
-                            onChange={(e) => onFieldChange(scenario.id, 'when', e.target.value)}
-                            disabled={disabled}
-                            multiline
-                            rows={2}
-                            placeholder="Ex: Quando preencho todos os campos..."
-                        />
-                        <TextField
-                            fullWidth
-                            label="Então"
-                            value={scenario.then}
-                            onChange={(e) => onFieldChange(scenario.id, 'then', e.target.value)}
-                            disabled={disabled}
-                            multiline
-                            rows={2}
-                            placeholder="Ex: Então o sistema deve..."
-                        />
-                    </Stack>
-                </Paper>
-            ))}
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                <Button
-                    startIcon={<AddIcon />}
-                    onClick={onAdd}
-                    variant="outlined"
-                    disabled={disabled}
-                    sx={{ width: '50%' }}
-                >
-                    Adicionar Cenário
-                </Button>
-            </Box>
-        </Stack>
-    );
-};
-
-const FieldDefinition = ({ field, onChange, onRemove }) => (
-    <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={12} sm={3}>
-            <TextField
-                fullWidth
-                label="Nome do Campo"
-                value={field.name}
-                onChange={(e) => onChange(field.id, { ...field, name: e.target.value })}
-            />
-        </Grid>
-        <Grid item xs={12} sm={2}>
-            <FormControl fullWidth>
-                <InputLabel>Tipo</InputLabel>
-                <Select
-                    value={field.type}
-                    label="Tipo"
-                    onChange={(e) => {
-                        const newType = e.target.value;
-                        // Limpa o tamanho se for booleano ou data
-                        const newSize = ['boolean', 'date', 'datetime'].includes(newType) ? '' : field.size;
-                        onChange(field.id, { ...field, type: newType, size: newSize });
-                    }}
-                >
-                    <MenuItem value="text">Campo de Texto</MenuItem>
-                    <MenuItem value="number">Número (Inteiro/Decimal)</MenuItem>
-                    <MenuItem value="date">Data</MenuItem>
-                    <MenuItem value="datetime">Data e Hora</MenuItem>
-                    <MenuItem value="boolean">Sim/Não</MenuItem>
-                    <MenuItem value="select">Lista de Opções</MenuItem>
-                </Select>
-            </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={2}>
-            {!['boolean', 'date', 'datetime', 'select'].includes(field.type) && (
-                <TextField
-                    fullWidth
-                    label={field.type === 'number' ? 'Dígitos (total.decimais)' : 'Tamanho máximo'}
-                    placeholder={field.type === 'number' ? 'Ex: 10.2' : 'Ex: 100'}
-                    value={field.size}
-                    onChange={(e) => onChange(field.id, { ...field, size: e.target.value })}
-                />
-            )}
-        </Grid>
-        <Grid item xs={12} sm={3}>
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        checked={field.required}
-                        onChange={(e) => onChange(field.id, { ...field, required: e.target.checked })}
-                    />
-                }
-                label="Obrigatório"
-            />
-        </Grid>
-        <Grid item xs={12} sm={2}>
-            <IconButton onClick={() => onRemove(field.id)}>
-                <DeleteIcon />
-            </IconButton>
-        </Grid>
-    </Grid>
-);
 
 export function UserStoryForm() {
     const navigate = useNavigate();
@@ -621,6 +374,11 @@ export function UserStoryForm() {
         }
     };
 
+    const getPriorityColor = (priority) => {
+        const priorityObj = priorities.find(p => p.value === priority);
+        return priorityObj?.color || '#757575';
+    };
+
     return (
         <>
             <Navbar />
@@ -679,7 +437,7 @@ export function UserStoryForm() {
                                 </Typography>
                                 <Box sx={{
                                     display: 'grid',
-                                    gridTemplateColumns: '2fr 3fr 1fr',
+                                    gridTemplateColumns: '2fr 5fr 1fr',
                                     gap: 3,
                                     '@media (max-width: 900px)': {
                                         gridTemplateColumns: '1fr',
@@ -730,11 +488,33 @@ export function UserStoryForm() {
                                                 <Select
                                                     {...field}
                                                     label="Prioridade"
+                                                    renderValue={(value) => (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                            <Chip
+                                                                size="small"
+                                                                label={priorities.find(p => p.value === value)?.label}
+                                                                sx={{
+                                                                    backgroundColor: getPriorityColor(value),
+                                                                    color: 'white',
+                                                                    fontWeight: 'bold'
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                    )}
                                                 >
-                                                    <MenuItem value="Low">Baixa</MenuItem>
-                                                    <MenuItem value="Medium">Média</MenuItem>
-                                                    <MenuItem value="High">Alta</MenuItem>
-                                                    <MenuItem value="Critical">Crítica</MenuItem>
+                                                    {priorities.map((priority) => (
+                                                        <MenuItem key={priority.value} value={priority.value}>
+                                                            <Chip
+                                                                size="small"
+                                                                label={priority.label}
+                                                                sx={{
+                                                                    backgroundColor: priority.color,
+                                                                    color: 'white',
+                                                                    fontWeight: 'bold'
+                                                                }}
+                                                            />
+                                                        </MenuItem>
+                                                    ))}
                                                 </Select>
                                                 {errors.priority && (
                                                     <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
