@@ -142,89 +142,83 @@ export function ChangePasswordModal({ open, onClose, onSave, userName, isAdminCh
 
             <DialogContent>
                 <Box sx={{ pt: 2 }}>
-                    <Alert severity="info" sx={{ mb: 3 }}>
+                    <Grid container spacing={3}>
+                        {!isAdminChange && (
+                            <TextField
+                                fullWidth
+                                label="Senha Atual"
+                                type={showCurrentPassword ? 'text' : 'password'}
+                                value={formData.currentPassword}
+                                onChange={handleInputChange('currentPassword')}
+                                error={!!errors.currentPassword}
+                                helperText={errors.currentPassword}
+                                required
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                edge="end"
+                                            >
+                                                {showCurrentPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    )
+                                }}
+                            />
+                        )}
+
+
+                        <TextField
+                            fullWidth
+                            label="Nova Senha"
+                            type={showNewPassword ? 'text' : 'password'}
+                            value={formData.newPassword}
+                            onChange={handleInputChange('newPassword')}
+                            error={!!errors.newPassword}
+                            helperText={errors.newPassword}
+                            required
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            edge="end"
+                                        >
+                                            {showNewPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
+                        />
+
+                        <TextField
+                            fullWidth
+                            label="Confirmar Nova Senha"
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={formData.confirmPassword}
+                            onChange={handleInputChange('confirmPassword')}
+                            error={!!errors.confirmPassword}
+                            helperText={errors.confirmPassword}
+                            required
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            edge="end"
+                                        >
+                                            {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
+                        />
+                    </Grid>
+                    <Alert severity="info" sx={{ mt: 3 }}>
                         A senha deve conter pelo menos 6 caracteres, incluindo uma letra minúscula,
                         uma maiúscula e um número.
                     </Alert>
-
-                    <Grid container spacing={3}>
-                        {!isAdminChange && (
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Senha Atual"
-                                    type={showCurrentPassword ? 'text' : 'password'}
-                                    value={formData.currentPassword}
-                                    onChange={handleInputChange('currentPassword')}
-                                    error={!!errors.currentPassword}
-                                    helperText={errors.currentPassword}
-                                    required
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                                    edge="end"
-                                                >
-                                                    {showCurrentPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                                </IconButton>
-                                            </InputAdornment>
-                                        )
-                                    }}
-                                />
-                            </Grid>
-                        )}
-
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Nova Senha"
-                                type={showNewPassword ? 'text' : 'password'}
-                                value={formData.newPassword}
-                                onChange={handleInputChange('newPassword')}
-                                error={!!errors.newPassword}
-                                helperText={errors.newPassword}
-                                required
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                onClick={() => setShowNewPassword(!showNewPassword)}
-                                                edge="end"
-                                            >
-                                                {showNewPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    )
-                                }}
-                            />
-                        </Grid>
-
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                label="Confirmar Nova Senha"
-                                type={showConfirmPassword ? 'text' : 'password'}
-                                value={formData.confirmPassword}
-                                onChange={handleInputChange('confirmPassword')}
-                                error={!!errors.confirmPassword}
-                                helperText={errors.confirmPassword}
-                                required
-                                InputProps={{
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                edge="end"
-                                            >
-                                                {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    )
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
                 </Box>
             </DialogContent>
 
