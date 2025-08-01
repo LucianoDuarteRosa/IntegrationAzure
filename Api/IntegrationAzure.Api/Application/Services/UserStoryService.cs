@@ -12,13 +12,16 @@ public class UserStoryService
 {
     private readonly IUserStoryRepository _userStoryRepository;
     private readonly MarkdownGeneratorService _markdownGenerator;
+    private readonly AzureDevOpsService _azureDevOpsService;
 
     public UserStoryService(
         IUserStoryRepository userStoryRepository,
-        MarkdownGeneratorService markdownGenerator)
+        MarkdownGeneratorService markdownGenerator,
+        AzureDevOpsService azureDevOpsService)
     {
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
         _markdownGenerator = markdownGenerator ?? throw new ArgumentNullException(nameof(markdownGenerator));
+        _azureDevOpsService = azureDevOpsService ?? throw new ArgumentNullException(nameof(azureDevOpsService));
     }
 
     /// <summary>
