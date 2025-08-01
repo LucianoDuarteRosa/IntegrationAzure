@@ -42,6 +42,13 @@ namespace IntegrationAzure.Api.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Configuration>> GetByKeysAsync(string[] keys)
+        {
+            return await _context.Configurations
+                .Where(c => keys.Contains(c.Key) && c.IsActive)
+                .ToListAsync();
+        }
+
         public async Task<Configuration> CreateAsync(Configuration configuration)
         {
             configuration.CreatedAt = DateTime.UtcNow;

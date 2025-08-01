@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { userStoryService } from '../services/userStoryService';
+import { azureDevOpsService } from '../services/azureDevOpsService';
 import { useNotifications } from '../hooks/useNotifications';
 import {
     Box,
@@ -36,16 +37,10 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 const schema = yup.object().shape({
-    demandNumber: yup.string().required('Número da demanda é obrigatório'),
+    demandNumber: yup.string().required('Projeto é obrigatório'),
     title: yup.string().required('Título é obrigatório'),
     priority: yup.string().required('Prioridade é obrigatória'),
 });
-
-const demandas = [
-    { id: 'DEM-001', title: 'Demanda 1' },
-    { id: 'DEM-002', title: 'Demanda 2' },
-    { id: 'DEM-003', title: 'Demanda 3' },
-];
 
 const priorities = [
     { value: 'Low', label: 'Baixa', color: '#4caf50' },
@@ -161,12 +156,37 @@ export function UserStoryForm() {
         ],
     });
     const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
+    const [azureProjects, setAzureProjects] = useState([]);
+    const [loadingProjects, setLoadingProjects] = useState(false);
 
     const [loading, setLoading] = useState(false);
 
     const { control, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: yupResolver(schema)
     });
+
+    // Carregar projetos do Azure DevOps ao inicializar o componente
+    useEffect(() => {
+        loadAzureProjects();
+    }, []);
+
+    const loadAzureProjects = async () => {
+        setLoadingProjects(true);
+        try {
+            const projects = await azureDevOpsService.getProjects();
+            setAzureProjects(projects);
+        } catch (error) {
+            console.error('Erro ao carregar projetos do Azure:', error);
+            showError('Erro ao carregar projetos', 'Não foi possível carregar os projetos do Azure DevOps. Verifique as configurações.');
+            // Em caso de erro, usar projetos mock para não quebrar a funcionalidade
+            setAzureProjects([
+                { id: 'mock-1', name: 'Projeto Mock 1', description: 'Projeto de exemplo (configuração offline)' },
+                { id: 'mock-2', name: 'Projeto Mock 2', description: 'Projeto de exemplo (configuração offline)' },
+            ]);
+        } finally {
+            setLoadingProjects(false);
+        }
+    };
 
     // Função para resetar todo o formulário
     const resetFormToInitialState = () => {
@@ -444,26 +464,61 @@ export function UserStoryForm() {
                                         gap: 2
                                     }
                                 }}>
-                                    <Controller
-                                        name="demandNumber"
-                                        control={control}
-                                        defaultValue=""
-                                        render={({ field }) => (
-                                            <FormControl fullWidth error={!!errors.demandNumber}>
-                                                <InputLabel>Demanda</InputLabel>
-                                                <Select
-                                                    {...field}
-                                                    label="Demanda"
-                                                >
-                                                    {demandas.map((demanda) => (
-                                                        <MenuItem key={demanda.id} value={demanda.id}>
-                                                            {demanda.id} - {demanda.title}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
-                                        )}
-                                    />
+                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                                        <Controller
+                                            name="demandNumber"
+                                            control={control}
+                                            defaultValue=""
+                                            render={({ field }) => (
+                                                <FormControl fullWidth error={!!errors.demandNumber}>
+                                                    <InputLabel>Projeto do Azure DevOps</InputLabel>
+                                                    <Select
+                                                        {...field}
+                                                        label="Projeto do Azure DevOps"
+                                                        disabled={loading || loadingProjects}
+                                                    >
+                                                        {loadingProjects ? (
+                                                            <MenuItem disabled>
+                                                                <CircularProgress size={20} sx={{ mr: 1 }} />
+                                                                Carregando projetos...
+                                                            </MenuItem>
+                                                        ) : azureProjects.length === 0 ? (
+                                                            <MenuItem disabled>
+                                                                Nenhum projeto disponível
+                                                            </MenuItem>
+                                                        ) : (
+                                                            azureProjects.map((project) => (
+                                                                <MenuItem key={project.id} value={project.id}>
+                                                                    <Box>
+                                                                        <Typography>{project.name}</Typography>
+                                                                        {project.description && (
+                                                                            <Typography variant="caption" color="text.secondary">
+                                                                                {project.description}
+                                                                            </Typography>
+                                                                        )}
+                                                                    </Box>
+                                                                </MenuItem>
+                                                            ))
+                                                        )}
+                                                    </Select>
+                                                    {errors.demandNumber && (
+                                                        <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
+                                                            {errors.demandNumber?.message}
+                                                        </Typography>
+                                                    )}
+                                                </FormControl>
+                                            )}
+                                        />
+                                        <Button
+                                            variant="outlined"
+                                            onClick={loadAzureProjects}
+                                            disabled={loading || loadingProjects}
+                                            sx={{ mt: 0.5, minWidth: 'auto', px: 2 }}
+                                            title="Recarregar projetos do Azure DevOps"
+                                        >
+                                            {loadingProjects ? <CircularProgress size={20} /> : '↻'}
+                                        </Button>
+                                    </Box>
                                     <Controller
                                         name="title"
                                         control={control}

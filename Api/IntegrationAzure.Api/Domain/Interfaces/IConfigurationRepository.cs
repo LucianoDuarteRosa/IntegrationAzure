@@ -8,6 +8,7 @@ namespace IntegrationAzure.Api.Domain.Interfaces
         Task<Configuration?> GetByIdAsync(int id);
         Task<Configuration?> GetByKeyAsync(string key);
         Task<IEnumerable<Configuration>> GetByCategoryAsync(string category);
+        Task<IEnumerable<Configuration>> GetByKeysAsync(string[] keys);
         Task<Configuration> CreateAsync(Configuration configuration);
         Task<Configuration> UpdateAsync(Configuration configuration);
         Task DeleteAsync(int id);

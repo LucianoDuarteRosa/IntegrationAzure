@@ -37,6 +37,10 @@ builder.Services.AddScoped<ConfigurationService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MarkdownGeneratorService>();
+builder.Services.AddScoped<AzureDevOpsService>();
+
+// Registro do HttpClient para Azure DevOps
+builder.Services.AddHttpClient();
 
 // Registro dos validadores
 builder.Services.AddScoped<IValidator<CreateUserStoryDto>, CreateUserStoryDtoValidator>();

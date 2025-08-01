@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { useNotifications } from '../hooks/useNotifications';
 import { failureService } from '../services/failureService';
+import { azureDevOpsService } from '../services/azureDevOpsService';
 import {
     Box,
     Container,
@@ -33,7 +34,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 const schema = yup.object().shape({
-    demandNumber: yup.string().required('Demanda é obrigatória'),
+    demandNumber: yup.string().required('Projeto é obrigatório'),
     userStoryId: yup.string().required('História do usuário é obrigatória'),
     title: yup.string().required('Título é obrigatório'),
     severity: yup.string().required('Severidade é obrigatória'),
@@ -55,31 +56,6 @@ const schema = yup.object().shape({
         );
     }),
 });
-
-// Dados simulados para demandas e histórias
-const demandas = [
-    { id: 'DEM-001', title: 'Demanda 1' },
-    { id: 'DEM-002', title: 'Demanda 2' },
-    { id: 'DEM-003', title: 'Demanda 3' },
-];
-
-const historiasPorDemanda = {
-    'DEM-001': [
-        { id: '550e8400-e29b-41d4-a716-446655440001', title: 'Como usuário, quero fazer login no sistema' },
-        { id: '550e8400-e29b-41d4-a716-446655440002', title: 'Como usuário, quero recuperar minha senha' },
-        { id: '550e8400-e29b-41d4-a716-446655440003', title: 'Como admin, quero gerenciar permissões' },
-    ],
-    'DEM-002': [
-        { id: '550e8400-e29b-41d4-a716-446655440004', title: 'Como usuário, quero criar um relatório' },
-        { id: '550e8400-e29b-41d4-a716-446655440005', title: 'Como usuário, quero exportar dados' },
-        { id: '550e8400-e29b-41d4-a716-446655440006', title: 'Como gestor, quero visualizar dashboard' },
-    ],
-    'DEM-003': [
-        { id: '550e8400-e29b-41d4-a716-446655440007', title: 'Como usuário, quero integrar com API externa' },
-        { id: '550e8400-e29b-41d4-a716-446655440008', title: 'Como admin, quero configurar webhooks' },
-        { id: '550e8400-e29b-41d4-a716-446655440009', title: 'Como dev, quero monitorar performance' },
-    ],
-};
 
 const severidades = [
     { value: 'Low', label: 'Baixa', color: '#4caf50' },
@@ -243,6 +219,8 @@ export function FailureForm() {
     ]);
     const [selectedDemand, setSelectedDemand] = useState('');
     const [availableStories, setAvailableStories] = useState([]);
+    const [azureProjects, setAzureProjects] = useState([]);
+    const [loadingProjects, setLoadingProjects] = useState(false);
     // Usar apenas os tipos hardcoded específicos para falhas (não buscar da API)
 
     const {
@@ -290,17 +268,49 @@ export function FailureForm() {
 
     const watchedDemand = watch('demandNumber');
 
-    // Atualiza histórias disponíveis quando a demanda muda (usando dados fictícios)
+    // Carregar projetos do Azure DevOps ao inicializar o componente
+    useEffect(() => {
+        loadAzureProjects();
+    }, []);
+
+    const loadAzureProjects = async () => {
+        setLoadingProjects(true);
+        try {
+            const projects = await azureDevOpsService.getProjects();
+            setAzureProjects(projects);
+        } catch (error) {
+            console.error('Erro ao carregar projetos do Azure:', error);
+            showError('Erro ao carregar projetos', 'Não foi possível carregar os projetos do Azure DevOps. Verifique as configurações.');
+            // Em caso de erro, usar projetos mock para não quebrar a funcionalidade
+            setAzureProjects([
+                { id: 'mock-1', name: 'Projeto Mock 1', description: 'Projeto de exemplo (configuração offline)' },
+                { id: 'mock-2', name: 'Projeto Mock 2', description: 'Projeto de exemplo (configuração offline)' },
+            ]);
+        } finally {
+            setLoadingProjects(false);
+        }
+    };
+
+    // Carregar User Stories do projeto selecionado
     useEffect(() => {
         if (watchedDemand) {
-            setSelectedDemand(watchedDemand);
-            const stories = historiasPorDemanda[watchedDemand] || [];
-            setAvailableStories(stories);
-            setValue('userStoryId', ''); // Limpa a história selecionada
+            loadWorkItems(watchedDemand);
         } else {
             setAvailableStories([]);
         }
     }, [watchedDemand, setValue]);
+
+    const loadWorkItems = async (projectId) => {
+        try {
+            const workItems = await azureDevOpsService.getWorkItems(projectId, 'User Story');
+            setAvailableStories(workItems);
+            setValue('userStoryId', ''); // Limpa a história selecionada
+        } catch (error) {
+            console.error('Erro ao carregar work items:', error);
+            showError('Erro ao carregar histórias', 'Não foi possível carregar as histórias do usuário do projeto selecionado.');
+            setAvailableStories([]);
+        }
+    };
 
     const handleAddScenario = () => {
         const newScenarios = [...givenWhenThen, { given: '', when: '', then: '' }];
@@ -514,18 +524,36 @@ export function FailureForm() {
                                             control={control}
                                             render={({ field }) => (
                                                 <FormControl fullWidth error={!!errors.demandNumber} required>
-                                                    <InputLabel>Demanda</InputLabel>
+                                                    <InputLabel>Projeto do Azure DevOps</InputLabel>
                                                     <Select
                                                         {...field}
-                                                        label="Demanda"
-                                                        disabled={isSubmitting}
+                                                        label="Projeto do Azure DevOps"
+                                                        disabled={isSubmitting || loadingProjects}
                                                         required
                                                     >
-                                                        {demandas.map((demanda) => (
-                                                            <MenuItem key={demanda.id} value={demanda.id}>
-                                                                {demanda.id} - {demanda.title}
+                                                        {loadingProjects ? (
+                                                            <MenuItem disabled>
+                                                                <CircularProgress size={20} sx={{ mr: 1 }} />
+                                                                Carregando projetos...
                                                             </MenuItem>
-                                                        ))}
+                                                        ) : azureProjects.length === 0 ? (
+                                                            <MenuItem disabled>
+                                                                Nenhum projeto disponível
+                                                            </MenuItem>
+                                                        ) : (
+                                                            azureProjects.map((project) => (
+                                                                <MenuItem key={project.id} value={project.id}>
+                                                                    <Box>
+                                                                        <Typography>{project.name}</Typography>
+                                                                        {project.description && (
+                                                                            <Typography variant="caption" color="text.secondary">
+                                                                                {project.description}
+                                                                            </Typography>
+                                                                        )}
+                                                                    </Box>
+                                                                </MenuItem>
+                                                            ))
+                                                        )}
                                                     </Select>
                                                     {errors.demandNumber && (
                                                         <Typography variant="caption" color="error" sx={{ mt: 1 }}>
@@ -555,12 +583,17 @@ export function FailureForm() {
                                                     >
                                                         {availableStories.length === 0 ? (
                                                             <MenuItem disabled>
-                                                                {selectedDemand ? 'Nenhuma história disponível' : 'Selecione uma demanda primeiro'}
+                                                                {watchedDemand ? 'Nenhuma história disponível' : 'Selecione um projeto primeiro'}
                                                             </MenuItem>
                                                         ) : (
                                                             availableStories.map((story) => (
                                                                 <MenuItem key={story.id} value={story.id}>
-                                                                    {story.id} - {story.title}
+                                                                    <Box>
+                                                                        <Typography>#{story.id} - {story.title}</Typography>
+                                                                        <Typography variant="caption" color="text.secondary">
+                                                                            Status: {story.state} | Atribuído: {story.assignedTo}
+                                                                        </Typography>
+                                                                    </Box>
                                                                 </MenuItem>
                                                             ))
                                                         )}

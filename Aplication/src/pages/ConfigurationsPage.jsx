@@ -68,12 +68,58 @@ export function ConfigurationsPage() {
 
     const handleSaveConfiguration = async (formData) => {
         try {
+            // Se for setup do Azure, processar múltiplas configurações
+            if (formData.azureConfigs) {
+                let allSuccess = true;
+                const failedConfigs = [];
+
+                for (const config of formData.azureConfigs) {
+                    if (!config.value) {
+                        showError('Dados obrigatórios', `${config.key} é obrigatório`);
+                        return;
+                    }
+
+                    try {
+                        const response = await configurationService.create({
+                            key: config.key,
+                            value: config.value,
+                            description: config.description,
+                            category: config.category,
+                            isSecret: config.isSecret,
+                            isActive: config.isActive
+                        });
+
+                        if (!response.success) {
+                            allSuccess = false;
+                            failedConfigs.push(config.key);
+                        }
+                    } catch (error) {
+                        allSuccess = false;
+                        failedConfigs.push(config.key);
+                        console.error(`Erro ao criar configuração ${config.key}:`, error);
+                    }
+                }
+
+                if (allSuccess) {
+                    showSuccess('Azure DevOps configurado!', 'Todas as configurações do Azure DevOps foram criadas com sucesso!');
+                } else if (failedConfigs.length > 0) {
+                    showError('Erro parcial', `Erro ao criar: ${failedConfigs.join(', ')}`);
+                } else {
+                    showError('Erro', 'Erro ao configurar Azure DevOps');
+                }
+
+                handleCloseModal();
+                loadConfigurations();
+                return;
+            }
+
+            // Configuração individual
             if (!formData.key || !formData.value) {
                 showError('Dados obrigatórios', 'Chave e valor são obrigatórios');
                 return;
             }
 
-            if (editingConfig) {
+            if (editingConfig && !editingConfig.azureSetup) {
                 const response = await configurationService.update(editingConfig.Id || editingConfig.id, {
                     Value: formData.value,
                     Description: formData.description,
@@ -96,6 +142,39 @@ export function ConfigurationsPage() {
         } catch (error) {
             showError('Erro ao salvar', error.response?.data?.message || 'Erro ao salvar configuração');
         }
+    };
+
+    const handleQuickAzureSetup = () => {
+        setEditingConfig({
+            azureSetup: true,
+            configs: [
+                {
+                    key: 'Azure_Token',
+                    value: '',
+                    description: 'Token de acesso pessoal do Azure DevOps',
+                    category: 'Azure',
+                    isSecret: true,
+                    isActive: true
+                },
+                {
+                    key: 'Organizacao',
+                    value: '',
+                    description: 'Nome da organização no Azure DevOps',
+                    category: 'Azure',
+                    isSecret: false,
+                    isActive: true
+                },
+                {
+                    key: 'Versao_API',
+                    value: '7.0',
+                    description: 'Versão da API do Azure DevOps',
+                    category: 'Azure',
+                    isSecret: false,
+                    isActive: true
+                }
+            ]
+        });
+        setOpenModal(true);
     };
 
     const handleDelete = async (config) => {
@@ -168,6 +247,14 @@ export function ConfigurationsPage() {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                             <Typography variant="h6">Ações Rápidas</Typography>
                             <Box sx={{ display: 'flex', gap: 2 }}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<CloudIcon />}
+                                    onClick={() => handleQuickAzureSetup()}
+                                    color="primary"
+                                >
+                                    Configurar Azure DevOps
+                                </Button>
                                 <Button
                                     variant="contained"
                                     startIcon={<AddIcon />}
