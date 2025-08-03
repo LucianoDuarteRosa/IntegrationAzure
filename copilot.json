@@ -20,7 +20,8 @@
             "Use sx prop do Material-UI para estilos customizados.",
             "Aplique Context API para gerenciamento de estado global.",
             "Siga arquitetura DDD quando aplicável, separando domínios claramente.",
-            "Implemente loading states e tratamento de erros em todas as operações assíncronas."
+            "Implemente loading states e tratamento de erros em todas as operações assíncronas.",
+            "Não criar arquivos de teste e Md sem ser solicitado"
         ]
     }
 }

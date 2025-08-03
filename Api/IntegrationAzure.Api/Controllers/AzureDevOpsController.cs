@@ -92,7 +92,8 @@ public class AzureDevOpsController : BaseController
                 createDto.WorkItemType ?? "User Story",
                 createDto.Title,
                 createDto.Description ?? string.Empty,
-                createDto.AdditionalFields
+                createDto.AdditionalFields,
+                createDto.DiscussionComment
             );
 
             return SuccessResponse(workItem, $"Work item criado com sucesso no projeto {projectId}");

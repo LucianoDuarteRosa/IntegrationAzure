@@ -76,8 +76,9 @@ public class UserStoryService
                         targetProject.Id,
                         "User Story",
                         completeUserStory?.Title ?? dto.Title,
-                        completeUserStory?.Description ?? markdownDescription,
-                        additionalFields
+                        "História criada pela Integração Azure", // Descrição simples
+                        additionalFields,
+                        completeUserStory?.Description ?? markdownDescription // Markdown vai para o comentário
                     );
 
                     Console.WriteLine($"História de usuário '{completeUserStory?.Title}' criada com sucesso no Azure DevOps - ID: {azureWorkItem.Id}");

@@ -140,7 +140,7 @@ public class AzureDevOpsService
     /// <summary>
     /// Cria um novo work item no Azure DevOps
     /// </summary>
-    public async Task<AzureWorkItemDto> CreateWorkItemAsync(string projectId, string workItemType, string title, string description, Dictionary<string, object>? additionalFields = null)
+    public async Task<AzureWorkItemDto> CreateWorkItemAsync(string projectId, string workItemType, string title, string description, Dictionary<string, object>? additionalFields = null, string? discussionComment = null)
     {
         try
         {
@@ -206,6 +206,20 @@ public class AzureDevOpsService
                 PropertyNameCaseInsensitive = true
             });
 
+            // Se há um comentário de discussão, adicionar como comentário no work item
+            if (!string.IsNullOrEmpty(discussionComment) && createdWorkItem?.Id > 0)
+            {
+                try
+                {
+                    await AddWorkItemCommentAsync(azureConfig, projectId, createdWorkItem.Id, discussionComment);
+                }
+                catch (Exception commentEx)
+                {
+                    // Log do erro, mas não falhar a criação do work item
+                    Console.WriteLine($"Erro ao adicionar comentário ao work item {createdWorkItem.Id}: {commentEx.Message}");
+                }
+            }
+
             return new AzureWorkItemDto
             {
                 Id = createdWorkItem?.Id.ToString() ?? "0",
@@ -218,6 +232,36 @@ public class AzureDevOpsService
         catch (Exception ex)
         {
             throw new Exception($"Erro ao criar work item no Azure DevOps: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Adiciona um comentário a um work item existente
+    /// </summary>
+    private async Task AddWorkItemCommentAsync(AzureConfigurationDto azureConfig, string projectId, int workItemId, string comment)
+    {
+        var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectId}/_apis/wit/workItems/{workItemId}/comments?api-version={azureConfig.ApiVersion}";
+
+        var commentPayload = new
+        {
+            text = comment
+        };
+
+        var jsonContent = JsonSerializer.Serialize(commentPayload);
+        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = content
+        };
+        request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+
+        var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Erro ao adicionar comentário ao work item: {response.StatusCode} - {errorContent}");
         }
     }
 
@@ -278,6 +322,7 @@ public class CreateAzureWorkItemDto
     public string? Description { get; set; }
     public string? WorkItemType { get; set; } = "User Story";
     public Dictionary<string, object>? AdditionalFields { get; set; }
+    public string? DiscussionComment { get; set; }
 }
 
 // Classes para deserialização das respostas do Azure DevOps
