@@ -59,13 +59,32 @@ public class UserStoryService
                 var azureProjects = await _azureDevOpsService.GetProjectsAsync();
                 if (azureProjects?.Any() == true)
                 {
-                    // Usar o primeiro projeto disponível ou o projeto padrão
-                    var projectName = azureProjects.First().Name;
+                    // Usar o projeto especificado no DemandNumber ou o primeiro disponível
+                    var targetProject = azureProjects.FirstOrDefault(p => p.Id == dto.DemandNumber || p.Name == dto.DemandNumber)
+                                       ?? azureProjects.First();
 
-                    Console.WriteLine($"História de usuário '{completeUserStory?.Title}' criada localmente e seria criada no projeto Azure DevOps: {projectName}");
+                    // Preparar campos adicionais baseados na prioridade
+                    var additionalFields = new Dictionary<string, object>
+                    {
+                        ["Microsoft.VSTS.Common.Priority"] = GetAzurePriority(dto.Priority),
+                        ["System.AreaPath"] = targetProject.Name,
+                        ["System.IterationPath"] = targetProject.Name
+                    };
 
-                    // Aqui seria implementada a criação do work item no Azure DevOps
-                    // usando a API do Azure DevOps para criar um User Story
+                    // Criar o work item no Azure DevOps
+                    var azureWorkItem = await _azureDevOpsService.CreateWorkItemAsync(
+                        targetProject.Id,
+                        "User Story",
+                        completeUserStory?.Title ?? dto.Title,
+                        completeUserStory?.Description ?? markdownDescription,
+                        additionalFields
+                    );
+
+                    Console.WriteLine($"História de usuário '{completeUserStory?.Title}' criada com sucesso no Azure DevOps - ID: {azureWorkItem.Id}");
+                }
+                else
+                {
+                    Console.WriteLine("Nenhum projeto disponível no Azure DevOps para criar a User Story");
                 }
             }
             catch (Exception azureEx)
@@ -195,6 +214,21 @@ public class UserStoryService
                 CreatedAt = a.CreatedAt,
                 CreatedBy = a.CreatedBy
             }).ToList()
+        };
+    }
+
+    /// <summary>
+    /// Mapeia prioridade interna para prioridade do Azure DevOps
+    /// </summary>
+    private static int GetAzurePriority(Priority priority)
+    {
+        return priority switch
+        {
+            Priority.Critical => 1,
+            Priority.High => 2,
+            Priority.Medium => 3,
+            Priority.Low => 4,
+            _ => 3
         };
     }
 }

@@ -178,11 +178,7 @@ export function UserStoryForm() {
         } catch (error) {
             console.error('Erro ao carregar projetos do Azure:', error);
             showError('Erro ao carregar projetos', 'Não foi possível carregar os projetos do Azure DevOps. Verifique as configurações.');
-            // Em caso de erro, usar projetos mock para não quebrar a funcionalidade
-            setAzureProjects([
-                { id: 'mock-1', name: 'Projeto Mock 1', description: 'Projeto de exemplo (configuração offline)' },
-                { id: 'mock-2', name: 'Projeto Mock 2', description: 'Projeto de exemplo (configuração offline)' },
-            ]);
+            // Em caso de erro, usar projetos mock para não quebrar a funcionalidade;
         } finally {
             setLoadingProjects(false);
         }
@@ -503,7 +499,7 @@ export function UserStoryForm() {
                                                     </Select>
                                                 </FormControl>
                                             )}
-                                        />                             
+                                        />
                                     </Box>
                                     <Controller
                                         name="title"

@@ -131,7 +131,7 @@ namespace IntegrationAzure.Api.Controllers
                         "UserStory",
                         result.Data.Id.ToString(),
                         currentUser,
-                        $"Created: {result.Data.Title} (#{result.Data.DemandNumber})",
+                        $"Created: {result.Data.Title} (#{result.Data.DemandNumber}) - Local database and Azure DevOps integration",
                         Domain.Entities.LogLevel.Success
                     );
 

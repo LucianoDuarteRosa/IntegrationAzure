@@ -137,6 +137,90 @@ public class AzureDevOpsService
         }
     }
 
+    /// <summary>
+    /// Cria um novo work item no Azure DevOps
+    /// </summary>
+    public async Task<AzureWorkItemDto> CreateWorkItemAsync(string projectId, string workItemType, string title, string description, Dictionary<string, object>? additionalFields = null)
+    {
+        try
+        {
+            var azureConfig = await GetAzureConfigurationAsync();
+            if (azureConfig == null)
+            {
+                throw new InvalidOperationException("Configurações do Azure DevOps não encontradas");
+            }
+
+            var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectId}/_apis/wit/workitems/${workItemType}?api-version={azureConfig.ApiVersion}";
+
+            // Preparar o payload do work item (formato PATCH JSON)
+            var operations = new List<object>
+            {
+                new
+                {
+                    op = "add",
+                    path = "/fields/System.Title",
+                    value = title
+                },
+                new
+                {
+                    op = "add",
+                    path = "/fields/System.Description",
+                    value = description
+                }
+            };
+
+            // Adicionar campos adicionais se fornecidos
+            if (additionalFields != null)
+            {
+                foreach (var field in additionalFields)
+                {
+                    operations.Add(new
+                    {
+                        op = "add",
+                        path = $"/fields/{field.Key}",
+                        value = field.Value
+                    });
+                }
+            }
+
+            var jsonContent = JsonSerializer.Serialize(operations);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json-patch+json");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = content
+            };
+            request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Erro ao criar work item: {response.StatusCode} - {errorContent}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var createdWorkItem = JsonSerializer.Deserialize<AzureWorkItem>(responseContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return new AzureWorkItemDto
+            {
+                Id = createdWorkItem?.Id.ToString() ?? "0",
+                Title = createdWorkItem?.Fields?.SystemTitle ?? title,
+                State = createdWorkItem?.Fields?.SystemState ?? "New",
+                AssignedTo = createdWorkItem?.Fields?.SystemAssignedTo?.DisplayName ?? "Não atribuído",
+                WorkItemType = createdWorkItem?.Fields?.SystemWorkItemType ?? workItemType
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Erro ao criar work item no Azure DevOps: {ex.Message}", ex);
+        }
+    }
+
     private async Task<AzureConfigurationDto?> GetAzureConfigurationAsync()
     {
         var configurations = await _configurationRepository.GetByKeysAsync(new[] { "Azure_Token", "Organizacao", "Versao_API" });
@@ -183,6 +267,17 @@ public class AzureWorkItemDto
     public string State { get; set; } = string.Empty;
     public string AssignedTo { get; set; } = string.Empty;
     public string WorkItemType { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// DTO para criação de work items no Azure DevOps
+/// </summary>
+public class CreateAzureWorkItemDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? WorkItemType { get; set; } = "User Story";
+    public Dictionary<string, object>? AdditionalFields { get; set; }
 }
 
 // Classes para deserialização das respostas do Azure DevOps
