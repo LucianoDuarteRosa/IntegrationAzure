@@ -12,15 +12,18 @@ public class UserStoryService
 {
     private readonly IUserStoryRepository _userStoryRepository;
     private readonly MarkdownGeneratorService _markdownGenerator;
+    private readonly HtmlGeneratorService _htmlGenerator;
     private readonly AzureDevOpsService _azureDevOpsService;
 
     public UserStoryService(
         IUserStoryRepository userStoryRepository,
         MarkdownGeneratorService markdownGenerator,
+        HtmlGeneratorService htmlGenerator,
         AzureDevOpsService azureDevOpsService)
     {
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
         _markdownGenerator = markdownGenerator ?? throw new ArgumentNullException(nameof(markdownGenerator));
+        _htmlGenerator = htmlGenerator ?? throw new ArgumentNullException(nameof(htmlGenerator));
         _azureDevOpsService = azureDevOpsService ?? throw new ArgumentNullException(nameof(azureDevOpsService));
     }
 
@@ -32,7 +35,11 @@ public class UserStoryService
         try
         {
             // Gerar a descrição em Markdown a partir dos dados estruturados
-            var markdownDescription = _markdownGenerator.GenerateUserStoryDescription(dto);
+            // var markdownDescription = _markdownGenerator.GenerateUserStoryDescription(dto);
+
+            // Gerar a descrição em HTML a partir dos dados estruturados (para Azure DevOps Discussion)
+            // SEM os critérios de aceite (eles vão para campo específico)
+            var htmlDescription = _htmlGenerator.GenerateUserStoryDescription(dto, includeAcceptanceCriteria: false);
 
             // Criar a entidade UserStory
             var userStory = new UserStory
@@ -40,7 +47,7 @@ public class UserStoryService
                 DemandNumber = dto.DemandNumber,
                 Title = dto.Title,
                 AcceptanceCriteria = dto.AcceptanceCriteria,
-                Description = markdownDescription, // Descrição gerada em Markdown
+                Description = htmlDescription, // Descrição gerada em HTML
                 Priority = dto.Priority,
                 CreatedBy = currentUser,
                 Status = UserStoryStatus.New
@@ -68,7 +75,8 @@ public class UserStoryService
                     {
                         ["Microsoft.VSTS.Common.Priority"] = GetAzurePriority(dto.Priority),
                         ["System.AreaPath"] = targetProject.Name,
-                        ["System.IterationPath"] = targetProject.Name
+                        ["System.IterationPath"] = targetProject.Name,
+                        ["Microsoft.VSTS.Common.AcceptanceCriteria"] = dto.AcceptanceCriteria ?? string.Empty
                     };
 
                     // Criar o work item no Azure DevOps
@@ -78,7 +86,7 @@ public class UserStoryService
                         completeUserStory?.Title ?? dto.Title,
                         "História criada pela Integração Azure", // Descrição simples
                         additionalFields,
-                        completeUserStory?.Description ?? markdownDescription // Markdown vai para o comentário
+                        htmlDescription // HTML vai diretamente para o comentário (não do banco)
                     );
 
                     Console.WriteLine($"História de usuário '{completeUserStory?.Title}' criada com sucesso no Azure DevOps - ID: {azureWorkItem.Id}");

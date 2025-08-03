@@ -37,6 +37,7 @@ builder.Services.AddScoped<ConfigurationService>();
 builder.Services.AddScoped<ProfileService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MarkdownGeneratorService>();
+builder.Services.AddScoped<HtmlGeneratorService>();
 builder.Services.AddScoped<AzureDevOpsService>();
 
 // Registro do HttpClient para Azure DevOps
