@@ -72,7 +72,7 @@ public class FormFieldDtoValidator : AbstractValidator<FormFieldDto>
             .NotEmpty()
             .WithMessage("Tipo do campo é obrigatório")
             .Must(BeValidFieldType)
-            .WithMessage("Tipo do campo deve ser válido (text, number, date, datetime, boolean, select)");
+            .WithMessage("Tipo do campo deve ser válido (text, number, date, datetime, boolean, select, button)");
 
         // Validação condicional do tamanho
         When(x => x.Type == "text" || x.Type == "number", () =>
@@ -85,7 +85,7 @@ public class FormFieldDtoValidator : AbstractValidator<FormFieldDto>
 
     private bool BeValidFieldType(string type)
     {
-        var validTypes = new[] { "text", "number", "date", "datetime", "boolean", "select" };
+        var validTypes = new[] { "text", "number", "date", "datetime", "boolean", "select", "button" };
         return validTypes.Contains(type);
     }
 }

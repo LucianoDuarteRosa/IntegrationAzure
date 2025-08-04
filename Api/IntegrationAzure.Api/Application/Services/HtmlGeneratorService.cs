@@ -83,15 +83,16 @@ public class HtmlGeneratorService
         {
             html.AppendLine($"<p><strong>Para:</strong> {userStory.Para}</p>");
         }
-
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateAcceptanceCriteriaSection(StringBuilder html, string? acceptanceCriteria)
     {
         if (string.IsNullOrWhiteSpace(acceptanceCriteria)) return;
 
-        html.AppendLine("<h2>✅ Critérios de Aceite</h2>");
+        html.AppendLine("<h1>✅ Critérios de Aceite</h1>");
 
         // Dividir os critérios por linha e formatar como lista
         var criteria = acceptanceCriteria.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
@@ -119,20 +120,21 @@ public class HtmlGeneratorService
             // Se for apenas um critério, mostrar como parágrafo
             html.AppendLine($"<p>{acceptanceCriteria}</p>");
         }
-
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateImpactSection(StringBuilder html, ImpactSectionDto? impact)
     {
         if (impact?.Items == null || !impact.Items.Any()) return;
 
-        html.AppendLine("<h2>Impacto</h2>");
+        html.AppendLine("<h1>Impacto</h1>");
 
         for (int i = 0; i < impact.Items.Count; i++)
         {
             var item = impact.Items[i];
-            html.AppendLine($"<h3>Impacto {i + 1}</h3>");
+            html.AppendLine($"<h2>Impacto {i + 1}</h2>");
 
             if (!string.IsNullOrWhiteSpace(item.Current))
             {
@@ -146,15 +148,16 @@ public class HtmlGeneratorService
                 html.AppendLine($"<p>{item.Expected}</p>");
             }
         }
-
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateObjectiveSection(StringBuilder html, ObjectiveSectionDto? objective)
     {
         if (objective?.Fields == null || !objective.Fields.Any()) return;
 
-        html.AppendLine("<h2>Objetivo</h2>");
+        html.AppendLine("<h1>Objetivo</h1>");
         html.AppendLine("<ul>");
 
         foreach (var field in objective.Fields)
@@ -166,14 +169,16 @@ public class HtmlGeneratorService
         }
 
         html.AppendLine("</ul>");
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateScreenshotsSection(StringBuilder html, ScreenshotsSectionDto? screenshots)
     {
         if (screenshots?.Items == null || !screenshots.Items.Any()) return;
 
-        html.AppendLine("<h2>Telas Ilustrativas</h2>");
+        html.AppendLine("<h1>Telas Ilustrativas</h1>");
         html.AppendLine("<table border='1'>");
         html.AppendLine("<tr><th>Arquivo</th><th>Tamanho</th><th>Tipo</th></tr>");
 
@@ -185,14 +190,16 @@ public class HtmlGeneratorService
 
         html.AppendLine("</table>");
         html.AppendLine("<p><em>As imagens serão anexadas a esta história.</em></p>");
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateFormFieldsSection(StringBuilder html, FormFieldsSectionDto? formFields)
     {
         if (formFields?.Items == null || !formFields.Items.Any()) return;
 
-        html.AppendLine("<h2>Campos de Preenchimento</h2>");
+        html.AppendLine("<h1>Campos de Preenchimento</h1>");
         html.AppendLine("<table border='1'>");
         html.AppendLine("<tr><th>Nome do Campo</th><th>Tipo</th><th>Tamanho Máximo</th><th>Obrigatório</th></tr>");
 
@@ -206,14 +213,16 @@ public class HtmlGeneratorService
         }
 
         html.AppendLine("</table>");
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateMessagesSection(StringBuilder html, MessagesSectionDto? messages)
     {
         if (messages?.Items == null || !messages.Items.Any()) return;
 
-        html.AppendLine("<h2>Mensagens Informativas</h2>");
+        html.AppendLine("<h1>Mensagens Informativas</h1>");
         html.AppendLine("<ul>");
 
         foreach (var message in messages.Items)
@@ -225,14 +234,16 @@ public class HtmlGeneratorService
         }
 
         html.AppendLine("</ul>");
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateBusinessRulesSection(StringBuilder html, BusinessRulesSectionDto? businessRules)
     {
         if (businessRules?.Items == null || !businessRules.Items.Any()) return;
 
-        html.AppendLine("<h2>Regras de Negócio</h2>");
+        html.AppendLine("<h1>Regras de Negócio</h1>");
         html.AppendLine("<ol>");
 
         foreach (var rule in businessRules.Items)
@@ -244,19 +255,21 @@ public class HtmlGeneratorService
         }
 
         html.AppendLine("</ol>");
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateScenariosSection(StringBuilder html, ScenariosSectionDto? scenarios)
     {
         if (scenarios?.Items == null || !scenarios.Items.Any()) return;
 
-        html.AppendLine("<h2>Cenários</h2>");
+        html.AppendLine("<h1>Cenários</h1>");
 
         for (int i = 0; i < scenarios.Items.Count; i++)
         {
             var scenario = scenarios.Items[i];
-            html.AppendLine($"<h3>Cenário {i + 1}</h3>");
+            html.AppendLine($"<h2>Cenário {i + 1}</h2>");
 
             if (!string.IsNullOrWhiteSpace(scenario.Given))
             {
@@ -273,15 +286,16 @@ public class HtmlGeneratorService
                 html.AppendLine($"<p><strong>Então:</strong> {scenario.Then}</p>");
             }
         }
-
+        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
     }
 
     private void GenerateAttachmentsSection(StringBuilder html, AttachmentsSectionDto? attachments)
     {
         if (attachments?.Items == null || !attachments.Items.Any()) return;
 
-        html.AppendLine("<h2>Anexos</h2>");
+        html.AppendLine("<h1>Anexos</h1>");
         html.AppendLine("<table border='1'>");
         html.AppendLine("<tr><th>Arquivo</th><th>Tamanho</th><th>Tipo</th></tr>");
 
@@ -305,6 +319,7 @@ public class HtmlGeneratorService
             "datetime" => "Data e Hora",
             "boolean" => "Sim/Não",
             "select" => "Lista de Opções",
+            "button" => "Botão",
             _ => type
         };
     }
@@ -353,6 +368,7 @@ public class HtmlGeneratorService
             }
 
             html.AppendLine("<hr/>");
+            html.AppendLine("</br>");
         }
 
         // 3. Observações
@@ -361,6 +377,7 @@ public class HtmlGeneratorService
             html.AppendLine("<h2>Observação</h2>");
             html.AppendLine($"<p>{observations}</p>");
             html.AppendLine("<hr/>");
+            html.AppendLine("</br>");
         }
 
         // 4. Evidências
@@ -389,22 +406,23 @@ public class HtmlGeneratorService
         var html = new StringBuilder();
 
         // 1. Informações Básicas
-        html.AppendLine("<h2>🎯 Informações da Issue</h2>");
+        html.AppendLine("<h1>🎯 Informações da Issue</h1>");
         html.AppendLine($"<p><strong>📋 Tipo:</strong> {GetIssueTypeText(dto.Type)}</p>");
         html.AppendLine($"<p><strong>⚡ Prioridade:</strong> {GetPriorityText(dto.Priority)}</p>");
         html.AppendLine($"<p><strong>🌐 Ambiente:</strong> {dto.Environment ?? "Não especificado"}</p>");
         html.AppendLine($"<p><strong>🔧 Tipo de Ocorrência:</strong> {GetOccurrenceTypeText(dto.OccurrenceType)}</p>");
         html.AppendLine("<hr/>");
+        html.AppendLine("</br>");
 
         // 2. Cenários da Issue
         if (dto.Scenarios != null && dto.Scenarios.Any())
         {
-            html.AppendLine("<h2>Cenários</h2>");
+            html.AppendLine("<h1>Cenários</h1>");
 
             for (int i = 0; i < dto.Scenarios.Count; i++)
             {
                 var scenario = dto.Scenarios[i];
-                html.AppendLine($"<h3>Cenário {i + 1}</h3>");
+                html.AppendLine($"<h2>Cenário {i + 1}</h2>");
 
                 if (!string.IsNullOrWhiteSpace(scenario.Given))
                 {
@@ -422,13 +440,15 @@ public class HtmlGeneratorService
                 }
             }
 
+            html.AppendLine("</br>");
             html.AppendLine("<hr/>");
+            html.AppendLine("</br>");
         }
 
         // 3. Observações
         if (!string.IsNullOrEmpty(observations) || !string.IsNullOrEmpty(dto.Observations))
         {
-            html.AppendLine("<h2>Observações</h2>");
+            html.AppendLine("<h1>Observações</h1>");
             html.AppendLine("<ul>");
 
             if (!string.IsNullOrEmpty(observations))
@@ -442,13 +462,15 @@ public class HtmlGeneratorService
             }
 
             html.AppendLine("</ul>");
+            html.AppendLine("</br>");
             html.AppendLine("<hr/>");
+            html.AppendLine("</br>");
         }
 
         // 4. Anexos
         if (dto.Attachments != null && dto.Attachments.Any())
         {
-            html.AppendLine("<h2>Anexos</h2>");
+            html.AppendLine("<h1>Anexos</h1>");
             html.AppendLine("<ul>");
 
             foreach (var attachment in dto.Attachments)

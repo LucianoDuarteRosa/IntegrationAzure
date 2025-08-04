@@ -849,11 +849,12 @@ export function UserStoryForm() {
                                                             <MenuItem value="datetime">Data e Hora</MenuItem>
                                                             <MenuItem value="boolean">Sim/Não</MenuItem>
                                                             <MenuItem value="select">Lista de Opções</MenuItem>
+                                                            <MenuItem value="button">Botão</MenuItem>
                                                         </Select>
                                                     </FormControl>
                                                 </Grid>
                                                 <Grid item xs={12} sm={2}>
-                                                    {!['boolean', 'date', 'datetime', 'select'].includes(field.type) && (
+                                                    {!['boolean', 'date', 'datetime', 'select', 'button'].includes(field.type) && (
                                                         <TextField
                                                             fullWidth
                                                             label={field.type === 'number' ? 'Dígitos (total.decimais)' : 'Tamanho máximo'}
