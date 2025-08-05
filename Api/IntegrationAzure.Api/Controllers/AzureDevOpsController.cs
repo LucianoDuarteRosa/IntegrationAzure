@@ -112,34 +112,4 @@ public class AzureDevOpsController : BaseController
         }
     }
 
-    [HttpGet("test-connection")]
-    public async Task<ActionResult<ApiResponseDto<object>>> TestConnection()
-    {
-        try
-        {
-            var projects = await _azureDevOpsService.GetProjectsAsync();
-            var projectCount = projects?.Count ?? 0;
-
-            object result = new
-            {
-                IsConnected = true,
-                ProjectCount = projectCount,
-                Message = $"Conectado com sucesso. {projectCount} projeto(s) encontrado(s)."
-            };
-
-            return SuccessResponse(result, "Conexão com Azure DevOps testada com sucesso");
-        }
-        catch (InvalidOperationException ex)
-        {
-            return ErrorResponse<object>($"Configuração inválida: {ex.Message}");
-        }
-        catch (HttpRequestException ex)
-        {
-            return ErrorResponse<object>($"Erro na comunicação com Azure DevOps: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            return ErrorResponse<object>($"Erro interno: {ex.Message}", null, 500);
-        }
-    }
 }

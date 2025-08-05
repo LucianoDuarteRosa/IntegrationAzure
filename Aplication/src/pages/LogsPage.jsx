@@ -108,10 +108,11 @@ export function LogsPage() {
             if (response && response.success) {
                 setLogs(response.data || []);
             } else {
-                error.load('logs', [response?.message || 'Resposta inválida do servidor']);
+                error.load('logs', ['Não foi possível carregar os logs. Tente novamente.']);
             }
-        } catch {
-            error.connection();
+        } catch (err) {
+            console.error('Error loading logs:', err); // Log apenas no console
+            error.connection('Erro ao carregar logs. Verifique sua conexão.');
         } finally {
             setLoading(false);
         }

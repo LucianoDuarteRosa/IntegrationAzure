@@ -44,19 +44,6 @@ public class IssuesController : BaseController
         try
         {
             var result = await _issueService.GetAllAsync();
-
-            if (result.Success)
-            {
-                await _logService.LogActionAsync(
-                    "GET_ALL",
-                    "Issue",
-                    null,
-                    GetCurrentUser(),
-                    $"Retrieved {result.Data?.Count ?? 0} issues",
-                    Domain.Entities.LogLevel.Info
-                );
-            }
-
             return ProcessServiceResponse(result);
         }
         catch (Exception ex)
@@ -104,30 +91,6 @@ public class IssuesController : BaseController
             }
 
             var result = await _issueService.GetByIdAsync(id);
-
-            if (result.Success && result.Data != null)
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_ID",
-                    "Issue",
-                    id.ToString(),
-                    GetCurrentUser(),
-                    $"Retrieved issue: {result.Data.Title}",
-                    Domain.Entities.LogLevel.Info
-                );
-            }
-            else
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_ID_NOT_FOUND",
-                    "Issue",
-                    id.ToString(),
-                    GetCurrentUser(),
-                    "Issue not found",
-                    Domain.Entities.LogLevel.Warning
-                );
-            }
-
             return ProcessServiceResponse(result);
         }
         catch (Exception ex)

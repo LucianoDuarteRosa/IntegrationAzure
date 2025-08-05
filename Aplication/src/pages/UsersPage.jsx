@@ -103,10 +103,11 @@ export function UsersPage() {
 
                 setUsers(userData);
             } else {
-                error.load('usuários', [response?.message || response?.Message || 'Resposta inválida do servidor']);
+                error.load('usuários', ['Não foi possível carregar os usuários. Tente novamente.']);
             }
         } catch (err) {
-            error.connection();
+            console.error('Error loading users:', err); // Log apenas no console
+            error.connection('Erro ao carregar usuários. Verifique sua conexão.');
         } finally {
             setLoading(false);
         }
@@ -257,10 +258,11 @@ export function UsersPage() {
                 setSelectedUser(null);
                 await loadUsers();
             } else {
-                showError('Erro ao salvar', response?.message || 'Erro ao salvar usuário');
+                showError('Erro ao salvar', 'Não foi possível salvar o usuário. Tente novamente.');
             }
         } catch (err) {
-            error.connection();
+            console.error('Error saving user:', err); // Log apenas no console
+            error.connection('Erro ao salvar usuário. Verifique sua conexão.');
         }
     };
 
@@ -300,10 +302,11 @@ export function UsersPage() {
                 setPasswordModalOpen(false);
                 setSelectedUser(null);
             } else {
-                showError('Erro ao alterar senha', response?.message || 'Erro ao alterar senha');
+                showError('Erro ao alterar senha', 'Não foi possível alterar a senha. Tente novamente.');
             }
         } catch (err) {
-            error.connection();
+            console.error('Error changing password:', err); // Log apenas no console
+            error.connection('Erro ao alterar senha. Verifique sua conexão.');
         }
     };
 
@@ -317,10 +320,11 @@ export function UsersPage() {
                 showSuccess('Usuário removido!', 'Usuário removido com sucesso!');
                 await loadUsers();
             } else {
-                showError('Erro ao remover', response?.message || 'Erro ao remover usuário');
+                showError('Erro ao remover', 'Não foi possível remover o usuário. Tente novamente.');
             }
         } catch (err) {
-            error.connection();
+            console.error('Error deleting user:', err); // Log apenas no console
+            error.connection('Erro ao remover usuário. Verifique sua conexão.');
         } finally {
             setDeleteDialogOpen(false);
             setSelectedUser(null);

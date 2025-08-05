@@ -64,10 +64,12 @@ export const authService = {
                 throw new Error(errorMessage);
             }
         } catch (error) {
+            console.error('Login error:', error); // Log apenas no console para debug
+
             return {
                 success: false,
-                message: error.message || 'Erro ao fazer login',
-                errors: [error.message || 'Credenciais inválidas']
+                message: 'Erro ao realizar login. Verifique suas credenciais.',
+                errors: ['Email ou senha incorretos. Tente novamente.']
             };
         }
     },

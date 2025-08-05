@@ -59,22 +59,22 @@ export const logService = {
             // Erro de resposta da API
             const { data, status } = error.response;
             return {
-                message: data.message || 'Erro na requisição',
-                errors: data.errors || [],
+                message: data.message || 'Erro na operação solicitada',
+                errors: data.errors || ['Erro interno do sistema'],
                 status
             };
         } else if (error.request) {
             // Erro de rede
             return {
                 message: 'Erro de conexão com o servidor',
-                errors: ['Verifique sua conexão com a internet'],
+                errors: ['Verifique sua conexão com a internet e tente novamente'],
                 status: 0
             };
         } else {
             // Outro tipo de erro
             return {
                 message: 'Erro inesperado',
-                errors: [error.message],
+                errors: ['Ocorreu um erro inesperado. Tente novamente.'],
                 status: 0
             };
         }

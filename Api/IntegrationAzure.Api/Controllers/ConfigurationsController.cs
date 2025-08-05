@@ -23,16 +23,6 @@ namespace IntegrationAzure.Api.Controllers
             try
             {
                 var configurations = await _configurationService.GetAllAsync();
-
-                await _logService.LogActionAsync(
-                    "GET_ALL",
-                    "Configuration",
-                    null,
-                    GetCurrentUser(),
-                    $"Retrieved {configurations?.Count() ?? 0} configurations",
-                    Domain.Entities.LogLevel.Info
-                );
-
                 return SuccessResponse(configurations ?? new List<ConfigurationDto>(), "Configurações recuperadas com sucesso");
             }
             catch (Exception ex)
@@ -69,15 +59,6 @@ namespace IntegrationAzure.Api.Controllers
 
                     return ErrorResponse<ConfigurationDto>("Configuração não encontrada", null, 404);
                 }
-
-                await _logService.LogActionAsync(
-                    "GET_BY_ID",
-                    "Configuration",
-                    id.ToString(),
-                    GetCurrentUser(),
-                    $"Retrieved configuration: {configuration.Key}",
-                    Domain.Entities.LogLevel.Info
-                );
 
                 return SuccessResponse(configuration, "Configuração recuperada com sucesso");
             }
@@ -116,15 +97,6 @@ namespace IntegrationAzure.Api.Controllers
                     return ErrorResponse<ConfigurationDto>("Configuração não encontrada", null, 404);
                 }
 
-                await _logService.LogActionAsync(
-                    "GET_BY_KEY",
-                    "Configuration",
-                    key,
-                    GetCurrentUser(),
-                    $"Retrieved configuration by key: {key}",
-                    Domain.Entities.LogLevel.Info
-                );
-
                 return SuccessResponse(configuration, "Configuração recuperada com sucesso");
             }
             catch (Exception ex)
@@ -148,16 +120,6 @@ namespace IntegrationAzure.Api.Controllers
             try
             {
                 var configurations = await _configurationService.GetByCategoryAsync(category);
-
-                await _logService.LogActionAsync(
-                    "GET_BY_CATEGORY",
-                    "Configuration",
-                    category,
-                    GetCurrentUser(),
-                    $"Retrieved {configurations?.Count() ?? 0} configurations for category: {category}",
-                    Domain.Entities.LogLevel.Info
-                );
-
                 return SuccessResponse(configurations ?? new List<ConfigurationDto>(), "Configurações da categoria recuperadas com sucesso");
             }
             catch (Exception ex)

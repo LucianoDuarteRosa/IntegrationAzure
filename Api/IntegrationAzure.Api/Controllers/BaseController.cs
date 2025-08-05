@@ -7,6 +7,12 @@ namespace IntegrationAzure.Api.Controllers;
 /// <summary>
 /// Controller base com métodos utilitários comuns
 /// Implementa padrões de resposta consistentes seguindo RESTful
+/// 
+/// NOTA SOBRE LOGS:
+/// - Operações GET não são logadas por padrão para evitar poluição de logs
+/// - Apenas erros em operações GET são logados para depuração
+/// - Operações de criação, atualização e exclusão são sempre logadas
+/// - Logs de sucesso são usados apenas para operações críticas ou administrativas
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -53,11 +59,21 @@ public abstract class BaseController : ControllerBase
     /// </summary>
     protected ActionResult<ApiResponseDto<T>> ErrorResponse<T>(string message, List<string>? errors = null, int statusCode = 400)
     {
+        // Sanitizar mensagens de erro para não expor detalhes internos
+        var sanitizedMessage = message.Contains("Exception") || message.Contains("Stack") || message.Contains("Internal")
+            ? "Erro interno do servidor"
+            : message;
+
+        var sanitizedErrors = errors?.Select(error =>
+            error.Contains("Exception") || error.Contains("Stack") || error.Contains("Internal")
+                ? "Erro interno do sistema"
+                : error).ToList() ?? new List<string>();
+
         var response = new ApiResponseDto<T>
         {
             Success = false,
-            Message = message,
-            Errors = errors ?? new List<string>()
+            Message = sanitizedMessage,
+            Errors = sanitizedErrors
         };
 
         return statusCode switch

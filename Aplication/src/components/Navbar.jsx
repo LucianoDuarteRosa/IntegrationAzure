@@ -37,11 +37,11 @@ export function Navbar() {
                 showSuccess('Senha alterada!', 'Sua senha foi alterada com sucesso!');
                 setPasswordModalOpen(false);
             } else {
-                showError('Erro ao alterar senha', response?.message || 'Erro ao alterar senha');
+                showError('Erro ao alterar senha', 'Não foi possível alterar a senha. Tente novamente.');
             }
         } catch (error) {
             console.error('Erro ao alterar senha:', error);
-            showError('Erro', 'Erro ao conectar com o servidor');
+            showError('Erro', 'Erro ao conectar com o servidor. Verifique sua conexão.');
         }
     };
 

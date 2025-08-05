@@ -31,19 +31,6 @@ public class UsersController : BaseController
         try
         {
             var result = await _userService.GetAllAsync();
-
-            if (result.Success)
-            {
-                await _logService.LogActionAsync(
-                    "GET_ALL",
-                    "User",
-                    null,
-                    GetCurrentUser(),
-                    $"Retrieved {result.Data?.Count() ?? 0} users",
-                    Domain.Entities.LogLevel.Info
-                );
-            }
-
             return ProcessServiceResponse(result);
         }
         catch (Exception ex)
@@ -71,30 +58,6 @@ public class UsersController : BaseController
         try
         {
             var result = await _userService.GetByIdAsync(id);
-
-            if (result.Success)
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_ID",
-                    "User",
-                    id.ToString(),
-                    GetCurrentUser(),
-                    $"Retrieved user: {result.Data?.Name}",
-                    Domain.Entities.LogLevel.Info
-                );
-            }
-            else
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_ID_NOT_FOUND",
-                    "User",
-                    id.ToString(),
-                    GetCurrentUser(),
-                    "User not found",
-                    Domain.Entities.LogLevel.Warning
-                );
-            }
-
             return ProcessServiceResponse(result);
         }
         catch (Exception ex)
@@ -122,19 +85,6 @@ public class UsersController : BaseController
         try
         {
             var result = await _userService.GetByProfileAsync(profileId);
-
-            if (result.Success)
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_PROFILE",
-                    "User",
-                    profileId.ToString(),
-                    GetCurrentUser(),
-                    $"Retrieved {result.Data?.Count() ?? 0} users for profile {profileId}",
-                    Domain.Entities.LogLevel.Info
-                );
-            }
-
             return ProcessServiceResponse(result);
         }
         catch (Exception ex)

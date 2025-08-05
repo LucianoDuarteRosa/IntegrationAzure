@@ -44,19 +44,6 @@ public class FailuresController : BaseController
         try
         {
             var result = await _failureService.GetAllAsync();
-
-            if (result.Success)
-            {
-                await _logService.LogActionAsync(
-                    "GET_ALL",
-                    "Failure",
-                    null,
-                    GetCurrentUser(),
-                    $"Retrieved {result.Data?.Count ?? 0} failures",
-                    Domain.Entities.LogLevel.Info
-                );
-            }
-
             return ProcessServiceResponse(result);
         }
         catch (Exception ex)
@@ -104,30 +91,6 @@ public class FailuresController : BaseController
             }
 
             var result = await _failureService.GetByIdAsync(id);
-
-            if (result.Success && result.Data != null)
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_ID",
-                    "Failure",
-                    id.ToString(),
-                    GetCurrentUser(),
-                    $"Retrieved failure: {result.Data.Title}",
-                    Domain.Entities.LogLevel.Info
-                );
-            }
-            else
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_ID_NOT_FOUND",
-                    "Failure",
-                    id.ToString(),
-                    GetCurrentUser(),
-                    "Failure not found",
-                    Domain.Entities.LogLevel.Warning
-                );
-            }
-
             return ProcessServiceResponse(result);
         }
         catch (Exception ex)
