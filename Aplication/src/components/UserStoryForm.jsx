@@ -101,12 +101,12 @@ const Section = ({ title, children, notApplicable, onNotApplicableChange, isFirs
 export function UserStoryForm() {
     const navigate = useNavigate();
     const { showSuccess, showError } = useNotifications();
-    
+
     // Estados do modal de visualização
     const [modalOpen, setModalOpen] = useState(false);
     const [currentFile, setCurrentFile] = useState(null);
     const [fileUrl, setFileUrl] = useState('');
-    
+
     const [files, setFiles] = useState({
         notApplicable: false,
         items: []

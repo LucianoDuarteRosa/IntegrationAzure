@@ -70,13 +70,33 @@ public class AzureDevOpsService
                 throw new InvalidOperationException("Configurações do Azure DevOps não encontradas");
             }
 
+            // Primeiro, buscar o nome do projeto baseado no GUID
+            string projectName = projectId;
+
+            // Se o projectId parece ser um GUID, buscar o nome do projeto
+            if (Guid.TryParse(projectId, out _))
+            {
+                var projects = await GetProjectsAsync();
+                var project = projects.FirstOrDefault(p => p.Id == projectId);
+                if (project != null)
+                {
+                    projectName = project.Name;
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Projeto com ID '{projectId}' não encontrado");
+                }
+            }
+
             // Usar WIQL (Work Item Query Language) para buscar work items
-            var wiql = $"SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo] FROM WorkItems WHERE [System.WorkItemType] = '{workItemType}' AND [System.TeamProject] = '{projectId}' ORDER BY [System.ChangedDate] DESC";
+            // IMPORTANTE: [System.TeamProject] deve usar o NOME do projeto, não o GUID
+            var wiql = $"SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo] FROM WorkItems WHERE [System.WorkItemType] = '{workItemType}' AND [System.TeamProject] = '{projectName}' ORDER BY [System.ChangedDate] DESC";
 
             var wiqlQuery = new { query = wiql };
             var wiqlContent = new StringContent(JsonSerializer.Serialize(wiqlQuery), Encoding.UTF8, "application/json");
 
-            var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectId}/_apis/wit/wiql?api-version={azureConfig.ApiVersion}";
+            // Para a URL da API, podemos usar tanto o nome quanto o GUID, mas vamos usar o nome para consistência
+            var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectName}/_apis/wit/wiql?api-version={azureConfig.ApiVersion}";
 
             var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
