@@ -65,17 +65,12 @@ public class FailureService
                     // Usar o primeiro projeto disponível ou o projeto padrão
                     var projectName = azureProjects.First().Name;
 
-                    Console.WriteLine($"Falha '{createdFailure?.Title}' criada localmente e seria criada como Bug no projeto Azure DevOps: {projectName}");
-
                     // Aqui seria implementada a criação do work item no Azure DevOps
                     // usando a API do Azure DevOps para criar um Bug com alta prioridade
                 }
             }
             catch (Exception azureEx)
             {
-                // Se falhar a criação no Azure DevOps, logar o erro mas não falhar a operação local
-                Console.WriteLine($"Erro ao criar falha no Azure DevOps: {azureEx.Message}");
-                // O usuário ainda tem a falha salva localmente
             }
 
             return new ApiResponseDto<FailureDto>

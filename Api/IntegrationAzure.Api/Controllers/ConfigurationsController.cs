@@ -40,103 +40,6 @@ namespace IntegrationAzure.Api.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiResponseDto<ConfigurationDto>>> GetById(int id)
-        {
-            try
-            {
-                var configuration = await _configurationService.GetByIdAsync(id);
-                if (configuration == null)
-                {
-                    await _logService.LogActionAsync(
-                        "GET_BY_ID_NOT_FOUND",
-                        "Configuration",
-                        id.ToString(),
-                        GetCurrentUser(),
-                        "Configuration not found",
-                        Domain.Entities.LogLevel.Warning
-                    );
-
-                    return ErrorResponse<ConfigurationDto>("Configuração não encontrada", null, 404);
-                }
-
-                return SuccessResponse(configuration, "Configuração recuperada com sucesso");
-            }
-            catch (Exception ex)
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_ID_ERROR",
-                    "Configuration",
-                    id.ToString(),
-                    GetCurrentUser(),
-                    $"Exception: {ex.Message}",
-                    Domain.Entities.LogLevel.Error
-                );
-
-                return ErrorResponse<ConfigurationDto>($"Erro ao buscar configuração: {ex.Message}");
-            }
-        }
-
-        [HttpGet("key/{key}")]
-        public async Task<ActionResult<ApiResponseDto<ConfigurationDto>>> GetByKey(string key)
-        {
-            try
-            {
-                var configuration = await _configurationService.GetByKeyAsync(key);
-                if (configuration == null)
-                {
-                    await _logService.LogActionAsync(
-                        "GET_BY_KEY_NOT_FOUND",
-                        "Configuration",
-                        key,
-                        GetCurrentUser(),
-                        $"Configuration not found for key: {key}",
-                        Domain.Entities.LogLevel.Warning
-                    );
-
-                    return ErrorResponse<ConfigurationDto>("Configuração não encontrada", null, 404);
-                }
-
-                return SuccessResponse(configuration, "Configuração recuperada com sucesso");
-            }
-            catch (Exception ex)
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_KEY_ERROR",
-                    "Configuration",
-                    key,
-                    GetCurrentUser(),
-                    $"Exception: {ex.Message}",
-                    Domain.Entities.LogLevel.Error
-                );
-
-                return ErrorResponse<ConfigurationDto>($"Erro ao buscar configuração: {ex.Message}");
-            }
-        }
-
-        [HttpGet("category/{category}")]
-        public async Task<ActionResult<ApiResponseDto<IEnumerable<ConfigurationDto>>>> GetByCategory(string category)
-        {
-            try
-            {
-                var configurations = await _configurationService.GetByCategoryAsync(category);
-                return SuccessResponse(configurations ?? new List<ConfigurationDto>(), "Configurações da categoria recuperadas com sucesso");
-            }
-            catch (Exception ex)
-            {
-                await _logService.LogActionAsync(
-                    "GET_BY_CATEGORY_ERROR",
-                    "Configuration",
-                    category,
-                    GetCurrentUser(),
-                    $"Exception: {ex.Message}",
-                    Domain.Entities.LogLevel.Error
-                );
-
-                return ErrorResponse<IEnumerable<ConfigurationDto>>($"Erro ao buscar configurações por categoria: {ex.Message}");
-            }
-        }
-
         [HttpPost]
         public async Task<ActionResult<ApiResponseDto<ConfigurationDto>>> Create([FromBody] CreateConfigurationDto createDto)
         {
@@ -170,8 +73,7 @@ namespace IntegrationAzure.Api.Controllers
                     Domain.Entities.LogLevel.Success
                 );
 
-                return CreatedAtAction(nameof(GetById), new { id = configuration.Id },
-                    SuccessResponse(configuration, "Configuração criada com sucesso").Value);
+                return SuccessResponse(configuration, "Configuração criada com sucesso");
             }
             catch (InvalidOperationException ex)
             {

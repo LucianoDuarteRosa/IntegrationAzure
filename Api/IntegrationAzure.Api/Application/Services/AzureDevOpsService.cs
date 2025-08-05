@@ -240,8 +240,6 @@ public class AzureDevOpsService
                 }
                 catch (Exception commentEx)
                 {
-                    // Log do erro, mas não falhar a criação do work item
-                    Console.WriteLine($"Erro ao adicionar comentário ao work item {createdWorkItem.Id}: {commentEx.Message}");
                 }
             }
 
