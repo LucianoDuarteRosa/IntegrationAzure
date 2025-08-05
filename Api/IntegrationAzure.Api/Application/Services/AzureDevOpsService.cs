@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using IntegrationAzure.Api.Application.DTOs;
 using IntegrationAzure.Api.Domain.Interfaces;
 
@@ -36,7 +37,8 @@ public class AzureDevOpsService
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new HttpRequestException($"Erro ao buscar projetos do Azure DevOps: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Erro ao buscar projetos do Azure DevOps: {response.StatusCode} - {errorContent}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
@@ -89,26 +91,27 @@ public class AzureDevOpsService
             }
 
             // Usar WIQL (Work Item Query Language) para buscar work items
-            // IMPORTANTE: [System.TeamProject] deve usar o NOME do projeto, não o GUID
-            var wiql = $"SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo] FROM WorkItems WHERE [System.WorkItemType] = '{workItemType}' AND [System.TeamProject] = '{projectName}' ORDER BY [System.ChangedDate] DESC";
+            var wiql = $"SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [System.WorkItemType] FROM WorkItems WHERE [System.WorkItemType] = '{workItemType}' AND [System.TeamProject] = '{projectName}'";
 
             var wiqlQuery = new { query = wiql };
             var wiqlContent = new StringContent(JsonSerializer.Serialize(wiqlQuery), Encoding.UTF8, "application/json");
 
-            // Para a URL da API, podemos usar tanto o nome quanto o GUID, mas vamos usar o nome para consistência
-            var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectName}/_apis/wit/wiql?api-version={azureConfig.ApiVersion}";
+            // Usar versão estável da API para WIQL
+            var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectName}/_apis/wit/wiql?api-version=7.0";
 
             var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = wiqlContent
             };
             request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+            request.Headers.Add("Accept", "application/json");
 
             var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new HttpRequestException($"Erro ao buscar work items: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Erro ao buscar work items: {response.StatusCode} - {errorContent}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
@@ -124,16 +127,18 @@ public class AzureDevOpsService
             }
 
             // Buscar detalhes dos work items
-            var detailsUrl = $"https://dev.azure.com/{azureConfig.Organization}/_apis/wit/workitems?ids={string.Join(",", workItemIds)}&api-version={azureConfig.ApiVersion}";
+            var detailsUrl = $"https://dev.azure.com/{azureConfig.Organization}/_apis/wit/workitems?ids={string.Join(",", workItemIds)}&fields=System.Id,System.Title,System.State,System.AssignedTo,System.WorkItemType&api-version={azureConfig.ApiVersion}";
 
             var detailsRequest = new HttpRequestMessage(HttpMethod.Get, detailsUrl);
             detailsRequest.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+            detailsRequest.Headers.Add("Accept", "application/json");
 
             var detailsResponse = await _httpClient.SendAsync(detailsRequest);
 
             if (!detailsResponse.IsSuccessStatusCode)
             {
-                throw new HttpRequestException($"Erro ao buscar detalhes dos work items: {detailsResponse.StatusCode}");
+                var errorContent = await detailsResponse.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Erro ao buscar detalhes dos work items: {detailsResponse.StatusCode} - {errorContent}");
             }
 
             var detailsContent = await detailsResponse.Content.ReadAsStringAsync();
@@ -384,9 +389,16 @@ public class AzureWorkItem
 
 public class AzureWorkItemFields
 {
+    [JsonPropertyName("System.Title")]
     public string? SystemTitle { get; set; }
+
+    [JsonPropertyName("System.State")]
     public string? SystemState { get; set; }
+
+    [JsonPropertyName("System.WorkItemType")]
     public string? SystemWorkItemType { get; set; }
+
+    [JsonPropertyName("System.AssignedTo")]
     public AzureAssignedTo? SystemAssignedTo { get; set; }
 }
 

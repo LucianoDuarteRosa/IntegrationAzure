@@ -638,9 +638,11 @@ export function IssueForm() {
                                                             availableStories.map((story) => (
                                                                 <MenuItem key={story.id} value={story.id}>
                                                                     <Box>
-                                                                        <Typography>#{story.id} - {story.title}</Typography>
-                                                                        <Typography variant="caption" color="text.secondary">
-                                                                            Status: {story.state} | Atribuído: {story.assignedTo}
+                                                                        <Typography>
+                                                                            #{story.id} - {story.title}
+                                                                            <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                                                                | Status: {story.state} | Atribuído: {story.assignedTo}
+                                                                            </Typography>
                                                                         </Typography>
                                                                     </Box>
                                                                 </MenuItem>
