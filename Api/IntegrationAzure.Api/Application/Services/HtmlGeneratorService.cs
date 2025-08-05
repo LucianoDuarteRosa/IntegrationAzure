@@ -130,7 +130,7 @@ public class HtmlGeneratorService
         if (impact?.Items == null || !impact.Items.Any()) return;
 
         html.AppendLine("<h1>Impacto</h1>");
-
+        html.AppendLine("</br>");
         for (int i = 0; i < impact.Items.Count; i++)
         {
             var item = impact.Items[i];
@@ -147,8 +147,8 @@ public class HtmlGeneratorService
                 html.AppendLine("<p><strong>Melhoria Esperada:</strong></p>");
                 html.AppendLine($"<p>{item.Expected}</p>");
             }
+            html.AppendLine("</br>");
         }
-        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
         html.AppendLine("</br>");
     }
@@ -265,7 +265,7 @@ public class HtmlGeneratorService
         if (scenarios?.Items == null || !scenarios.Items.Any()) return;
 
         html.AppendLine("<h1>Cenários</h1>");
-
+        html.AppendLine("</br>");
         for (int i = 0; i < scenarios.Items.Count; i++)
         {
             var scenario = scenarios.Items[i];
@@ -285,8 +285,8 @@ public class HtmlGeneratorService
             {
                 html.AppendLine($"<p><strong>Então:</strong> {scenario.Then}</p>");
             }
+            html.AppendLine("</br>");
         }
-        html.AppendLine("</br>");
         html.AppendLine("<hr/>");
         html.AppendLine("</br>");
     }
