@@ -6,59 +6,11 @@ import api from './api';
  */
 export const userStoryService = {
     /**
-     * Obtém todas as histórias de usuário
-     */
-    async getAll() {
-        try {
-            const response = await api.get('/userstories');
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Obtém uma história específica por ID
-     */
-    async getById(id) {
-        try {
-            const response = await api.get(`/userstories/${id}`);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
      * Cria uma nova história de usuário
      */
     async create(userStoryData) {
         try {
             const response = await api.post('/userstories', userStoryData);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Atualiza uma história existente
-     */
-    async update(id, userStoryData) {
-        try {
-            const response = await api.put(`/userstories/${id}`, userStoryData);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Exclui uma história
-     */
-    async delete(id) {
-        try {
-            const response = await api.delete(`/userstories/${id}`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);

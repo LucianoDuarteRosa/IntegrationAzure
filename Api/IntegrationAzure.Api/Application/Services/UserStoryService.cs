@@ -88,19 +88,11 @@ public class UserStoryService
                         additionalFields,
                         htmlDescription // HTML vai diretamente para o comentário (não do banco)
                     );
-
-                    Console.WriteLine($"História de usuário '{completeUserStory?.Title}' criada com sucesso no Azure DevOps - ID: {azureWorkItem.Id}");
-                }
-                else
-                {
-                    Console.WriteLine("Nenhum projeto disponível no Azure DevOps para criar a User Story");
                 }
             }
             catch (Exception azureEx)
             {
-                // Se falhar a criação no Azure DevOps, logar o erro mas não falhar a operação local
-                Console.WriteLine($"Erro ao criar história de usuário no Azure DevOps: {azureEx.Message}");
-                // O usuário ainda tem a história salva localmente
+
             }
 
             return new ApiResponseDto<UserStoryDto>

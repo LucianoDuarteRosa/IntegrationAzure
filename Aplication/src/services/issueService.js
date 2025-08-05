@@ -6,42 +6,6 @@ import api from './api';
  */
 export const issueService = {
     /**
-     * Obtém todas as issues
-     */
-    async getAll() {
-        try {
-            const response = await api.get('/issues');
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Obtém todos os tipos de ocorrência disponíveis
-     */
-    async getOccurrenceTypes() {
-        try {
-            const response = await api.get('/issues/occurrence-types');
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Obtém uma issue específica por ID
-     */
-    async getById(id) {
-        try {
-            const response = await api.get(`/issues/${id}`);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
      * Cria uma nova issue
      */
     async create(issueData) {
@@ -51,30 +15,6 @@ export const issueService = {
         } catch (error) {
             console.error('Erro na API:', error);
             console.error('Erro response:', error.response);
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Atualiza uma issue existente
-     */
-    async update(id, issueData) {
-        try {
-            const response = await api.put(`/issues/${id}`, issueData);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Exclui uma issue
-     */
-    async delete(id) {
-        try {
-            const response = await api.delete(`/issues/${id}`);
-            return response.data;
-        } catch (error) {
             throw this.handleError(error);
         }
     },

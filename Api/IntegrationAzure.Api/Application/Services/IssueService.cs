@@ -34,25 +34,16 @@ public class IssueService
     {
         try
         {
-            // Debug: verificar se os cenários e observações estão chegando
-            Console.WriteLine($"DEBUG - Scenarios count: {dto.Scenarios?.Count ?? 0}");
-            Console.WriteLine($"DEBUG - Observations: '{dto.Observations ?? "null"}'");
-            Console.WriteLine($"DEBUG - Attachments count: {dto.Attachments?.Count ?? 0}");
-
             if (dto.Scenarios != null)
             {
                 for (int i = 0; i < dto.Scenarios.Count; i++)
                 {
                     var scenario = dto.Scenarios[i];
-                    Console.WriteLine($"DEBUG - Scenario {i + 1}: Given='{scenario.Given}', When='{scenario.When}', Then='{scenario.Then}'");
                 }
             }
 
             // Gerar a descrição em Markdown usando os dados estruturados
             var markdownDescription = _markdownGeneratorService.GenerateIssueDescription(dto);
-
-            Console.WriteLine($"DEBUG - Generated markdown description:");
-            Console.WriteLine(markdownDescription);
 
             var issue = new Issue
             {
@@ -81,18 +72,10 @@ public class IssueService
                 {
                     // Usar o primeiro projeto disponível ou o projeto padrão
                     var projectName = azureProjects.First().Name;
-
-                    Console.WriteLine($"Issue '{createdIssue?.Title}' criada localmente e seria criada como Bug no projeto Azure DevOps: {projectName}");
-
-                    // Aqui seria implementada a criação do work item no Azure DevOps
-                    // usando a API do Azure DevOps para criar um Bug/Issue
                 }
             }
             catch (Exception azureEx)
             {
-                // Se falhar a criação no Azure DevOps, logar o erro mas não falhar a operação local
-                Console.WriteLine($"Erro ao criar issue no Azure DevOps: {azureEx.Message}");
-                // O usuário ainda tem a issue salva localmente
             }
 
             return new ApiResponseDto<IssueDto>

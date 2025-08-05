@@ -25,51 +25,6 @@ namespace IntegrationAzure.Api.Controllers
         }
 
         /// <summary>
-        /// Obtém todas as histórias de usuário
-        /// </summary>
-        /// <returns>Lista de histórias de usuário</returns>
-        [HttpGet]
-        public async Task<ActionResult<ApiResponseDto<List<UserStorySummaryDto>>>> GetAll()
-        {
-            try
-            {
-                var result = await _userStoryService.GetAllAsync();
-                return ProcessServiceResponse(result);
-            }
-            catch (Exception ex)
-            {
-                return ErrorResponse<List<UserStorySummaryDto>>(
-                    "Erro interno do servidor",
-                    new List<string> { ex.Message },
-                    500
-                );
-            }
-        }
-
-        /// <summary>
-        /// Obtém uma história de usuário por ID
-        /// </summary>
-        /// <param name="id">ID da história de usuário</param>
-        /// <returns>História de usuário encontrada</returns>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiResponseDto<UserStoryDto>>> GetById(Guid id)
-        {
-            try
-            {
-                var result = await _userStoryService.GetByIdAsync(id);
-                return ProcessServiceResponse(result);
-            }
-            catch (Exception ex)
-            {
-                return ErrorResponse<UserStoryDto>(
-                    "Erro interno do servidor",
-                    new List<string> { ex.Message },
-                    500
-                );
-            }
-        }
-
-        /// <summary>
         /// Cria uma nova história de usuário
         /// </summary>
         /// <param name="createDto">Dados da história de usuário a ser criada</param>
@@ -135,7 +90,7 @@ namespace IntegrationAzure.Api.Controllers
                         Domain.Entities.LogLevel.Success
                     );
 
-                    return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
+                    return SuccessResponse(result.Data, "História de usuário criada com sucesso");
                 }
 
                 // Log de erro do serviço

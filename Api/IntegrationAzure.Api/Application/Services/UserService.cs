@@ -677,8 +677,6 @@ public class UserService
         }
         catch (Exception ex)
         {
-            // Log do erro mas não falha a operação principal
-            Console.WriteLine($"Erro ao deletar imagem de perfil {fileName}: {ex.Message}");
         }
     }
 

@@ -142,14 +142,4 @@ app.UseRouting();
 // Mapeamento dos controllers
 app.MapControllers();
 
-// Endpoint de health check
-app.MapGet("/health", () => new
-{
-    Status = "Healthy",
-    Timestamp = DateTime.UtcNow,
-    Version = "1.0.0"
-})
-.WithName("HealthCheck")
-.WithTags("Health");
-
 app.Run();

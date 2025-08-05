@@ -6,18 +6,6 @@ import api from './api';
  */
 export const failureService = {
     /**
-     * Obtém todos os falhas
-     */
-    async getAll() {
-        try {
-            const response = await api.get('/failures');
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
      * Obtém todos os tipos de ocorrência disponíveis
      */
     async getOccurrenceTypes() {
@@ -30,47 +18,11 @@ export const failureService = {
     },
 
     /**
-     * Obtém uma falha específica por ID
-     */
-    async getById(id) {
-        try {
-            const response = await api.get(`/failures/${id}`);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
      * Cria uma nova falha
      */
     async create(failureData) {
         try {
             const response = await api.post('/failures', failureData);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Atualiza uma falha existente
-     */
-    async update(id, failureData) {
-        try {
-            const response = await api.put(`/failures/${id}`, failureData);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Exclui uma falha
-     */
-    async delete(id) {
-        try {
-            const response = await api.delete(`/failures/${id}`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);
