@@ -355,16 +355,17 @@ public class HtmlGeneratorService
         // 2. Impactos da Falha
         if (scenarios != null && scenarios.Any())
         {
-            html.AppendLine("<h2>Impacto</h2>");
-
+            html.AppendLine("<h1>Impacto</h1>");
+            html.AppendLine("</br>");
             for (int i = 0; i < scenarios.Count; i++)
             {
                 var scenario = scenarios[i];
-                html.AppendLine($"<h3>Impacto {i + 1}</h3>");
+                html.AppendLine($"<h2>Impacto {i + 1}</h2>");
                 html.AppendLine("<p><strong>Processo Atual:</strong></p>");
                 html.AppendLine($"<p>{scenario.Given}</p>");
                 html.AppendLine("<p><strong>Melhoria Esperada:</strong></p>");
                 html.AppendLine($"<p>{scenario.Then}</p>");
+                html.AppendLine("</br>");
             }
 
             html.AppendLine("<hr/>");
@@ -384,15 +385,18 @@ public class HtmlGeneratorService
         if (dto.Attachments != null && dto.Attachments.Any())
         {
             html.AppendLine("<h2>Evidências</h2>");
+            html.AppendLine("</br>");
             html.AppendLine("<ul>");
 
             foreach (var attachment in dto.Attachments)
             {
                 var sizeFormatted = FormatFileSize(attachment.Size);
                 html.AppendLine($"<li><strong>{attachment.Name}</strong> ({sizeFormatted})</li>");
+                html.AppendLine("</br>");
             }
 
             html.AppendLine("</ul>");
+            html.AppendLine("</br>");
         }
 
         return html.ToString().Trim();
@@ -418,7 +422,7 @@ public class HtmlGeneratorService
         if (dto.Scenarios != null && dto.Scenarios.Any())
         {
             html.AppendLine("<h1>Cenários</h1>");
-
+            html.AppendLine("</br>");
             for (int i = 0; i < dto.Scenarios.Count; i++)
             {
                 var scenario = dto.Scenarios[i];
@@ -438,9 +442,9 @@ public class HtmlGeneratorService
                 {
                     html.AppendLine($"<p><strong>Então:</strong> {scenario.Then}</p>");
                 }
+                html.AppendLine("</br>");
             }
 
-            html.AppendLine("</br>");
             html.AppendLine("<hr/>");
             html.AppendLine("</br>");
         }

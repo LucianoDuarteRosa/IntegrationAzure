@@ -24,6 +24,9 @@ import {
     Alert,
     CircularProgress,
     Chip,
+    Modal,
+    Backdrop,
+    Fade,
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
@@ -31,6 +34,7 @@ import {
     AttachFile as AttachFileIcon,
     Visibility as VisibilityIcon,
     Assignment as AssignmentIcon,
+    Close as CloseIcon,
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
@@ -97,6 +101,12 @@ const Section = ({ title, children, notApplicable, onNotApplicableChange, isFirs
 export function UserStoryForm() {
     const navigate = useNavigate();
     const { showSuccess, showError } = useNotifications();
+    
+    // Estados do modal de visualização
+    const [modalOpen, setModalOpen] = useState(false);
+    const [currentFile, setCurrentFile] = useState(null);
+    const [fileUrl, setFileUrl] = useState('');
+    
     const [files, setFiles] = useState({
         notApplicable: false,
         items: []
@@ -169,6 +179,15 @@ export function UserStoryForm() {
     useEffect(() => {
         loadAzureProjects();
     }, []);
+
+    // Limpar URL do arquivo quando o componente for desmontado
+    useEffect(() => {
+        return () => {
+            if (fileUrl) {
+                URL.revokeObjectURL(fileUrl);
+            }
+        };
+    }, [fileUrl]);
 
     const loadAzureProjects = async () => {
         setLoadingProjects(true);
@@ -263,6 +282,23 @@ export function UserStoryForm() {
                 items: [...files.items, ...newFiles]
             });
         }
+    };
+
+    // Funções do modal de visualização
+    const handleOpenModal = (file) => {
+        const url = URL.createObjectURL(file);
+        setCurrentFile(file);
+        setFileUrl(url);
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        if (fileUrl) {
+            URL.revokeObjectURL(fileUrl);
+            setFileUrl('');
+        }
+        setCurrentFile(null);
     };
 
     const onSubmit = async (data) => {
@@ -1222,7 +1258,7 @@ export function UserStoryForm() {
                                                     <Box>
                                                         <IconButton
                                                             size="small"
-                                                            onClick={() => window.URL.createObjectURL(file)}
+                                                            onClick={() => handleOpenModal(file)}
                                                             sx={{ mr: 1 }}
                                                         >
                                                             <VisibilityIcon />
@@ -1295,19 +1331,28 @@ export function UserStoryForm() {
                                                 }}
                                             >
                                                 <Typography>{file.name}</Typography>
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => {
-                                                        const newItems = files.items.filter((_, i) => i !== index);
-                                                        setFiles({
-                                                            ...files,
-                                                            items: newItems
-                                                        });
-                                                    }}
-                                                    sx={{ color: '#d32f2f' }}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
+                                                <Box>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleOpenModal(file)}
+                                                        sx={{ mr: 1 }}
+                                                    >
+                                                        <VisibilityIcon />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => {
+                                                            const newItems = files.items.filter((_, i) => i !== index);
+                                                            setFiles({
+                                                                ...files,
+                                                                items: newItems
+                                                            });
+                                                        }}
+                                                        sx={{ color: '#d32f2f' }}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Box>
                                             </Box>
                                         ))}
                                     </Box>
@@ -1349,6 +1394,123 @@ export function UserStoryForm() {
                     </Paper>
                 </Box>
             </Container>
+
+            {/* Modal de Visualização */}
+            <Modal
+                open={modalOpen}
+                onClose={handleCloseModal}
+                closeAfterTransition
+                BackdropComponent={Backdrop}
+                BackdropProps={{
+                    timeout: 500,
+                }}
+            >
+                <Fade in={modalOpen}>
+                    <Box sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: { xs: '90%', sm: '80%', md: '70%' },
+                        maxWidth: '800px',
+                        maxHeight: '90vh',
+                        bgcolor: 'background.paper',
+                        borderRadius: 2,
+                        boxShadow: 24,
+                        p: 0,
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        {/* Header do Modal */}
+                        <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            p: 2,
+                            borderBottom: '1px solid',
+                            borderColor: 'divider'
+                        }}>
+                            <Typography variant="h6" component="h2">
+                                {currentFile?.name || 'Visualizar Arquivo'}
+                            </Typography>
+                            <IconButton
+                                onClick={handleCloseModal}
+                                size="small"
+                                sx={{ color: 'text.secondary' }}
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+
+                        {/* Conteúdo do Modal */}
+                        <Box sx={{
+                            flex: 1,
+                            overflow: 'auto',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            p: 2,
+                            backgroundColor: 'grey.50'
+                        }}>
+                            {currentFile && fileUrl && (
+                                currentFile.type.startsWith('image/') ? (
+                                    <img
+                                        src={fileUrl}
+                                        alt={currentFile.name}
+                                        style={{
+                                            maxWidth: '100%',
+                                            maxHeight: '100%',
+                                            objectFit: 'contain',
+                                            borderRadius: '4px'
+                                        }}
+                                    />
+                                ) : (
+                                    <Box sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                        p: 4
+                                    }}>
+                                        <Typography variant="h6" color="text.secondary">
+                                            Arquivo não pode ser visualizado
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Clique no botão abaixo para fazer o download
+                                        </Typography>
+                                        <Button
+                                            variant="contained"
+                                            href={fileUrl}
+                                            download={currentFile.name}
+                                            startIcon={<AttachFileIcon />}
+                                        >
+                                            Download
+                                        </Button>
+                                    </Box>
+                                )
+                            )}
+                        </Box>
+
+                        {/* Footer do Modal */}
+                        <Box sx={{
+                            p: 2,
+                            borderTop: '1px solid',
+                            borderColor: 'divider',
+                            display: 'flex',
+                            justifyContent: 'flex-end'
+                        }}>
+                            <Button
+                                onClick={handleCloseModal}
+                                variant="outlined"
+                                size="small"
+                            >
+                                Fechar
+                            </Button>
+                        </Box>
+                    </Box>
+                </Fade>
+            </Modal>
         </>
     );
 }
