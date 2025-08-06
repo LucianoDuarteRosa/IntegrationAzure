@@ -74,7 +74,7 @@ public class IssueService
                     var projectName = azureProjects.First().Name;
                 }
             }
-            catch (Exception azureEx)
+            catch (Exception ex)
             {
             }
 

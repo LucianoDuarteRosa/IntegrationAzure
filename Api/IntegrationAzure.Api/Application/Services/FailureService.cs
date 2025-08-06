@@ -69,7 +69,7 @@ public class FailureService
                     // usando a API do Azure DevOps para criar um Bug com alta prioridade
                 }
             }
-            catch (Exception azureEx)
+            catch (Exception ex)
             {
             }
 

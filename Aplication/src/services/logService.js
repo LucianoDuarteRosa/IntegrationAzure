@@ -28,30 +28,6 @@ export const logService = {
     },
 
     /**
-     * Obtém logs recentes
-     */
-    async getRecentLogs(count = 100) {
-        try {
-            const response = await api.get(`/logs/recent?count=${count}`);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
-     * Cria um novo log manual
-     */
-    async createLog(logData) {
-        try {
-            const response = await api.post('/logs', logData);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    },
-
-    /**
      * Trata erros das requisições
      */
     handleError(error) {

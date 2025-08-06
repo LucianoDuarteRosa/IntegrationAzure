@@ -18,47 +18,6 @@ public class LogService
     }
 
     /// <summary>
-    /// Cria um novo log
-    /// </summary>
-    public async Task<ApiResponseDto<LogDto>> CreateAsync(CreateLogDto dto, string userId, string? ipAddress = null, string? userAgent = null)
-    {
-        try
-        {
-            var log = new Log
-            {
-                Action = dto.Action,
-                Entity = dto.Entity,
-                EntityId = dto.EntityId,
-                UserId = userId,
-                Details = dto.Details,
-                Level = dto.Level,
-                IpAddress = ipAddress,
-                UserAgent = userAgent?.Length > 500 ? userAgent.Substring(0, 500) : userAgent,
-                CreatedBy = userId
-            };
-
-            await _logRepository.AddAsync(log);
-            await _logRepository.SaveChangesAsync();
-
-            return new ApiResponseDto<LogDto>
-            {
-                Success = true,
-                Message = "Log criado com sucesso",
-                Data = MapToDto(log)
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ApiResponseDto<LogDto>
-            {
-                Success = false,
-                Message = "Erro interno do servidor",
-                Errors = new List<string> { ex.Message }
-            };
-        }
-    }
-
-    /// <summary>
     /// Obtém logs com filtros
     /// </summary>
     public async Task<ApiResponseDto<List<LogSummaryDto>>> GetFilteredAsync(LogFilterDto filter)
@@ -113,75 +72,30 @@ public class LogService
     }
 
     /// <summary>
-    /// Obtém logs recentes
-    /// </summary>
-    public async Task<ApiResponseDto<List<LogSummaryDto>>> GetRecentAsync(int count = 100)
-    {
-        try
-        {
-            var logs = await _logRepository.GetRecentLogsAsync(count);
-            var logDtos = logs.Select(MapToSummaryDto).ToList();
-
-            return new ApiResponseDto<List<LogSummaryDto>>
-            {
-                Success = true,
-                Message = $"{logDtos.Count} logs encontrados",
-                Data = logDtos
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ApiResponseDto<List<LogSummaryDto>>
-            {
-                Success = false,
-                Message = "Erro interno do servidor",
-                Errors = new List<string> { ex.Message }
-            };
-        }
-    }
-
-    /// <summary>
     /// Método de conveniência para criar logs rapidamente
     /// </summary>
     public async Task LogActionAsync(string action, string entity, string? entityId, string userId, string? details = null, Domain.Entities.LogLevel level = Domain.Entities.LogLevel.Info)
     {
         try
         {
-            var dto = new CreateLogDto
+            var log = new Log
             {
                 Action = action,
                 Entity = entity,
                 EntityId = entityId,
+                UserId = userId,
                 Details = details,
-                Level = level
+                Level = level,
+                CreatedBy = userId
             };
 
-            await CreateAsync(dto, userId);
+            await _logRepository.AddAsync(log);
+            await _logRepository.SaveChangesAsync();
         }
         catch
         {
             // Silenciosamente falha - logs não devem quebrar a aplicação
         }
-    }
-
-    /// <summary>
-    /// Mapeia entidade para DTO
-    /// </summary>
-    private static LogDto MapToDto(Log log)
-    {
-        return new LogDto
-        {
-            Id = log.Id,
-            Action = log.Action,
-            Entity = log.Entity,
-            EntityId = log.EntityId,
-            UserId = log.UserId,
-            Details = log.Details,
-            Level = log.Level,
-            IpAddress = log.IpAddress,
-            UserAgent = log.UserAgent,
-            CreatedAt = log.CreatedAt
-        };
     }
 
     /// <summary>
