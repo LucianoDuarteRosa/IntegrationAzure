@@ -15,16 +15,6 @@ const userService = {
         return response.data;
     },
 
-    async getUser(id) {
-        const response = await api.get(`/users/${id}`);
-        return response.data;
-    },
-
-    async getUsersByProfile(profileId) {
-        const response = await api.get(`/users/profile/${profileId}`);
-        return response.data;
-    },
-
     async createUser(userData) {
         const response = await api.post('/users', userData);
         return response.data;

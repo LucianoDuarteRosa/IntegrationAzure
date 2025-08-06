@@ -12,18 +12,18 @@ public class FailureService
 {
     private readonly IFailureRepository _failureRepository;
     private readonly IUserStoryRepository _userStoryRepository;
-    private readonly MarkdownGeneratorService _markdownGenerator;
+    private readonly HtmlGeneratorService _htmlGenerator;
     private readonly AzureDevOpsService _azureDevOpsService;
 
     public FailureService(
         IFailureRepository failureRepository,
         IUserStoryRepository userStoryRepository,
-        MarkdownGeneratorService markdownGenerator,
+        HtmlGeneratorService htmlGenerator,
         AzureDevOpsService azureDevOpsService)
     {
         _failureRepository = failureRepository ?? throw new ArgumentNullException(nameof(failureRepository));
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
-        _markdownGenerator = markdownGenerator ?? throw new ArgumentNullException(nameof(markdownGenerator));
+        _htmlGenerator = htmlGenerator ?? throw new ArgumentNullException(nameof(htmlGenerator));
         _azureDevOpsService = azureDevOpsService ?? throw new ArgumentNullException(nameof(azureDevOpsService));
     }
 
@@ -34,14 +34,14 @@ public class FailureService
     {
         try
         {
-            // Gerar a descrição em Markdown a partir dos dados estruturados
-            var markdownDescription = _markdownGenerator.GenerateFailureDescription(dto, dto.Scenarios, dto.Observations);
+            // Gerar a descrição em HTML a partir dos dados estruturados
+            var htmlDescription = _htmlGenerator.GenerateFailureDescription(dto, dto.Scenarios, dto.Observations);
 
             var failure = new Failure
             {
                 FailureNumber = dto.FailureNumber,
                 Title = dto.Title,
-                Description = markdownDescription, // Descrição gerada em Markdown
+                Description = htmlDescription, // Descrição gerada em HTML
                 Severity = dto.Severity,
                 OccurrenceType = (int)dto.OccurrenceType,
                 OccurredAt = dto.OccurredAt,

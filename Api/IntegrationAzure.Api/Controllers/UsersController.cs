@@ -48,60 +48,6 @@ public class UsersController : BaseController
     }
 
     /// <summary>
-    /// Obtém um usuário por ID
-    /// </summary>
-    /// <param name="id">ID do usuário</param>
-    /// <returns>Usuário encontrado</returns>
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ApiResponseDto<UserDto>>> GetById(Guid id)
-    {
-        try
-        {
-            var result = await _userService.GetByIdAsync(id);
-            return ProcessServiceResponse(result);
-        }
-        catch (Exception ex)
-        {
-            await _logService.LogActionAsync(
-                "GET_BY_ID_ERROR",
-                "User",
-                id.ToString(),
-                GetCurrentUser(),
-                $"Exception: {ex.Message}",
-                Domain.Entities.LogLevel.Error
-            );
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Obtém usuários por perfil
-    /// </summary>
-    /// <param name="profileId">ID do perfil</param>
-    /// <returns>Lista de usuários do perfil</returns>
-    [HttpGet("profile/{profileId:guid}")]
-    public async Task<ActionResult<ApiResponseDto<IEnumerable<SimpleUserDto>>>> GetByProfile(Guid profileId)
-    {
-        try
-        {
-            var result = await _userService.GetByProfileAsync(profileId);
-            return ProcessServiceResponse(result);
-        }
-        catch (Exception ex)
-        {
-            await _logService.LogActionAsync(
-                "GET_BY_PROFILE_ERROR",
-                "User",
-                profileId.ToString(),
-                GetCurrentUser(),
-                $"Exception: {ex.Message}",
-                Domain.Entities.LogLevel.Error
-            );
-            throw;
-        }
-    }
-
-    /// <summary>
     /// Cria um novo usuário
     /// </summary>
     /// <param name="dto">Dados do usuário a ser criado</param>
@@ -141,7 +87,7 @@ public class UsersController : BaseController
                     Domain.Entities.LogLevel.Success
                 );
 
-                return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
+                return SuccessResponse(result.Data, "Usuário criado com sucesso");
             }
 
             await _logService.LogActionAsync(

@@ -402,7 +402,7 @@ export function FailureForm() {
             const failureData = {
                 FailureNumber: `FLH-${String(Date.now()).slice(-6)}`, // Formato correto: FLH-XXXXXX
                 Title: data.title,
-                Description: '', // A API vai gerar a descrição em Markdown
+                Description: '', // A API vai gerar a descrição em HTML
                 Severity: severityMap[data.severity], // Valor numérico (1-4)
                 OccurrenceType: parseInt(data.occurrenceType), // Valor numérico do tipo de ocorrência
                 OccurredAt: new Date().toISOString(),

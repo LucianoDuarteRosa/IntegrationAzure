@@ -11,18 +11,15 @@ namespace IntegrationAzure.Api.Application.Services;
 public class UserStoryService
 {
     private readonly IUserStoryRepository _userStoryRepository;
-    private readonly MarkdownGeneratorService _markdownGenerator;
     private readonly HtmlGeneratorService _htmlGenerator;
     private readonly AzureDevOpsService _azureDevOpsService;
 
     public UserStoryService(
         IUserStoryRepository userStoryRepository,
-        MarkdownGeneratorService markdownGenerator,
         HtmlGeneratorService htmlGenerator,
         AzureDevOpsService azureDevOpsService)
     {
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
-        _markdownGenerator = markdownGenerator ?? throw new ArgumentNullException(nameof(markdownGenerator));
         _htmlGenerator = htmlGenerator ?? throw new ArgumentNullException(nameof(htmlGenerator));
         _azureDevOpsService = azureDevOpsService ?? throw new ArgumentNullException(nameof(azureDevOpsService));
     }
@@ -34,9 +31,6 @@ public class UserStoryService
     {
         try
         {
-            // Gerar a descrição em Markdown a partir dos dados estruturados
-            // var markdownDescription = _markdownGenerator.GenerateUserStoryDescription(dto);
-
             // Gerar a descrição em HTML a partir dos dados estruturados (para Azure DevOps Discussion)
             // SEM os critérios de aceite (eles vão para campo específico)
             var htmlDescription = _htmlGenerator.GenerateUserStoryDescription(dto, includeAcceptanceCriteria: false);

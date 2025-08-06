@@ -12,18 +12,18 @@ public class IssueService
 {
     private readonly IIssueRepository _issueRepository;
     private readonly IUserStoryRepository _userStoryRepository;
-    private readonly MarkdownGeneratorService _markdownGeneratorService;
+    private readonly HtmlGeneratorService _htmlGeneratorService;
     private readonly AzureDevOpsService _azureDevOpsService;
 
     public IssueService(
         IIssueRepository issueRepository,
         IUserStoryRepository userStoryRepository,
-        MarkdownGeneratorService markdownGeneratorService,
+        HtmlGeneratorService htmlGeneratorService,
         AzureDevOpsService azureDevOpsService)
     {
         _issueRepository = issueRepository ?? throw new ArgumentNullException(nameof(issueRepository));
         _userStoryRepository = userStoryRepository ?? throw new ArgumentNullException(nameof(userStoryRepository));
-        _markdownGeneratorService = markdownGeneratorService ?? throw new ArgumentNullException(nameof(markdownGeneratorService));
+        _htmlGeneratorService = htmlGeneratorService ?? throw new ArgumentNullException(nameof(htmlGeneratorService));
         _azureDevOpsService = azureDevOpsService ?? throw new ArgumentNullException(nameof(azureDevOpsService));
     }
 
@@ -42,14 +42,14 @@ public class IssueService
                 }
             }
 
-            // Gerar a descrição em Markdown usando os dados estruturados
-            var markdownDescription = _markdownGeneratorService.GenerateIssueDescription(dto);
+            // Gerar a descrição em HTML usando os dados estruturados
+            var htmlDescription = _htmlGeneratorService.GenerateIssueDescription(dto);
 
             var issue = new Issue
             {
                 IssueNumber = dto.IssueNumber,
                 Title = dto.Title,
-                Description = markdownDescription, // Usar a descrição gerada em Markdown
+                Description = htmlDescription, // Usar a descrição gerada em HTML
                 Type = dto.Type,
                 Priority = dto.Priority,
                 OccurrenceType = dto.OccurrenceType,
