@@ -186,9 +186,7 @@ export function ConfigurationModal({
                                             label="Categoria"
                                         >
                                             <MenuItem value="Azure">Azure</MenuItem>
-                                            <MenuItem value="Database">Database</MenuItem>
-                                            <MenuItem value="Email">Email</MenuItem>
-                                            <MenuItem value="General">General</MenuItem>
+                                            <MenuItem value="General">Geral</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>

@@ -266,9 +266,10 @@ export function ConfigurationsPage() {
                         </Box>
 
                         <Alert severity="info" sx={{ mt: 2 }}>
-                            Configure aqui apenas as <strong>credenciais sensíveis</strong> para a integração com o Azure DevOps.
-                            As configurações de URL, versão da API e endpoint estão no appsettings.json da API.
-                            O nome do projeto será definido em cada história de usuário conforme a demanda.
+                            <strong>Configurações necessárias para funcionamento do Azure DevOps:</strong><br />
+                            • <strong>Azure_Token:</strong> Token de acesso pessoal do Azure DevOps (necessário para autenticação)<br />
+                            • <strong>Organizacao:</strong> Nome da organização no Azure DevOps (define qual organização acessar)<br />
+                            • <strong>Versao_api:</strong> Versão da API REST do Azure DevOps (padrão: 7.0, define compatibilidade)
                         </Alert>
                     </Paper>
 
