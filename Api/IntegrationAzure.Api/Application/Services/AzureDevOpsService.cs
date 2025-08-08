@@ -261,30 +261,40 @@ public class AzureDevOpsService
     /// <summary>
     /// Adiciona um comentário a um work item existente
     /// </summary>
+    /// <summary>
+    /// Adiciona discussão (discussion) a um work item existente
+    /// </summary>
     private async Task AddWorkItemCommentAsync(AzureConfigurationDto azureConfig, string projectId, int workItemId, string comment)
     {
-        var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectId}/_apis/wit/workItems/{workItemId}/comments?api-version={azureConfig.ApiVersion}";
+        var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectId}/_apis/wit/workitems/{workItemId}?api-version={azureConfig.ApiVersion}";
 
-        var commentPayload = new
+        // Usar PATCH para adicionar à Discussion do work item
+        var operations = new List<object>
         {
-            text = comment
+            new
+            {
+                op = "add",
+                path = "/fields/System.History",
+                value = comment
+            }
         };
 
-        var jsonContent = JsonSerializer.Serialize(commentPayload);
-        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+        var jsonContent = JsonSerializer.Serialize(operations);
+        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json-patch+json");
 
-        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        var request = new HttpRequestMessage(HttpMethod.Patch, url)
         {
             Content = content
         };
         request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+        request.Headers.Add("Accept", "application/json");
 
         var response = await _httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException($"Erro ao adicionar comentário ao work item: {response.StatusCode} - {errorContent}");
+            throw new HttpRequestException($"Erro ao adicionar discussão ao work item: {response.StatusCode} - {errorContent}. URL: {url}");
         }
     }
 

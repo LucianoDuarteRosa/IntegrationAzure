@@ -75,7 +75,7 @@ public class UserStoryService
 
                     // Criar o work item no Azure DevOps
                     var azureWorkItem = await _azureDevOpsService.CreateWorkItemAsync(
-                        targetProject.Id,
+                        targetProject.Name,
                         "User Story",
                         completeUserStory?.Title ?? dto.Title,
                         "História criada pela Integração Azure", // Descrição simples
