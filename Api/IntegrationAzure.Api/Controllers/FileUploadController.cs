@@ -148,26 +148,4 @@ public class FileUploadController : BaseController
             });
         }
     }
-
-    /// <summary>
-    /// Lista os tipos de arquivo permitidos
-    /// </summary>
-    /// <returns>Informações sobre tipos permitidos e limites</returns>
-    [HttpGet("allowed-types")]
-    public ActionResult<ApiResponseDto<object>> GetAllowedTypes()
-    {
-        var info = new
-        {
-            AllowedExtensions = _allowedImageExtensions,
-            MaxFileSizeMB = _maxFileSize / (1024 * 1024),
-            MaxFileSizeBytes = _maxFileSize
-        };
-
-        return Ok(new ApiResponseDto<object>
-        {
-            Success = true,
-            Message = "Informações sobre tipos de arquivo permitidos",
-            Data = info
-        });
-    }
 }
