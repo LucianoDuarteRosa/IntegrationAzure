@@ -396,7 +396,20 @@ export function UserStoryForm() {
                 }
             };
 
-            await userStoryService.create(userStoryData);
+            // Verificar se há arquivos para anexar
+            const hasFiles = (!files.notApplicable && files.items.length > 0) ||
+                (!screenshots.notApplicable && screenshots.items.length > 0);
+
+            if (hasFiles) {
+                // Usar o método com anexos
+                const attachmentFiles = files.notApplicable ? [] : files.items;
+                const screenshotFiles = screenshots.notApplicable ? [] : screenshots.items;
+
+                await userStoryService.createWithAttachments(userStoryData, attachmentFiles, screenshotFiles);
+            } else {
+                // Usar o método tradicional sem anexos
+                await userStoryService.create(userStoryData);
+            }
 
             // Mostrar notificação de sucesso
             showSuccess('História criada!', 'História de usuário criada com sucesso!');

@@ -148,4 +148,63 @@ public class FileUploadController : BaseController
             });
         }
     }
+
+    /// <summary>
+    /// Faz upload de múltiplos arquivos para anexar em User Stories
+    /// </summary>
+    /// <param name="files">Lista de arquivos</param>
+    /// <returns>Lista com informações dos arquivos processados</returns>
+    [HttpPost("user-story-attachments")]
+    public ActionResult<ApiResponseDto<List<FileInfoDto>>> UploadUserStoryAttachments(ICollection<IFormFile> files)
+    {
+        try
+        {
+            if (files == null || !files.Any())
+            {
+                return BadRequest(new ApiResponseDto<List<FileInfoDto>>
+                {
+                    Success = false,
+                    Message = "Nenhum arquivo foi enviado"
+                });
+            }
+
+            var result = new List<FileInfoDto>();
+
+            foreach (var file in files)
+            {
+                if (file.Length > _maxFileSize)
+                {
+                    return BadRequest(new ApiResponseDto<List<FileInfoDto>>
+                    {
+                        Success = false,
+                        Message = $"Arquivo '{file.FileName}' muito grande. Tamanho máximo: {_maxFileSize / (1024 * 1024)}MB"
+                    });
+                }
+
+                // Para anexos de User Story, vamos apenas validar e retornar informações
+                // Os arquivos serão processados diretamente para o Azure DevOps
+                result.Add(new FileInfoDto
+                {
+                    Name = file.FileName,
+                    Size = file.Length,
+                    Type = file.ContentType
+                });
+            }
+
+            return Ok(new ApiResponseDto<List<FileInfoDto>>
+            {
+                Success = true,
+                Message = "Arquivos validados com sucesso",
+                Data = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponseDto<List<FileInfoDto>>
+            {
+                Success = false,
+                Message = $"Erro interno do servidor: {ex.Message}"
+            });
+        }
+    }
 }

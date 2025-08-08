@@ -18,6 +18,42 @@ export const userStoryService = {
     },
 
     /**
+     * Cria uma nova história de usuário com anexos
+     */
+    async createWithAttachments(userStoryData, attachmentFiles, screenshotFiles) {
+        try {
+            const formData = new FormData();
+
+            // Adicionar os dados JSON
+            formData.append('jsonData', JSON.stringify(userStoryData));
+
+            // Adicionar arquivos de anexos
+            if (attachmentFiles && attachmentFiles.length > 0) {
+                attachmentFiles.forEach((file, index) => {
+                    formData.append(`files`, file);
+                });
+            }
+
+            // Adicionar arquivos de screenshots
+            if (screenshotFiles && screenshotFiles.length > 0) {
+                screenshotFiles.forEach((file, index) => {
+                    formData.append(`files`, file);
+                });
+            }
+
+            const response = await api.post('/userstories/with-attachments', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    },
+
+    /**
      * Trata erros das requisições
      */
     handleError(error) {

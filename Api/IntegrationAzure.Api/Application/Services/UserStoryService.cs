@@ -29,6 +29,37 @@ public class UserStoryService
     /// </summary>
     public async Task<ApiResponseDto<UserStoryDto>> CreateAsync(CreateUserStoryDto dto, string currentUser)
     {
+        return await CreateInternalAsync(dto, currentUser, null);
+    }
+
+    /// <summary>
+    /// Cria uma nova história de usuário com anexos
+    /// </summary>
+    public async Task<ApiResponseDto<UserStoryDto>> CreateWithAttachmentsAsync(CreateUserStoryDto dto, ICollection<IFormFile>? files, string currentUser)
+    {
+        // Converter arquivos para formato binário
+        List<(byte[] content, string fileName)>? attachments = null;
+
+        if (files?.Any() == true)
+        {
+            attachments = new List<(byte[] content, string fileName)>();
+
+            foreach (var file in files)
+            {
+                using var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                attachments.Add((memoryStream.ToArray(), file.FileName));
+            }
+        }
+
+        return await CreateInternalAsync(dto, currentUser, attachments);
+    }
+
+    /// <summary>
+    /// Método interno para criação de história de usuário
+    /// </summary>
+    private async Task<ApiResponseDto<UserStoryDto>> CreateInternalAsync(CreateUserStoryDto dto, string currentUser, List<(byte[] content, string fileName)>? attachments)
+    {
         try
         {
             // Gerar a descrição em HTML a partir dos dados estruturados (para Azure DevOps Discussion)
@@ -80,7 +111,8 @@ public class UserStoryService
                         completeUserStory?.Title ?? dto.Title,
                         "História criada pela Integração Azure", // Descrição simples
                         additionalFields,
-                        htmlDescription // HTML vai diretamente para o comentário (não do banco)
+                        htmlDescription, // HTML vai diretamente para o comentário (não do banco)
+                        attachments // Anexos para upload
                     );
                 }
             }

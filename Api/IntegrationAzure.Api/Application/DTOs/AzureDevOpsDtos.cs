@@ -97,3 +97,9 @@ public class AzureAssignedTo
     public string DisplayName { get; set; } = string.Empty;
     public string UniqueName { get; set; } = string.Empty;
 }
+
+public class AzureAttachmentResponse
+{
+    public string Id { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+}

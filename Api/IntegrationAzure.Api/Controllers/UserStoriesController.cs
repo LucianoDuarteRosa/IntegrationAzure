@@ -3,6 +3,7 @@ using IntegrationAzure.Api.Application.Services;
 using IntegrationAzure.Api.Application.DTOs;
 using FluentValidation;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace IntegrationAzure.Api.Controllers
 {
@@ -122,6 +123,44 @@ namespace IntegrationAzure.Api.Controllers
                     new List<string> { ex.Message },
                     500
                 );
+            }
+        }
+
+        /// <summary>
+        /// Cria uma nova história de usuário com anexos
+        /// </summary>
+        /// <param name="jsonData">Dados JSON da história de usuário</param>
+        /// <param name="files">Arquivos anexos</param>
+        /// <returns>História de usuário criada</returns>
+        [HttpPost("with-attachments")]
+        public async Task<ActionResult<ApiResponseDto<UserStoryDto>>> CreateWithAttachments(
+            [FromForm] string jsonData,
+            [FromForm] ICollection<IFormFile>? files)
+        {
+            try
+            {
+                // Deserializar os dados JSON
+                var createDto = System.Text.Json.JsonSerializer.Deserialize<CreateUserStoryDto>(jsonData, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (createDto == null)
+                {
+                    return ErrorResponse<UserStoryDto>(
+                        "Dados de entrada inválidos",
+                        new List<string> { "O objeto createDto é obrigatório" },
+                        400
+                    );
+                }
+
+                // Criar a história de usuário com anexos
+                var result = await _userStoryService.CreateWithAttachmentsAsync(createDto, files, GetCurrentUser());
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return ErrorResponse<UserStoryDto>($"Erro ao criar história de usuário com anexos: {ex.Message}", null, 500);
             }
         }
     }

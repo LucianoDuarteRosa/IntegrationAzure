@@ -165,7 +165,7 @@ public class AzureDevOpsService
     /// <summary>
     /// Cria um novo work item no Azure DevOps
     /// </summary>
-    public async Task<AzureWorkItemDto> CreateWorkItemAsync(string projectId, string workItemType, string title, string description, Dictionary<string, object>? additionalFields = null, string? discussionComment = null)
+    public async Task<AzureWorkItemDto> CreateWorkItemAsync(string projectId, string workItemType, string title, string description, Dictionary<string, object>? additionalFields = null, string? discussionComment = null, List<(byte[] content, string fileName)>? attachments = null)
     {
         try
         {
@@ -243,6 +243,30 @@ public class AzureDevOpsService
                 }
             }
 
+            // Se há anexos, fazer upload e anexar ao work item
+            if (attachments?.Any() == true && createdWorkItem?.Id > 0)
+            {
+                foreach (var attachment in attachments)
+                {
+                    try
+                    {
+                        // Fazer upload do anexo
+                        var attachmentId = await UploadAttachmentAsync(azureConfig, projectId, attachment.content, attachment.fileName);
+
+                        if (!string.IsNullOrEmpty(attachmentId))
+                        {
+                            // Anexar ao work item
+                            await AttachFileToWorkItemAsync(azureConfig, projectId, createdWorkItem.Id, attachmentId, attachment.fileName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log do erro, mas não quebra o processo
+                        Console.WriteLine($"Erro ao anexar arquivo '{attachment.fileName}': {ex.Message}");
+                    }
+                }
+            }
+
             return new AzureWorkItemDto
             {
                 Id = createdWorkItem?.Id.ToString() ?? "0",
@@ -295,6 +319,82 @@ public class AzureDevOpsService
         {
             var errorContent = await response.Content.ReadAsStringAsync();
             throw new HttpRequestException($"Erro ao adicionar discussão ao work item: {response.StatusCode} - {errorContent}. URL: {url}");
+        }
+    }
+
+    /// <summary>
+    /// Faz upload de um anexo para o Azure DevOps e retorna o ID do anexo
+    /// </summary>
+    private async Task<string?> UploadAttachmentAsync(AzureConfigurationDto azureConfig, string projectId, byte[] fileContent, string fileName)
+    {
+        var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectId}/_apis/wit/attachments?fileName={Uri.EscapeDataString(fileName)}&api-version={azureConfig.ApiVersion}";
+
+        var content = new ByteArrayContent(fileContent);
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = content
+        };
+        request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+
+        var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Erro ao fazer upload do anexo '{fileName}': {response.StatusCode} - {errorContent}. URL: {url}");
+        }
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var attachmentResponse = JsonSerializer.Deserialize<AzureAttachmentResponse>(responseContent, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        return attachmentResponse?.Id;
+    }
+
+    /// <summary>
+    /// Anexa um arquivo ao work item usando o ID do anexo obtido pelo upload
+    /// </summary>
+    private async Task AttachFileToWorkItemAsync(AzureConfigurationDto azureConfig, string projectId, int workItemId, string attachmentId, string fileName)
+    {
+        var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectId}/_apis/wit/workitems/{workItemId}?api-version={azureConfig.ApiVersion}";
+
+        var operations = new List<object>
+        {
+            new
+            {
+                op = "add",
+                path = "/relations/-",
+                value = new
+                {
+                    rel = "AttachedFile",
+                    url = $"https://dev.azure.com/{azureConfig.Organization}/_apis/wit/attachments/{attachmentId}",
+                    attributes = new
+                    {
+                        comment = fileName
+                    }
+                }
+            }
+        };
+
+        var jsonContent = JsonSerializer.Serialize(operations);
+        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json-patch+json");
+
+        var request = new HttpRequestMessage(HttpMethod.Patch, url)
+        {
+            Content = content
+        };
+        request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+
+        var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Erro ao anexar arquivo '{fileName}' ao work item: {response.StatusCode} - {errorContent}. URL: {url}");
         }
     }
 
