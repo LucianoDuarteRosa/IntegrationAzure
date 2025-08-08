@@ -64,7 +64,7 @@ public class UserStoryService
         {
             // Gerar a descrição em HTML a partir dos dados estruturados (para Azure DevOps Discussion)
             // SEM os critérios de aceite (eles vão para campo específico)
-            var htmlDescription = _htmlGenerator.GenerateUserStoryDescription(dto, includeAcceptanceCriteria: false);
+            var htmlDescription = _htmlGenerator.GenerateUserStoryDescription(dto, includeAcceptanceCriteria: true);
 
             // Criar a entidade UserStory
             var userStory = new UserStory

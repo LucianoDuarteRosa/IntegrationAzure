@@ -374,7 +374,8 @@ public class AzureDevOpsService
                     url = $"https://dev.azure.com/{azureConfig.Organization}/_apis/wit/attachments/{attachmentId}",
                     attributes = new
                     {
-                        comment = fileName
+                        name = fileName,
+                        comment = $"Anexo: {fileName}"
                     }
                 }
             }

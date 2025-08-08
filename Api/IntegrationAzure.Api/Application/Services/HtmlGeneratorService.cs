@@ -68,7 +68,7 @@ public class HtmlGeneratorService
         if (userStory == null) return;
 
         html.AppendLine("<h1>📖 História do Usuário</h1>");
-
+        html.AppendLine("</br>");
         if (!string.IsNullOrWhiteSpace(userStory.Como))
         {
             html.AppendLine($"<p><strong>Como:</strong> {userStory.Como}</p>");
