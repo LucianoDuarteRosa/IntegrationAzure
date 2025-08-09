@@ -35,8 +35,8 @@ public class Failure : SimpleBaseEntity
     // Relacionamento com anexos
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
-    // Para associar a uma história (opcional) - apenas ID, sem FK constraint
-    public Guid? UserStoryId { get; set; }
+    // UserStoryId como int para compatibilidade com Azure DevOps (ID numérico)
+    public int? UserStoryId { get; set; }
 }
 
 /// <summary>

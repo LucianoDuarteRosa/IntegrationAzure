@@ -161,6 +161,10 @@ namespace IntegrationAzure.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Activity")
+                        .HasMaxLength(100)
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -184,9 +188,6 @@ namespace IntegrationAzure.Api.Migrations
                     b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Activity")
-                        .HasColumnType("text");
-
                     b.Property<string>("Severity")
                         .IsRequired()
                         .HasColumnType("text");
@@ -200,8 +201,8 @@ namespace IntegrationAzure.Api.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<Guid?>("UserStoryId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("UserStoryId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -221,6 +222,10 @@ namespace IntegrationAzure.Api.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Activity")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -242,9 +247,6 @@ namespace IntegrationAzure.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<int>("OccurrenceType")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasColumnType("text");
@@ -262,8 +264,8 @@ namespace IntegrationAzure.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("UserStoryId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("UserStoryId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

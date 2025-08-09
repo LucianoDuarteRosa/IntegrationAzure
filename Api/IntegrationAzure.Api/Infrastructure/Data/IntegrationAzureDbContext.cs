@@ -55,6 +55,9 @@ public class IntegrationAzureDbContext : DbContext
             entity.Property(e => e.Description).IsRequired();
             entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
 
+            // Activity para Issues (substitui o antigo OccurrenceType)
+            entity.Property(e => e.Activity).HasMaxLength(100).IsRequired(false);
+
             // UserStoryId como campo opcional sem FK constraint
             entity.Property(e => e.UserStoryId).IsRequired(false);
 
@@ -75,7 +78,10 @@ public class IntegrationAzureDbContext : DbContext
             entity.Property(e => e.Description).IsRequired();
             entity.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
 
-            // UserStoryId como campo opcional sem FK constraint
+            // Campo Activity para Azure DevOps
+            entity.Property(e => e.Activity).HasMaxLength(100).IsRequired(false);
+
+            // UserStoryId como int para compatibilidade com Azure DevOps
             entity.Property(e => e.UserStoryId).IsRequired(false);
 
             // Índices para performance
@@ -148,7 +154,11 @@ public class IntegrationAzureDbContext : DbContext
             .Property(e => e.Status)
             .HasConversion<string>();
 
-    // Activity (string) substitui OccurrenceType nas falhas
+        // Activity (string) substitui OccurrenceType nas falhas
+        modelBuilder.Entity<Failure>()
+            .Property(e => e.Activity)
+            .HasColumnType("text")
+            .IsRequired(false);
 
         // Configurações para Log
         modelBuilder.Entity<Log>(entity =>

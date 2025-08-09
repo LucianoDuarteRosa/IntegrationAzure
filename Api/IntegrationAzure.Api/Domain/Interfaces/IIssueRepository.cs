@@ -12,5 +12,5 @@ public interface IIssueRepository : IRepository<Issue>
     Task<IEnumerable<Issue>> GetByTypeAsync(IssueType type);
     Task<IEnumerable<Issue>> GetByPriorityAsync(Priority priority);
     Task<Issue?> GetWithAttachmentsAsync(Guid id);
-    Task<IEnumerable<Issue>> GetByUserStoryIdAsync(Guid userStoryId);
+    Task<IEnumerable<Issue>> GetByUserStoryIdAsync(int userStoryId);
 }

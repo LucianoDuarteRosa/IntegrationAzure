@@ -52,7 +52,7 @@ public class IssueService
                 Description = htmlDescription, // Usar a descrição gerada em HTML
                 Type = dto.Type,
                 Priority = dto.Priority,
-                OccurrenceType = dto.OccurrenceType,
+                Activity = dto.Activity, // Campo Activity para Azure DevOps (substitui OccurrenceType)
                 Environment = dto.Environment,
                 UserStoryId = dto.UserStoryId,
                 CreatedBy = currentUser,
@@ -149,11 +149,11 @@ public class IssueService
                 Type = i.Type,
                 Priority = i.Priority,
                 Status = i.Status,
-                OccurrenceType = i.OccurrenceType,
+                Activity = i.Activity, // Campo Activity para Azure DevOps (substitui OccurrenceType)
+                Environment = i.Environment,
+                UserStoryId = i.UserStoryId, // Adicionando UserStoryId
                 CreatedAt = i.CreatedAt,
-                CreatedBy = i.CreatedBy,
-                UserStoryTitle = null, // Não há relacionamento direto
-                AttachmentsCount = i.Attachments.Count
+                CreatedBy = i.CreatedBy
             }).ToList();
 
             return new ApiResponseDto<List<IssueSummaryDto>>
@@ -188,12 +188,11 @@ public class IssueService
             Type = issue.Type,
             Priority = issue.Priority,
             Status = issue.Status,
-            OccurrenceType = issue.OccurrenceType,
+            Activity = issue.Activity, // Campo Activity para Azure DevOps (substitui OccurrenceType)
             Environment = issue.Environment,
             CreatedAt = issue.CreatedAt,
             CreatedBy = issue.CreatedBy,
             UserStoryId = issue.UserStoryId,
-            UserStory = null, // Não há relacionamento direto
             Attachments = issue.Attachments.Select(a => new AttachmentDto
             {
                 Id = a.Id,

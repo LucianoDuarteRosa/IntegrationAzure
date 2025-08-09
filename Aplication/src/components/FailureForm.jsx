@@ -259,7 +259,7 @@ export function FailureForm() {
         setGivenWhenThen([{ given: '', when: '', then: '' }]);
         setSelectedDemand('');
         setAvailableStories([]);
-    setActivities([]);
+        setActivities([]);
     };
 
     const watchedDemand = watch('demandNumber');
@@ -275,12 +275,10 @@ export function FailureForm() {
             const projects = await azureDevOpsService.getProjects();
             setAzureProjects(projects || []);
         } catch (error) {
-            console.error('Erro ao carregar projetos do Azure:', error);
             // Verifica se é erro de configuração/conectividade ou apenas não há projetos
             if (error.response?.status === 401 || error.response?.status === 403) {
                 showError('Erro de autenticação', 'Verifique as credenciais do Azure DevOps nas configurações.');
             } else if (error.response?.status === 404 || error.message?.includes('not found')) {
-                console.info('Nenhum projeto encontrado na organização do Azure DevOps.');
                 showInfo('Informação sobre projetos', 'Nenhum projeto foi encontrado na organização do Azure DevOps. Verifique as configurações de integração.');
                 setAzureProjects([]);
             } else if (error.code === 'NETWORK_ERROR' || error.message?.includes('network')) {
@@ -314,11 +312,9 @@ export function FailureForm() {
             setAvailableStories(workItems || []);
             setValue('userStoryId', ''); // Limpa a história selecionada
         } catch (error) {
-            console.error('Erro ao carregar work items:', error);
             // Verifica se é realmente um erro ou apenas não há dados
             if (error.response?.status === 404 || error.message?.includes('not found') || error.message?.includes('No work items')) {
                 // Não é um erro real, apenas não há histórias - mostrar como informação
-                console.info('Projeto não possui histórias de usuário cadastradas.');
                 showInfo('Informação sobre histórias', 'Este projeto não possui histórias de usuário cadastradas. Selecione um projeto que contenha histórias para continuar.');
                 setAvailableStories([]);
             } else {
@@ -338,7 +334,6 @@ export function FailureForm() {
                 setValue('activity', '');
             }
         } catch (error) {
-            console.error('Erro ao carregar activities:', error);
             setActivities([]);
             setValue('activity', '');
         } finally {
@@ -392,6 +387,20 @@ export function FailureForm() {
         setIsSubmitting(true);
 
         try {
+            // Função helper para validar UserStoryId (pode ser GUID ou ID numérico do Azure DevOps)
+            const isValidUserStoryId = (str) => {
+                if (!str || typeof str !== 'string' || str.trim() === '') return false;
+                const trimmed = str.trim();
+
+                // Tenta GUID primeiro
+                const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+                if (guidRegex.test(trimmed)) return true;
+
+                // Se não for GUID, aceita ID numérico do Azure DevOps (só números)
+                const numericRegex = /^\d+$/;
+                return numericRegex.test(trimmed);
+            };
+
             // Mapear severidade para os valores da API
             const severityMap = {
                 'Low': 1,
@@ -416,14 +425,14 @@ export function FailureForm() {
 
             // Preparar dados para envio seguindo exatamente o formato do CreateFailureDto
             const failureData = {
-                FailureNumber: `FLH-${String(Date.now()).slice(-6)}`, // Formato correto: FLH-XXXXXX
+                // FailureNumber será gerado automaticamente no backend
                 Title: data.title,
-                Description: '', // A API vai gerar a descrição em HTML
+                // Description será gerado no backend baseado nos Scenarios e Observations
                 Severity: severityMap[data.severity], // Valor numérico (1-4)
                 Activity: data.activity,
                 OccurredAt: new Date().toISOString(),
                 Environment: data.environment,
-                UserStoryId: data.userStoryId || null, // Usar o GUID selecionado ou null
+                UserStoryId: data.userStoryId?.trim() || null, // Enviar como string, backend fará a conversão
                 Scenarios: scenariosForApi, // Cenários estruturados para a API
                 Observations: data.observations?.trim() || null, // Observações
                 Attachments: attachments.map(att => ({ // Evidências

@@ -10,14 +10,6 @@ public class CreateIssueDtoValidator : AbstractValidator<CreateIssueDto>
 {
     public CreateIssueDtoValidator()
     {
-        RuleFor(x => x.IssueNumber)
-            .NotEmpty()
-            .WithMessage("Número da issue é obrigatório")
-            .MaximumLength(50)
-            .WithMessage("Número da issue deve ter no máximo 50 caracteres")
-            .Matches(@"^(ISS|BUG|FEA|TSK)-\d{3,6}$")
-            .WithMessage("Número da issue deve seguir o formato XXX-000 (ex: ISS-001, BUG-001)");
-
         RuleFor(x => x.Title)
             .NotEmpty()
             .WithMessage("Título é obrigatório")
@@ -40,13 +32,20 @@ public class CreateIssueDtoValidator : AbstractValidator<CreateIssueDto>
             .IsInEnum()
             .WithMessage("Prioridade deve ser um valor válido");
 
-        RuleFor(x => x.OccurrenceType)
-            .GreaterThan(0)
-            .WithMessage("Tipo de ocorrência deve ser um valor válido");
+        RuleFor(x => x.Activity)
+            .MaximumLength(100)
+            .WithMessage("Activity deve ter no máximo 100 caracteres")
+            .When(x => !string.IsNullOrEmpty(x.Activity));
 
         RuleFor(x => x.Environment)
             .MaximumLength(200)
             .WithMessage("Ambiente deve ter no máximo 200 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Environment));
+
+        // Validação para UserStoryId - deve ser um inteiro válido se fornecido
+        RuleFor(x => x.UserStoryId)
+            .GreaterThan(0)
+            .WithMessage("UserStoryId deve ser um número positivo")
+            .When(x => x.UserStoryId.HasValue);
     }
 }

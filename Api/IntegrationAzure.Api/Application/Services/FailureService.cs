@@ -34,19 +34,24 @@ public class FailureService
     {
         try
         {
+            // Gerar o número da falha automaticamente se não fornecido
+            var failureNumber = !string.IsNullOrEmpty(dto.FailureNumber)
+                ? dto.FailureNumber
+                : $"FLH-{DateTime.UtcNow:yyyyMMdd}-{DateTime.UtcNow.Ticks.ToString().Substring(10)}";
+
             // Gerar a descrição em HTML a partir dos dados estruturados
             var htmlDescription = _htmlGenerator.GenerateFailureDescription(dto, dto.Scenarios, dto.Observations);
 
             var failure = new Failure
             {
-                FailureNumber = dto.FailureNumber,
+                FailureNumber = failureNumber,
                 Title = dto.Title,
                 Description = htmlDescription, // Descrição gerada em HTML
-                Severity = dto.Severity,
+                Severity = dto.Severity ?? FailureSeverity.Medium,
                 Activity = dto.Activity,
-                OccurredAt = dto.OccurredAt,
+                OccurredAt = dto.OccurredAt ?? DateTime.UtcNow,
                 Environment = dto.Environment,
-                UserStoryId = dto.UserStoryId,
+                UserStoryId = dto.UserStoryId, // Agora é int? diretamente
                 CreatedBy = currentUser,
                 Status = FailureStatus.Reported
             };
@@ -150,7 +155,7 @@ public class FailureService
                 UserStoryTitle = null, // Não há relacionamento direto
                 AttachmentsCount = f.Attachments.Count
             }).ToList();
-            
+
             return new ApiResponseDto<List<FailureSummaryDto>>
             {
                 Success = true,

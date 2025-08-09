@@ -2,94 +2,87 @@ using IntegrationAzure.Api.Domain.Entities;
 
 namespace IntegrationAzure.Api.Application.DTOs;
 
-/// <summary>
-/// DTO para criação de nova issue
-/// </summary>
 public class CreateIssueDto
 {
-    public string IssueNumber { get; set; } = string.Empty;
+    public string? IssueNumber { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public IssueType Type { get; set; } = IssueType.Bug;
-    public Priority Priority { get; set; } = Priority.Medium;
-    public int OccurrenceType { get; set; } = 5;
+    public IssueType Type { get; set; }
+    public Priority Priority { get; set; }
+    public string? Activity { get; set; }
     public string? Environment { get; set; }
-    public Guid? UserStoryId { get; set; }
-    public List<IssueScenarioDto>? Scenarios { get; set; }
+    public int? UserStoryId { get; set; }
     public string? Observations { get; set; }
-    public List<IssueAttachmentDto>? Attachments { get; set; }
+    public List<IssueScenarioDto>? Scenarios { get; set; } = new();
+    public List<AttachmentDto>? Attachments { get; set; } = new();
 }
 
-/// <summary>
-/// DTO para representar cenários de issue (Dado que/Quando/Então)
-/// </summary>
-public class IssueScenarioDto
-{
-    public string Given { get; set; } = string.Empty;
-    public string When { get; set; } = string.Empty;
-    public string Then { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// DTO para representar anexos de issue
-/// </summary>
-public class IssueAttachmentDto
-{
-    public string Name { get; set; } = string.Empty;
-    public long Size { get; set; }
-    public string Type { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// DTO para atualização de issue
-/// </summary>
 public class UpdateIssueDto
 {
+    public string? IssueNumber { get; set; }
     public string? Title { get; set; }
     public string? Description { get; set; }
     public IssueType? Type { get; set; }
     public Priority? Priority { get; set; }
     public IssueStatus? Status { get; set; }
-    public int? OccurrenceType { get; set; }
+    public string? Activity { get; set; }
     public string? Environment { get; set; }
-    public Guid? UserStoryId { get; set; }
+    public int? UserStoryId { get; set; }
+    public string? Observations { get; set; }
+    public List<IssueScenarioDto>? Scenarios { get; set; }
 }
 
-/// <summary>
-/// DTO para retorno de issue
-/// </summary>
 public class IssueDto
 {
     public Guid Id { get; set; }
-    public string IssueNumber { get; set; } = string.Empty;
+    public string? IssueNumber { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public IssueType Type { get; set; }
     public Priority Priority { get; set; }
     public IssueStatus Status { get; set; }
-    public int OccurrenceType { get; set; }
+    public string? Activity { get; set; }
     public string? Environment { get; set; }
+    public int? UserStoryId { get; set; }
+    public string? CreatedBy { get; set; }
+    public List<AttachmentDto>? Attachments { get; set; } = new();
     public DateTime CreatedAt { get; set; }
-    public string CreatedBy { get; set; } = string.Empty;
-    public Guid? UserStoryId { get; set; }
-    public UserStorySummaryDto? UserStory { get; set; }
-    public List<AttachmentDto> Attachments { get; set; } = new();
+    public DateTime? UpdatedAt { get; set; }
 }
 
-/// <summary>
-/// DTO para resumo de issue (listagem)
-/// </summary>
 public class IssueSummaryDto
 {
     public Guid Id { get; set; }
-    public string IssueNumber { get; set; } = string.Empty;
+    public string? IssueNumber { get; set; }
     public string Title { get; set; } = string.Empty;
     public IssueType Type { get; set; }
     public Priority Priority { get; set; }
     public IssueStatus Status { get; set; }
-    public int OccurrenceType { get; set; }
+    public string? Activity { get; set; }
+    public string? Environment { get; set; }
+    public int? UserStoryId { get; set; }
+    public string? CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class IssueScenarioDto
+{
+    public int Id { get; set; }
+    public string? Given { get; set; } = string.Empty;
+    public string? When { get; set; } = string.Empty;
+    public string? Then { get; set; } = string.Empty;
+    public string? Description { get; set; } = string.Empty;
+    public int IssueId { get; set; }
+}
+
+public class IssueAttachmentDto
+{
+    public Guid Id { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string OriginalFileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+    public long Size { get; set; }
+    public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
-    public string? UserStoryTitle { get; set; }
-    public int AttachmentsCount { get; set; }
 }

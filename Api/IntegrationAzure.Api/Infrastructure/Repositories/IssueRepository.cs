@@ -46,7 +46,7 @@ public class IssueRepository : Repository<Issue>, IIssueRepository
             .FirstOrDefaultAsync(i => i.Id == id);
     }
 
-    public async Task<IEnumerable<Issue>> GetByUserStoryIdAsync(Guid userStoryId)
+    public async Task<IEnumerable<Issue>> GetByUserStoryIdAsync(int userStoryId)
     {
         return await _dbSet
             .Where(i => i.UserStoryId == userStoryId)

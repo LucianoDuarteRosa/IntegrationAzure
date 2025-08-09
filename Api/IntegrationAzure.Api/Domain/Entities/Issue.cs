@@ -25,15 +25,17 @@ public class Issue : SimpleBaseEntity
 
     public IssueStatus Status { get; set; } = IssueStatus.Open;
 
-    public int OccurrenceType { get; set; } = 5;
+    // Campo Activity para Azure DevOps (substitui o antigo OccurrenceType)
+    // Representa o Activity do Azure DevOps (ex.: Development, Testing, Documentation)
+    public string? Activity { get; set; }
 
     public string? Environment { get; set; }
 
     // Relacionamento com anexos
     public virtual ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
-    // Para associar a uma história específica (opcional) - apenas ID, sem FK constraint
-    public Guid? UserStoryId { get; set; }
+    // UserStoryId como int para compatibilidade com Azure DevOps (ID numérico)
+    public int? UserStoryId { get; set; }
 }
 
 /// <summary>
