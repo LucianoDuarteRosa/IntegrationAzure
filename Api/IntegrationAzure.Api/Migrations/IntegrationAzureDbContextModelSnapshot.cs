@@ -184,8 +184,8 @@ namespace IntegrationAzure.Api.Migrations
                     b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("OccurrenceType")
-                        .HasColumnType("integer");
+                    b.Property<string>("Activity")
+                        .HasColumnType("text");
 
                     b.Property<string>("Severity")
                         .IsRequired()

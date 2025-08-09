@@ -43,7 +43,7 @@ public class FailureService
                 Title = dto.Title,
                 Description = htmlDescription, // Descrição gerada em HTML
                 Severity = dto.Severity,
-                OccurrenceType = (int)dto.OccurrenceType,
+                Activity = dto.Activity,
                 OccurredAt = dto.OccurredAt,
                 Environment = dto.Environment,
                 UserStoryId = dto.UserStoryId,
@@ -69,7 +69,7 @@ public class FailureService
                     // usando a API do Azure DevOps para criar um Bug com alta prioridade
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 
@@ -143,14 +143,14 @@ public class FailureService
                 Title = f.Title,
                 Severity = f.Severity,
                 Status = f.Status,
-                OccurrenceType = f.OccurrenceType,
+                Activity = f.Activity,
                 OccurredAt = f.OccurredAt,
                 CreatedAt = f.CreatedAt,
                 CreatedBy = f.CreatedBy,
                 UserStoryTitle = null, // Não há relacionamento direto
                 AttachmentsCount = f.Attachments.Count
             }).ToList();
-
+            
             return new ApiResponseDto<List<FailureSummaryDto>>
             {
                 Success = true,
@@ -182,7 +182,7 @@ public class FailureService
             Description = failure.Description,
             Severity = failure.Severity,
             Status = failure.Status,
-            OccurrenceType = (int)failure.OccurrenceType,
+            Activity = failure.Activity,
             OccurredAt = failure.OccurredAt,
             Environment = failure.Environment,
             CreatedAt = failure.CreatedAt,

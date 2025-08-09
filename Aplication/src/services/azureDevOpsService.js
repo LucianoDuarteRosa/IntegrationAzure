@@ -53,6 +53,22 @@ export const azureDevOpsService = {
     },
 
     /**
+     * Busca Activities (allowed values) para o tipo Bug do projeto
+     */
+    async getActivities(projectId, workItemType = 'Bug') {
+        try {
+            const response = await api.get(`/azuredevops/projects/${projectId}/activities?workItemType=${encodeURIComponent(workItemType)}`);
+            if (response.data.success) {
+                return response.data.data || [];
+            }
+            throw new Error(response.data.message || 'Erro ao buscar activities');
+        } catch (error) {
+            console.error('Erro ao buscar activities do Azure DevOps:', error);
+            throw new Error(error.response?.data?.message || error.message || 'Erro ao conectar com Azure DevOps');
+        }
+    },
+
+    /**
      * Testa a conexão com Azure DevOps
      */
     async testConnection() {

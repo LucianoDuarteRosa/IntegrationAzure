@@ -148,7 +148,7 @@ public class IntegrationAzureDbContext : DbContext
             .Property(e => e.Status)
             .HasConversion<string>();
 
-        // OccurrenceType será gravado como integer (ID do enum)
+    // Activity (string) substitui OccurrenceType nas falhas
 
         // Configurações para Log
         modelBuilder.Entity<Log>(entity =>

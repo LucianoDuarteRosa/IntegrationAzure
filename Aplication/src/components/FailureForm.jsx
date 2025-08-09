@@ -38,7 +38,7 @@ const schema = yup.object().shape({
     userStoryId: yup.string().required('História do usuário é obrigatória'),
     title: yup.string().required('Título é obrigatório'),
     severity: yup.string().required('Severidade é obrigatória'),
-    occurrenceType: yup.number().required('Tipo de ocorrência é obrigatório'),
+    activity: yup.string().required('Atividade é obrigatória'),
     environment: yup.string().required('Ambiente é obrigatório'),
     observations: yup.string(), // Opcional
     givenWhenThen: yup.array().of(
@@ -64,14 +64,7 @@ const severidades = [
     { value: 'Critical', label: 'Crítica', color: '#d32f2f' },
 ];
 
-const tiposOcorrencia = [
-    { value: 4, label: 'Erro de Migração de Dados' },
-    { value: 5, label: 'Erro de Sistema' },
-    { value: 6, label: 'Erro em Ambiente' },
-    { value: 7, label: 'Problema de Banco de Dados' },
-    { value: 8, label: 'Problema de Infraestrutura' },
-    { value: 9, label: 'Problema de Parametrizações' },
-];
+// Valores de Activity serão carregados do Azure DevOps conforme projeto
 
 const ambientes = [
     { value: 'Development', label: 'Desenvolvimento' },
@@ -221,7 +214,9 @@ export function FailureForm() {
     const [availableStories, setAvailableStories] = useState([]);
     const [azureProjects, setAzureProjects] = useState([]);
     const [loadingProjects, setLoadingProjects] = useState(false);
-    // Usar apenas os tipos hardcoded específicos para falhas (não buscar da API)
+    // Activities dinâmicas
+    const [activities, setActivities] = useState([]);
+    const [loadingActivities, setLoadingActivities] = useState(false);
 
     const {
         control,
@@ -238,7 +233,7 @@ export function FailureForm() {
             userStoryId: '',
             title: '',
             severity: 'Medium',
-            occurrenceType: 5, // Valor padrão: "Erro de Sistema"
+            activity: '',
             environment: 'Production',
             observations: '',
             givenWhenThen: [{ given: '', when: '', then: '' }],
@@ -253,7 +248,7 @@ export function FailureForm() {
             userStoryId: '',
             title: '',
             severity: 'Medium',
-            occurrenceType: 5, // Valor padrão: "Erro de Sistema"
+            activity: '',
             environment: 'Production',
             observations: '',
             givenWhenThen: [{ given: '', when: '', then: '' }],
@@ -264,6 +259,7 @@ export function FailureForm() {
         setGivenWhenThen([{ given: '', when: '', then: '' }]);
         setSelectedDemand('');
         setAvailableStories([]);
+    setActivities([]);
     };
 
     const watchedDemand = watch('demandNumber');
@@ -304,8 +300,11 @@ export function FailureForm() {
     useEffect(() => {
         if (watchedDemand) {
             loadWorkItems(watchedDemand);
+            loadActivities(watchedDemand);
         } else {
             setAvailableStories([]);
+            setActivities([]);
+            setValue('activity', '');
         }
     }, [watchedDemand, setValue]);
 
@@ -327,6 +326,23 @@ export function FailureForm() {
                 showError('Erro ao carregar histórias', 'Não foi possível carregar as histórias do usuário. Verifique a conexão com o Azure DevOps.');
                 setAvailableStories([]);
             }
+        }
+    };
+
+    const loadActivities = async (projectId) => {
+        setLoadingActivities(true);
+        try {
+            const values = await azureDevOpsService.getActivities(projectId);
+            setActivities(values || []);
+            if (!values || values.length === 0) {
+                setValue('activity', '');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar activities:', error);
+            setActivities([]);
+            setValue('activity', '');
+        } finally {
+            setLoadingActivities(false);
         }
     };
 
@@ -404,7 +420,7 @@ export function FailureForm() {
                 Title: data.title,
                 Description: '', // A API vai gerar a descrição em HTML
                 Severity: severityMap[data.severity], // Valor numérico (1-4)
-                OccurrenceType: parseInt(data.occurrenceType), // Valor numérico do tipo de ocorrência
+                Activity: data.activity,
                 OccurredAt: new Date().toISOString(),
                 Environment: data.environment,
                 UserStoryId: data.userStoryId || null, // Usar o GUID selecionado ou null
@@ -715,26 +731,36 @@ export function FailureForm() {
                                         />
                                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 3 }}>
                                             <Controller
-                                                name="occurrenceType"
+                                                name="activity"
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <FormControl fullWidth error={!!errors.occurrenceType} required>
-                                                        <InputLabel>Tipo de Ocorrência</InputLabel>
+                                                    <FormControl fullWidth error={!!errors.activity} required>
+                                                        <InputLabel>Atividade</InputLabel>
                                                         <Select
                                                             {...field}
-                                                            label="Tipo de Ocorrência"
-                                                            disabled={isSubmitting}
+                                                            label="Atividade"
+                                                            disabled={isSubmitting || loadingActivities || activities.length === 0}
                                                             required
                                                         >
-                                                            {tiposOcorrencia.map((tipo) => (
-                                                                <MenuItem key={tipo.value} value={tipo.value}>
-                                                                    {tipo.label}
+                                                            {loadingActivities ? (
+                                                                <MenuItem disabled>
+                                                                    <CircularProgress size={20} sx={{ mr: 1 }} /> Carregando...
                                                                 </MenuItem>
-                                                            ))}
+                                                            ) : activities.length === 0 ? (
+                                                                <MenuItem disabled>
+                                                                    Nenhuma atividade disponível
+                                                                </MenuItem>
+                                                            ) : (
+                                                                activities.map((name) => (
+                                                                    <MenuItem key={name} value={name}>
+                                                                        {name}
+                                                                    </MenuItem>
+                                                                ))
+                                                            )}
                                                         </Select>
-                                                        {errors.occurrenceType && (
+                                                        {errors.activity && (
                                                             <Typography variant="caption" color="error" sx={{ mt: 1 }}>
-                                                                {errors.occurrenceType.message}
+                                                                {errors.activity.message}
                                                             </Typography>
                                                         )}
                                                     </FormControl>

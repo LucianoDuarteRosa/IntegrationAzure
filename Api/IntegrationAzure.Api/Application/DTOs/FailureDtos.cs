@@ -11,7 +11,8 @@ public class CreateFailureDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public FailureSeverity Severity { get; set; } = FailureSeverity.Medium;
-    public FailureOccurrenceType OccurrenceType { get; set; } = FailureOccurrenceType.ErroDeSistema;
+    // Substitui o antigo OccurrenceType pelo Activity (Azure DevOps)
+    public string? Activity { get; set; }
     public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
     public string? Environment { get; set; }
     public Guid? UserStoryId { get; set; }
@@ -51,7 +52,7 @@ public class FailureDto
     public string Description { get; set; } = string.Empty;
     public FailureSeverity Severity { get; set; }
     public FailureStatus Status { get; set; }
-    public int OccurrenceType { get; set; }
+    public string? Activity { get; set; }
     public DateTime OccurredAt { get; set; }
     public string? Environment { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -71,7 +72,7 @@ public class FailureSummaryDto
     public string Title { get; set; } = string.Empty;
     public FailureSeverity Severity { get; set; }
     public FailureStatus Status { get; set; }
-    public int OccurrenceType { get; set; }
+    public string? Activity { get; set; }
     public DateTime OccurredAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = string.Empty;

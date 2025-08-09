@@ -112,4 +112,33 @@ public class AzureDevOpsController : BaseController
         }
     }
 
+    /// <summary>
+    /// Recupera a lista de Activities permitidas para o tipo Bug (ou outro informado)
+    /// </summary>
+    [HttpGet("projects/{projectId}/activities")]
+    public async Task<ActionResult<ApiResponseDto<List<string>>>> GetActivities(string projectId, [FromQuery] string workItemType = "Bug")
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(projectId))
+            {
+                return ErrorResponse<List<string>>("ID do projeto é obrigatório");
+            }
+            var values = await _azureDevOpsService.GetActivitiesAsync(projectId, workItemType);
+            return SuccessResponse(values, "Activities recuperadas com sucesso");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return ErrorResponse<List<string>>($"Configuração inválida: {ex.Message}");
+        }
+        catch (HttpRequestException ex)
+        {
+            return ErrorResponse<List<string>>($"Erro na comunicação com Azure DevOps: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            return ErrorResponse<List<string>>($"Erro interno: {ex.Message}", null, 500);
+        }
+    }
+
 }

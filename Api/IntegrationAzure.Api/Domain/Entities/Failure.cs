@@ -23,7 +23,9 @@ public class Failure : SimpleBaseEntity
 
     public FailureStatus Status { get; set; } = FailureStatus.Reported;
 
-    public int OccurrenceType { get; set; } = 5;
+    // Campo substituindo o antigo OccurrenceType
+    // Representa o Activity do Azure DevOps (ex.: Development, Testing, Documentation)
+    public string? Activity { get; set; }
 
     [Required]
     public DateTime OccurredAt { get; set; } = DateTime.UtcNow;

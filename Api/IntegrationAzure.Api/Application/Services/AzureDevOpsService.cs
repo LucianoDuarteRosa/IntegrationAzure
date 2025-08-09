@@ -163,6 +163,98 @@ public class AzureDevOpsService
     }
 
     /// <summary>
+    /// Busca os valores permitidos (allowedValues) do campo Activity. Esse campo normalmente EXISTE no tipo 'Task'.
+    /// Em muitos processos (Agile/Scrum) ele NÃO está presente em 'Bug', por isso tentamos múltiplos tipos.
+    /// Fallback: retorna lista padrão caso nada seja encontrado via API.
+    /// </summary>
+    public async Task<List<string>> GetActivitiesAsync(string projectId, string workItemType = "Task", string fieldRefName = "Microsoft.VSTS.Common.Activity")
+    {
+        var azureConfig = await GetAzureConfigurationAsync() ?? throw new InvalidOperationException("Configurações do Azure DevOps não encontradas");
+
+        // Converter projectId GUID para nome, se necessário
+        string projectName = projectId;
+        if (Guid.TryParse(projectId, out _))
+        {
+            var projects = await GetProjectsAsync();
+            var project = projects.FirstOrDefault(p => p.Id == projectId);
+            if (project != null) projectName = project.Name; else throw new InvalidOperationException($"Projeto com ID '{projectId}' não encontrado");
+        }
+
+        // Monta lista de tipos a tentar (prioriza o solicitado, depois Task e Bug sem duplicar)
+        var typesToTry = new List<string>();
+        void AddType(string t)
+        {
+            if (!typesToTry.Contains(t, StringComparer.OrdinalIgnoreCase)) typesToTry.Add(t);
+        }
+        AddType(workItemType);
+        AddType("Task");
+        AddType("Bug");
+
+        foreach (var type in typesToTry)
+        {
+            var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectName}/_apis/wit/workitemtypes/{Uri.EscapeDataString(type)}/fields/{Uri.EscapeDataString(fieldRefName)}?api-version={azureConfig.ApiVersion}";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+            request.Headers.Add("Accept", "application/json");
+
+            try
+            {
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Se 404 ou campo não aplicável, tenta próximo tipo
+                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        continue;
+                    var err = await response.Content.ReadAsStringAsync();
+                    // Erros de campo não existente para aquele tipo: continuar
+                    if (err.Contains("TF401326", StringComparison.OrdinalIgnoreCase) ||
+                        err.Contains("does not exist", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    // Outros erros: lançar
+                    throw new HttpRequestException($"Erro ao buscar Activities no tipo '{type}': {response.StatusCode} - {err}");
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(content);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("allowedValues", out var allowedValues) && allowedValues.ValueKind == JsonValueKind.Array && allowedValues.GetArrayLength() > 0)
+                {
+                    var list = new List<string>();
+                    foreach (var item in allowedValues.EnumerateArray())
+                    {
+                        if (item.ValueKind == JsonValueKind.String)
+                            list.Add(item.GetString()!);
+                        else if (item.TryGetProperty("value", out var valueEl) && valueEl.ValueKind == JsonValueKind.String)
+                            list.Add(valueEl.GetString()!);
+                    }
+                    if (list.Count > 0)
+                        return list.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Continua tentando outros tipos em caso de erro específico; se último tipo falhar, lança.
+                if (type == typesToTry.Last())
+                    throw new Exception($"Falha ao obter Activities: {ex.Message}", ex);
+            }
+        }
+
+        // Fallback padrão caso nada encontrado via API
+        var fallback = new List<string>
+        {
+            "Development",
+            "Design",
+            "Testing",
+            "Documentation",
+            "Requirements",
+            "Deployment",
+            "Research"
+        };
+        return fallback;
+    }
+
+    /// <summary>
     /// Cria um novo work item no Azure DevOps
     /// </summary>
     public async Task<AzureWorkItemDto> CreateWorkItemAsync(string projectId, string workItemType, string title, string description, Dictionary<string, object>? additionalFields = null, string? discussionComment = null, List<(byte[] content, string fileName)>? attachments = null)

@@ -38,9 +38,9 @@ public class CreateFailureDtoValidator : AbstractValidator<CreateFailureDto>
             .IsInEnum()
             .WithMessage("Severidade deve ser um valor válido");
 
-        RuleFor(x => x.OccurrenceType)
-            .IsInEnum()
-            .WithMessage("Tipo de ocorrência deve ser um valor válido");
+        RuleFor(x => x.Activity)
+            .NotEmpty()
+            .WithMessage("Atividade é obrigatória");
 
         RuleFor(x => x.OccurredAt)
             .NotEmpty()
