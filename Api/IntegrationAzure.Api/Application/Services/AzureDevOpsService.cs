@@ -330,8 +330,9 @@ public class AzureDevOpsService
                 {
                     await AddWorkItemCommentAsync(azureConfig, projectId, createdWorkItem.Id, discussionComment);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
+                    // Ignora erro ao adicionar comentário
                 }
             }
 
@@ -371,6 +372,148 @@ public class AzureDevOpsService
         catch (Exception ex)
         {
             throw new Exception($"Erro ao criar work item no Azure DevOps: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Cria um novo work item no Azure DevOps com relacionamento a outro work item
+    /// </summary>
+    public async Task<AzureWorkItemDto> CreateWorkItemWithRelationAsync(
+        string projectId,
+        string workItemType,
+        string title,
+        string description,
+        int relatedWorkItemId,
+        string relationType = "System.LinkTypes.Hierarchy-Reverse", // Child por padrão
+        Dictionary<string, object>? additionalFields = null,
+        string? discussionComment = null,
+        List<(byte[] content, string fileName)>? attachments = null)
+    {
+        try
+        {
+            var azureConfig = await GetAzureConfigurationAsync();
+            if (azureConfig == null)
+            {
+                throw new InvalidOperationException("Configurações do Azure DevOps não encontradas");
+            }
+
+            var url = $"https://dev.azure.com/{azureConfig.Organization}/{projectId}/_apis/wit/workitems/${workItemType}?api-version={azureConfig.ApiVersion}";
+
+            // Preparar o payload do work item (formato PATCH JSON)
+            var operations = new List<object>
+            {
+                new
+                {
+                    op = "add",
+                    path = "/fields/System.Title",
+                    value = title
+                },
+                new
+                {
+                    op = "add",
+                    path = "/fields/System.Description",
+                    value = description
+                }
+            };
+
+            // Adicionar campos adicionais se fornecidos
+            if (additionalFields != null)
+            {
+                foreach (var field in additionalFields)
+                {
+                    operations.Add(new
+                    {
+                        op = "add",
+                        path = $"/fields/{field.Key}",
+                        value = field.Value
+                    });
+                }
+            }
+
+            // Adicionar relacionamento com o work item pai
+            operations.Add(new
+            {
+                op = "add",
+                path = "/relations/-",
+                value = new
+                {
+                    rel = relationType,
+                    url = $"https://dev.azure.com/{azureConfig.Organization}/_apis/wit/workItems/{relatedWorkItemId}"
+                }
+            });
+
+            var jsonContent = JsonSerializer.Serialize(operations);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json-patch+json");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = content
+            };
+            request.Headers.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($":{azureConfig.Token}"))}");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Erro ao criar work item relacionado no Azure DevOps: {response.StatusCode} - {errorContent}. URL: {url}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var createdWorkItem = JsonSerializer.Deserialize<AzureWorkItem>(responseContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            // Se há um comentário de discussão, adicionar como comentário no work item
+            if (!string.IsNullOrEmpty(discussionComment) && createdWorkItem?.Id > 0)
+            {
+                try
+                {
+                    await AddWorkItemCommentAsync(azureConfig, projectId, createdWorkItem.Id, discussionComment);
+                }
+                catch (Exception)
+                {
+                    // Log do erro, mas não quebra o processo - ex não usado intencionalmente
+                }
+            }
+
+            // Se há anexos, fazer upload e anexar ao work item
+            if (attachments?.Any() == true && createdWorkItem?.Id > 0)
+            {
+                foreach (var attachment in attachments)
+                {
+                    try
+                    {
+                        // Fazer upload do anexo
+                        var attachmentId = await UploadAttachmentAsync(azureConfig, projectId, attachment.content, attachment.fileName);
+
+                        if (!string.IsNullOrEmpty(attachmentId))
+                        {
+                            // Anexar ao work item
+                            await AttachFileToWorkItemAsync(azureConfig, projectId, createdWorkItem.Id, attachmentId, attachment.fileName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log do erro, mas não quebra o processo
+                        Console.WriteLine($"Erro ao anexar arquivo '{attachment.fileName}': {ex.Message}");
+                    }
+                }
+            }
+
+            return new AzureWorkItemDto
+            {
+                Id = createdWorkItem?.Id.ToString() ?? "0",
+                Title = createdWorkItem?.Fields?.SystemTitle ?? title,
+                State = createdWorkItem?.Fields?.SystemState ?? "New",
+                AssignedTo = createdWorkItem?.Fields?.SystemAssignedTo?.DisplayName ?? "Não atribuído",
+                WorkItemType = createdWorkItem?.Fields?.SystemWorkItemType ?? workItemType
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Erro ao criar work item relacionado: {ex.Message}", ex);
         }
     }
 

@@ -45,13 +45,13 @@ public class FailureService
             var failure = new Failure
             {
                 FailureNumber = failureNumber,
-                Title = dto.Title,
+                Title = dto.Title ?? string.Empty,
                 Description = htmlDescription, // Descrição gerada em HTML
                 Severity = dto.Severity ?? FailureSeverity.Medium,
                 Activity = dto.Activity,
                 OccurredAt = dto.OccurredAt ?? DateTime.UtcNow,
                 Environment = dto.Environment,
-                UserStoryId = dto.UserStoryId, // Agora é int? diretamente
+                UserStoryId = dto.UserStoryId,
                 CreatedBy = currentUser,
                 Status = FailureStatus.Reported
             };
@@ -68,14 +68,85 @@ public class FailureService
                 if (azureProjects?.Any() == true)
                 {
                     // Usar o primeiro projeto disponível ou o projeto padrão
-                    var projectName = azureProjects.First().Name;
+                    var targetProject = azureProjects.First();
 
-                    // Aqui seria implementada a criação do work item no Azure DevOps
-                    // usando a API do Azure DevOps para criar um Bug com alta prioridade
+                    // Preparar campos adicionais baseados na severidade
+                    var additionalFields = new Dictionary<string, object>
+                    {
+                        ["Microsoft.VSTS.Common.Severity"] = GetAzureSeverity(failure.Severity),
+                        ["Microsoft.VSTS.Common.Priority"] = GetAzurePriorityFromSeverity(failure.Severity),
+                        ["System.AreaPath"] = targetProject.Name,
+                        ["System.IterationPath"] = targetProject.Name,
+                        ["Microsoft.VSTS.TCM.ReproSteps"] = htmlDescription // Passos para reproduzir
+                    };
+
+                    // Se a falha está associada a uma User Story, buscar no Azure DevOps e criar relacionamento
+                    if (failure.UserStoryId.HasValue)
+                    {
+                        try
+                        {
+                            // Buscar work items User Stories para encontrar a correspondente
+                            var workItems = await _azureDevOpsService.GetWorkItemsAsync(targetProject.Name, "User Story");
+                            var relatedUserStory = workItems?.FirstOrDefault(wi =>
+                                wi.Title.Contains($"US-{failure.UserStoryId}") ||
+                                wi.Id == failure.UserStoryId.Value.ToString());
+
+                            if (relatedUserStory != null && int.TryParse(relatedUserStory.Id, out int userStoryWorkItemId))
+                            {
+                                // Criar Bug relacionado à User Story
+                                var azureBug = await _azureDevOpsService.CreateWorkItemWithRelationAsync(
+                                    targetProject.Name,
+                                    "Bug",
+                                    $"[{failure.FailureNumber}] {failure.Title}",
+                                    $"Falha reportada em {failure.Environment ?? "Não especificado"}",
+                                    userStoryWorkItemId,
+                                    "System.LinkTypes.Hierarchy-Reverse", // Bug como child da User Story
+                                    additionalFields,
+                                    htmlDescription, // HTML vai para a discussão
+                                    null // Anexos seriam implementados posteriormente
+                                );
+
+                                // Você pode salvar o azureBug.Id na entidade se necessário
+                            }
+                            else
+                            {
+                                // Se não encontrar User Story relacionada, criar Bug sem relacionamento
+                                var azureBug = await _azureDevOpsService.CreateWorkItemAsync(
+                                    targetProject.Name,
+                                    "Bug",
+                                    $"[{failure.FailureNumber}] {failure.Title}",
+                                    $"Falha reportada em {failure.Environment ?? "Não especificado"}",
+                                    additionalFields,
+                                    htmlDescription,
+                                    null
+                                );
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log do erro, mas não quebra o processo
+                            Console.WriteLine($"Erro ao criar Bug relacionado no Azure DevOps: {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        // Criar Bug sem relacionamento se não há UserStoryId
+                        var azureBug = await _azureDevOpsService.CreateWorkItemAsync(
+                            targetProject.Name,
+                            "Bug",
+                            $"[{failure.FailureNumber}] {failure.Title}",
+                            $"Falha reportada em {failure.Environment ?? "Não especificado"}",
+                            additionalFields,
+                            htmlDescription,
+                            null
+                        );
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // Log do erro, mas não quebra o processo principal
+                Console.WriteLine($"Erro ao integrar falha com Azure DevOps: {ex.Message}");
             }
 
             return new ApiResponseDto<FailureDto>
@@ -205,6 +276,36 @@ public class FailureService
                 CreatedAt = a.CreatedAt,
                 CreatedBy = a.CreatedBy
             }).ToList()
+        };
+    }
+
+    /// <summary>
+    /// Mapeia severidade interna para severidade do Azure DevOps
+    /// </summary>
+    private static string GetAzureSeverity(FailureSeverity severity)
+    {
+        return severity switch
+        {
+            FailureSeverity.Critical => "1 - Critical",
+            FailureSeverity.High => "2 - High",
+            FailureSeverity.Medium => "3 - Medium",
+            FailureSeverity.Low => "4 - Low",
+            _ => "3 - Medium"
+        };
+    }
+
+    /// <summary>
+    /// Mapeia severidade da falha para prioridade do Azure DevOps
+    /// </summary>
+    private static int GetAzurePriorityFromSeverity(FailureSeverity severity)
+    {
+        return severity switch
+        {
+            FailureSeverity.Critical => 1,
+            FailureSeverity.High => 2,
+            FailureSeverity.Medium => 3,
+            FailureSeverity.Low => 4,
+            _ => 3
         };
     }
 }

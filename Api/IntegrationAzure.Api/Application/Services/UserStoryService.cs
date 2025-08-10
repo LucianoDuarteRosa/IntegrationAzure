@@ -109,7 +109,7 @@ public class UserStoryService
                         targetProject.Name,
                         "User Story",
                         completeUserStory?.Title ?? dto.Title,
-                        "História criada pela Integração Azure", // Descrição simples
+                        htmlDescription, // Descrição simples
                         additionalFields,
                         htmlDescription, // HTML vai diretamente para o comentário (não do banco)
                         attachments // Anexos para upload
