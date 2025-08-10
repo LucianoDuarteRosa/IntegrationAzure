@@ -358,7 +358,7 @@ public class HtmlGeneratorService
 
         // 1. Informações Básicas
         html.AppendLine("<h2>🐛 Informações da Falha</h2>");
-        html.AppendLine($"<p><strong>🌐 Ambiente:</strong> {dto.Environment}</p>");
+        html.AppendLine($"<p><strong>🌐 Ambiente:</strong> {TranslateEnvironmentToPortuguese(dto.Environment)}</p>");
         html.AppendLine($"<p><strong>⚠️ Severidade:</strong> {GetSeverityText(dto.Severity ?? FailureSeverity.Medium)}</p>");
         html.AppendLine("<hr/>");
 
@@ -423,7 +423,7 @@ public class HtmlGeneratorService
         html.AppendLine("<h1>🎯 Informações da Issue</h1>");
         html.AppendLine($"<p><strong>📋 Tipo:</strong> {GetIssueTypeText(dto.Type)}</p>");
         html.AppendLine($"<p><strong>⚡ Prioridade:</strong> {GetPriorityText(dto.Priority)}</p>");
-        html.AppendLine($"<p><strong>🌐 Ambiente:</strong> {dto.Environment ?? "Não especificado"}</p>");
+        html.AppendLine($"<p><strong>🌐 Ambiente:</strong> {TranslateEnvironmentToPortuguese(dto.Environment)}</p>");
         html.AppendLine($"<p><strong>🔧 Activity:</strong> {dto.Activity ?? "Não especificado"}</p>");
         html.AppendLine("<hr/>");
         html.AppendLine("</br>");
@@ -535,14 +535,20 @@ public class HtmlGeneratorService
         };
     }
 
-    private string GetOccurrenceTypeText(int occurrenceType)
+    /// <summary>
+    /// Traduz ambiente de inglês para português na descrição HTML
+    /// </summary>
+    private static string TranslateEnvironmentToPortuguese(string? environment)
     {
-        return occurrenceType switch
+        if (string.IsNullOrEmpty(environment))
+            return "Não especificado";
+
+        return environment switch
         {
-            1 => "🔄 Sempre",
-            2 => "⏱️ Às vezes",
-            3 => "🎯 Uma vez",
-            _ => "❓ Não especificado"
+            "Development" => "Desenvolvimento",
+            "Staging" => "Homologação",
+            "Production" => "Produção",
+            _ => environment // Se já estiver em português ou for outro valor, retorna como está
         };
     }
 }

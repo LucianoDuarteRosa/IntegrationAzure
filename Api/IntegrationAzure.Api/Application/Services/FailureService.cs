@@ -35,12 +35,16 @@ public class FailureService
         // Converter anexos do DTO para formato binário se existirem
         List<(byte[] content, string fileName)>? attachments = null;
 
+        Console.WriteLine($"[DEBUG] Processando falha - Anexos recebidos: {dto.Attachments?.Count ?? 0}");
+
         if (dto.Attachments?.Any() == true)
         {
             attachments = new List<(byte[] content, string fileName)>();
 
             foreach (var attachment in dto.Attachments)
             {
+                Console.WriteLine($"[DEBUG] Processando anexo: {attachment.FileName} - Content null? {string.IsNullOrEmpty(attachment.Content)}");
+
                 if (!string.IsNullOrEmpty(attachment.Content))
                 {
                     try
@@ -48,16 +52,23 @@ public class FailureService
                         // Converter de base64 para bytes
                         var bytes = Convert.FromBase64String(attachment.Content);
                         attachments.Add((bytes, attachment.FileName));
+                        Console.WriteLine($"[DEBUG] Anexo convertido com sucesso: {attachment.FileName} - {bytes.Length} bytes");
                     }
-                    catch (FormatException)
+                    catch (FormatException ex)
                     {
+                        Console.WriteLine($"[DEBUG] Erro ao converter base64 para {attachment.FileName}: {ex.Message}");
                         // Se não conseguir converter base64, pular este anexo
                         continue;
                     }
                 }
+                else
+                {
+                    Console.WriteLine($"[DEBUG] Anexo {attachment.FileName} sem conteúdo, pulando...");
+                }
             }
         }
 
+        Console.WriteLine($"[DEBUG] Total de anexos processados: {attachments?.Count ?? 0}");
         return await CreateInternalAsync(dto, currentUser, attachments);
     }
 
@@ -112,7 +123,7 @@ public class FailureService
                         ["System.AreaPath"] = targetProject.Name,
                         ["System.IterationPath"] = targetProject.Name,
                         ["Microsoft.VSTS.TCM.ReproSteps"] = htmlDescription, // Passos para reproduzir
-                        ["Microsoft.VSTS.Common.Activity"] = failure.Activity ?? "Development" // Adicionar Activity
+                        ["Microsoft.VSTS.Common.Activity"] = failure.Activity ?? "Desenvolvimento" // Adicionar Activity
                     };
 
                     // Se a falha está associada a uma User Story, buscar no Azure DevOps e criar relacionamento
