@@ -354,8 +354,6 @@ public class AzureDevOpsService
                     }
                     catch (Exception ex)
                     {
-                        // Log do erro, mas não quebra o processo
-                        Console.WriteLine($"Erro ao anexar arquivo '{attachment.fileName}': {ex.Message}");
                     }
                 }
             }
@@ -496,8 +494,6 @@ public class AzureDevOpsService
                     }
                     catch (Exception ex)
                     {
-                        // Log do erro, mas não quebra o processo
-                        Console.WriteLine($"Erro ao anexar arquivo '{attachment.fileName}': {ex.Message}");
                     }
                 }
             }

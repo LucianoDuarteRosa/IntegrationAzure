@@ -111,7 +111,7 @@ public class IssueService
                     };
 
                     // Determinar o tipo de work item baseado no tipo da issue
-                    var workItemType = "Issue";
+                    var workItemType = "Issue"; // Issues serão criadas como Task no Azure DevOps
 
                     // Como a issue sempre está associada a uma User Story (agora obrigatório), buscar no Azure DevOps e criar relacionamento
                     try
@@ -127,9 +127,9 @@ public class IssueService
                             // Criar Work Item relacionado à User Story
                             var azureWorkItem = await _azureDevOpsService.CreateWorkItemWithRelationAsync(
                                 targetProject.Name,
-                                "Issue",
+                                workItemType, // Usar a variável workItemType (Task)
                                 $"[{issue.IssueNumber}] {issue.Title}",
-                                htmlDescription,
+                                htmlDescription ?? "Descrição não disponível",
                                 userStoryWorkItemId,
                                 "System.LinkTypes.Hierarchy-Reverse", // Work Item como child da User Story
                                 additionalFields,
@@ -144,9 +144,9 @@ public class IssueService
                                 targetProject.Name,
                                 workItemType,
                                 $"[{issue.IssueNumber}] {issue.Title}",
-                                $"Issue registrada em {issue.Environment ?? "Não especificado"} - User Story: {issue.UserStoryId}",
+                                htmlDescription ?? "Descrição não disponível", // Usar htmlDescription em vez de string simples
                                 additionalFields,
-                                htmlDescription,
+                                null, // discussionComment
                                 attachments // Anexos enviados
                             );
                         }
@@ -160,9 +160,9 @@ public class IssueService
                                 targetProject.Name,
                                 workItemType,
                                 $"[{issue.IssueNumber}] {issue.Title}",
-                                $"Issue registrada em {issue.Environment ?? "Não especificado"} - User Story: {issue.UserStoryId}",
+                                htmlDescription ?? "Descrição não disponível", // Usar htmlDescription em vez de string simples
                                 additionalFields,
-                                htmlDescription,
+                                null, // discussionComment
                                 attachments
                             );
                         }
