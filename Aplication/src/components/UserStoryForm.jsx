@@ -166,7 +166,6 @@ export function UserStoryForm() {
         ],
     });
     const [acceptanceCriteria, setAcceptanceCriteria] = useState({
-        notApplicable: false,
         items: [{ id: 1, content: '' }],
     });
     const [azureProjects, setAzureProjects] = useState([]);
@@ -275,7 +274,6 @@ export function UserStoryForm() {
             ],
         });
         setAcceptanceCriteria({
-            notApplicable: false,
             items: [{ id: 1, content: '' }],
         });
     };
@@ -312,8 +310,7 @@ export function UserStoryForm() {
 
         try {
             // Validação personalizada para critérios de aceite
-            const hasValidCriteria = !acceptanceCriteria.notApplicable &&
-                acceptanceCriteria.items.some(item => item.content.trim());
+            const hasValidCriteria = acceptanceCriteria.items.some(item => item.content.trim());
 
             if (!hasValidCriteria) {
                 showError('Dados obrigatórios', 'Pelo menos um critério de aceite é obrigatório');
@@ -334,10 +331,9 @@ export function UserStoryForm() {
                 DemandNumber: data.demandNumber,
                 Title: data.title,
                 Priority: priorityMap[data.priority] || 2, // Default para Medium
-                AcceptanceCriteria: acceptanceCriteria.notApplicable ? [] :
-                    acceptanceCriteria.items.filter(item => item.content.trim()).map(item => ({
-                        Content: item.content
-                    })),
+                AcceptanceCriteria: acceptanceCriteria.items.filter(item => item.content.trim()).map(item => ({
+                    Content: item.content
+                })),
 
                 // História do usuário (como/quero/para)
                 UserStory: {
@@ -664,8 +660,6 @@ export function UserStoryForm() {
 
                             <Section
                                 title="Critérios de Aceite"
-                                notApplicable={acceptanceCriteria.notApplicable}
-                                onNotApplicableChange={(checked) => setAcceptanceCriteria({ ...acceptanceCriteria, notApplicable: checked })}
                             >
                                 <Stack spacing={3}>
                                     {acceptanceCriteria.items.map((criteria, index) => (
@@ -688,7 +682,6 @@ export function UserStoryForm() {
                                                             ...acceptanceCriteria,
                                                             items: acceptanceCriteria.items.filter((_, i) => i !== index)
                                                         })}
-                                                        disabled={acceptanceCriteria.notApplicable}
                                                         size="small"
                                                         sx={{ color: '#d32f2f' }}
                                                     >
@@ -707,7 +700,6 @@ export function UserStoryForm() {
                                                         i === index ? { ...item, content: e.target.value } : item
                                                     )
                                                 })}
-                                                disabled={acceptanceCriteria.notApplicable}
                                                 placeholder="Digite o critério de aceite aqui..."
                                                 required={index === 0} // O primeiro critério é obrigatório
                                             />
@@ -721,7 +713,6 @@ export function UserStoryForm() {
                                                 items: [...acceptanceCriteria.items, { id: acceptanceCriteria.items.length + 1, content: '' }]
                                             })}
                                             variant="outlined"
-                                            disabled={acceptanceCriteria.notApplicable}
                                             sx={{ width: '50%' }}
                                         >
                                             Adicionar Critério

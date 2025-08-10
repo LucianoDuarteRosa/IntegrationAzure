@@ -13,7 +13,7 @@ public class CreateFailureDto
     public DateTime? OccurredAt { get; set; }
     public string? Environment { get; set; }
     public List<FailureScenarioDto>? Scenarios { get; set; } = new();
-    public List<AttachmentDto>? Attachments { get; set; } = new();
+    public List<AttachmentWithContentDto>? Attachments { get; set; } = new();
 }
 
 public class UpdateFailureDto

@@ -16,6 +16,19 @@ public class CreateAttachmentDto
 }
 
 /// <summary>
+/// DTO para anexo com conteúdo (usado na criação com base64)
+/// </summary>
+public class AttachmentWithContentDto
+{
+    public string FileName { get; set; } = string.Empty;
+    public string OriginalFileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+    public long Size { get; set; }
+    public string Content { get; set; } = string.Empty; // Conteúdo em base64
+    public string? Description { get; set; }
+}
+
+/// <summary>
 /// DTO para retorno de anexo
 /// </summary>
 public class AttachmentDto

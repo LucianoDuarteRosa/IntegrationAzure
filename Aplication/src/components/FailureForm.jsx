@@ -423,6 +423,38 @@ export function FailureForm() {
                 Then: scenario.then.trim()
             }));
 
+            // Função para converter arquivo para base64
+            const fileToBase64 = (file) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                });
+            };
+
+            // Converter anexos para base64 se existirem
+            let processedAttachments = [];
+            if (attachments.length > 0) {
+                try {
+                    const attachmentPromises = attachments.map(async (att) => {
+                        const base64Data = await fileToBase64(att.file);
+                        return {
+                            FileName: att.name,
+                            OriginalFileName: att.name,
+                            ContentType: att.type,
+                            Size: att.size,
+                            Content: base64Data.split(',')[1], // Remove o prefixo "data:mime/type;base64,"
+                            Description: `Anexo: ${att.name}`
+                        };
+                    });
+                    processedAttachments = await Promise.all(attachmentPromises);
+                } catch (error) {
+                    showError('Erro ao processar anexos', 'Erro ao converter arquivos. Tente novamente.');
+                    return;
+                }
+            }
+
             // Preparar dados para envio seguindo exatamente o formato do CreateFailureDto
             const failureData = {
                 // FailureNumber será gerado automaticamente no backend
@@ -435,11 +467,7 @@ export function FailureForm() {
                 UserStoryId: data.userStoryId?.trim() || null, // Enviar como string, backend fará a conversão
                 Scenarios: scenariosForApi, // Cenários estruturados para a API
                 Observations: data.observations?.trim() || null, // Observações
-                Attachments: attachments.map(att => ({ // Evidências
-                    Name: att.name,
-                    Size: att.size,
-                    Type: att.type
-                }))
+                Attachments: processedAttachments // Anexos com conteúdo base64
             };
 
             // Enviar para a API

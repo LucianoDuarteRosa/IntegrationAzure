@@ -32,6 +32,40 @@ public class FailureService
     /// </summary>
     public async Task<ApiResponseDto<FailureDto>> CreateAsync(CreateFailureDto dto, string currentUser)
     {
+        // Converter anexos do DTO para formato binário se existirem
+        List<(byte[] content, string fileName)>? attachments = null;
+
+        if (dto.Attachments?.Any() == true)
+        {
+            attachments = new List<(byte[] content, string fileName)>();
+
+            foreach (var attachment in dto.Attachments)
+            {
+                if (!string.IsNullOrEmpty(attachment.Content))
+                {
+                    try
+                    {
+                        // Converter de base64 para bytes
+                        var bytes = Convert.FromBase64String(attachment.Content);
+                        attachments.Add((bytes, attachment.FileName));
+                    }
+                    catch (FormatException)
+                    {
+                        // Se não conseguir converter base64, pular este anexo
+                        continue;
+                    }
+                }
+            }
+        }
+
+        return await CreateInternalAsync(dto, currentUser, attachments);
+    }
+
+    /// <summary>
+    /// Método interno para criação de falha
+    /// </summary>
+    private async Task<ApiResponseDto<FailureDto>> CreateInternalAsync(CreateFailureDto dto, string currentUser, List<(byte[] content, string fileName)>? attachments)
+    {
         try
         {
             // Gerar o número da falha automaticamente se não fornecido
@@ -103,7 +137,7 @@ public class FailureService
                                     "System.LinkTypes.Hierarchy-Reverse", // Bug como child da User Story
                                     additionalFields,
                                     htmlDescription, // HTML vai para a discussão
-                                    null // Anexos seriam implementados posteriormente
+                                    attachments // Anexos enviados
                                 );
 
                                 // Você pode salvar o azureBug.Id na entidade se necessário
@@ -118,7 +152,7 @@ public class FailureService
                                     $"Falha reportada em {failure.Environment ?? "Não especificado"}",
                                     additionalFields,
                                     htmlDescription,
-                                    null
+                                    attachments // Anexos enviados
                                 );
                             }
                         }
@@ -138,7 +172,7 @@ public class FailureService
                             $"Falha reportada em {failure.Environment ?? "Não especificado"}",
                             additionalFields,
                             htmlDescription,
-                            null
+                            attachments // Anexos enviados
                         );
                     }
                 }

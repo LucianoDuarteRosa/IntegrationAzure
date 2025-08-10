@@ -105,5 +105,5 @@ public class FailuresController : BaseController
             throw;
         }
     }
-    // O endpoint de occurrence-types foi removido após a migração para Activity
+
 }
