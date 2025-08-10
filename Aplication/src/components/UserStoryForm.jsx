@@ -165,7 +165,10 @@ export function UserStoryForm() {
             },
         ],
     });
-    const [acceptanceCriteria, setAcceptanceCriteria] = useState('');
+    const [acceptanceCriteria, setAcceptanceCriteria] = useState({
+        notApplicable: false,
+        items: [{ id: 1, content: '' }],
+    });
     const [azureProjects, setAzureProjects] = useState([]);
     const [loadingProjects, setLoadingProjects] = useState(false);
 
@@ -271,7 +274,10 @@ export function UserStoryForm() {
                 },
             ],
         });
-        setAcceptanceCriteria('');
+        setAcceptanceCriteria({
+            notApplicable: false,
+            items: [{ id: 1, content: '' }],
+        });
     };
 
     const handleFileChange = (e) => {
@@ -306,8 +312,11 @@ export function UserStoryForm() {
 
         try {
             // Validação personalizada para critérios de aceite
-            if (!acceptanceCriteria.trim()) {
-                showError('Dados obrigatórios', 'Critérios de aceite são obrigatórios');
+            const hasValidCriteria = !acceptanceCriteria.notApplicable &&
+                acceptanceCriteria.items.some(item => item.content.trim());
+
+            if (!hasValidCriteria) {
+                showError('Dados obrigatórios', 'Pelo menos um critério de aceite é obrigatório');
                 setLoading(false);
                 return;
             }
@@ -325,7 +334,10 @@ export function UserStoryForm() {
                 DemandNumber: data.demandNumber,
                 Title: data.title,
                 Priority: priorityMap[data.priority] || 2, // Default para Medium
-                AcceptanceCriteria: acceptanceCriteria,
+                AcceptanceCriteria: acceptanceCriteria.notApplicable ? [] :
+                    acceptanceCriteria.items.filter(item => item.content.trim()).map(item => ({
+                        Content: item.content
+                    })),
 
                 // História do usuário (como/quero/para)
                 UserStory: {
@@ -652,15 +664,70 @@ export function UserStoryForm() {
 
                             <Section
                                 title="Critérios de Aceite"
+                                notApplicable={acceptanceCriteria.notApplicable}
+                                onNotApplicableChange={(checked) => setAcceptanceCriteria({ ...acceptanceCriteria, notApplicable: checked })}
                             >
-                                <TextField
-                                    fullWidth
-                                    multiline
-                                    rows={4}
-                                    value={acceptanceCriteria}
-                                    onChange={(e) => setAcceptanceCriteria(e.target.value)}
-                                    required
-                                />
+                                <Stack spacing={3}>
+                                    {acceptanceCriteria.items.map((criteria, index) => (
+                                        <Paper
+                                            key={criteria.id}
+                                            sx={{
+                                                p: 3,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                backgroundColor: 'background.default'
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                <Typography variant="subtitle1" fontWeight="medium">
+                                                    Critério {index + 1}
+                                                </Typography>
+                                                {acceptanceCriteria.items.length > 1 && (
+                                                    <IconButton
+                                                        onClick={() => setAcceptanceCriteria({
+                                                            ...acceptanceCriteria,
+                                                            items: acceptanceCriteria.items.filter((_, i) => i !== index)
+                                                        })}
+                                                        disabled={acceptanceCriteria.notApplicable}
+                                                        size="small"
+                                                        sx={{ color: '#d32f2f' }}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                )}
+                                            </Box>
+                                            <TextField
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                value={criteria.content}
+                                                onChange={(e) => setAcceptanceCriteria({
+                                                    ...acceptanceCriteria,
+                                                    items: acceptanceCriteria.items.map((item, i) =>
+                                                        i === index ? { ...item, content: e.target.value } : item
+                                                    )
+                                                })}
+                                                disabled={acceptanceCriteria.notApplicable}
+                                                placeholder="Digite o critério de aceite aqui..."
+                                                required={index === 0} // O primeiro critério é obrigatório
+                                            />
+                                        </Paper>
+                                    ))}
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                        <Button
+                                            startIcon={<AddIcon />}
+                                            onClick={() => setAcceptanceCriteria({
+                                                ...acceptanceCriteria,
+                                                items: [...acceptanceCriteria.items, { id: acceptanceCriteria.items.length + 1, content: '' }]
+                                            })}
+                                            variant="outlined"
+                                            disabled={acceptanceCriteria.notApplicable}
+                                            sx={{ width: '50%' }}
+                                        >
+                                            Adicionar Critério
+                                        </Button>
+                                    </Box>
+                                </Stack>
                             </Section>
 
                             <Section

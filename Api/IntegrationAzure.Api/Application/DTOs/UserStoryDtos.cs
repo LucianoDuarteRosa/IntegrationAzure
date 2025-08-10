@@ -10,7 +10,7 @@ public class CreateUserStoryDto
 {
     public string DemandNumber { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
-    public string AcceptanceCriteria { get; set; } = string.Empty;
+    public List<AcceptanceCriteriaItemDto> AcceptanceCriteria { get; set; } = new();
     public Priority Priority { get; set; } = Priority.Medium;
 
     // História do usuário (como/quero/para)
@@ -25,6 +25,14 @@ public class CreateUserStoryDto
     public BusinessRulesSectionDto? BusinessRules { get; set; }
     public ScenariosSectionDto? Scenarios { get; set; }
     public AttachmentsSectionDto? Attachments { get; set; }
+}
+
+/// <summary>
+/// Item de critério de aceite
+/// </summary>
+public class AcceptanceCriteriaItemDto
+{
+    public string Content { get; set; } = string.Empty;
 }
 
 /// <summary>

@@ -324,17 +324,17 @@ public class AzureDevOpsService
             });
 
             // Se há um comentário de discussão, adicionar como comentário no work item
-            if (!string.IsNullOrEmpty(discussionComment) && createdWorkItem?.Id > 0)
-            {
-                try
-                {
-                    await AddWorkItemCommentAsync(azureConfig, projectId, createdWorkItem.Id, discussionComment);
-                }
-                catch (Exception)
-                {
-                    // Ignora erro ao adicionar comentário
-                }
-            }
+            //if (!string.IsNullOrEmpty(discussionComment) && createdWorkItem?.Id > 0)
+            //{
+            //    try
+            //    {
+            //        await AddWorkItemCommentAsync(azureConfig, projectId, createdWorkItem.Id, discussionComment);
+            //    }
+            //    catch (Exception)
+            //    {
+            //        // Ignora erro ao adicionar comentário
+            //    }
+            //}
 
             // Se há anexos, fazer upload e anexar ao work item
             if (attachments?.Any() == true && createdWorkItem?.Id > 0)
@@ -466,17 +466,17 @@ public class AzureDevOpsService
             });
 
             // Se há um comentário de discussão, adicionar como comentário no work item
-            if (!string.IsNullOrEmpty(discussionComment) && createdWorkItem?.Id > 0)
-            {
-                try
-                {
-                    await AddWorkItemCommentAsync(azureConfig, projectId, createdWorkItem.Id, discussionComment);
-                }
-                catch (Exception)
-                {
-                    // Log do erro, mas não quebra o processo - ex não usado intencionalmente
-                }
-            }
+            //if (!string.IsNullOrEmpty(discussionComment) && createdWorkItem?.Id > 0)
+            //{
+            //    try
+            //    {
+            //        await AddWorkItemCommentAsync(azureConfig, projectId, createdWorkItem.Id, discussionComment);
+            //    }
+            //    catch (Exception)
+            //    {
+            //        // Log do erro, mas não quebra o processo - ex não usado intencionalmente
+            //    }
+            //}
 
             // Se há anexos, fazer upload e anexar ao work item
             if (attachments?.Any() == true && createdWorkItem?.Id > 0)

@@ -64,14 +64,20 @@ public class UserStoryService
         {
             // Gerar a descrição em HTML a partir dos dados estruturados (para Azure DevOps Discussion)
             // SEM os critérios de aceite (eles vão para campo específico)
-            var htmlDescription = _htmlGenerator.GenerateUserStoryDescription(dto, includeAcceptanceCriteria: true);
+            var htmlDescription = _htmlGenerator.GenerateUserStoryDescription(dto, includeAcceptanceCriteria: false);
+
+            // Converter critérios de aceite array para string (para banco local)
+            var acceptanceCriteriaText = ConvertAcceptanceCriteriaToString(dto.AcceptanceCriteria);
+
+            // Gerar HTML dos critérios de aceite para o Azure DevOps
+            var acceptanceCriteriaHtml = _htmlGenerator.GenerateAcceptanceCriteriaHtml(dto.AcceptanceCriteria);
 
             // Criar a entidade UserStory
             var userStory = new UserStory
             {
                 DemandNumber = dto.DemandNumber,
                 Title = dto.Title,
-                AcceptanceCriteria = dto.AcceptanceCriteria,
+                AcceptanceCriteria = acceptanceCriteriaText,
                 Description = htmlDescription, // Descrição gerada em HTML
                 Priority = dto.Priority,
                 CreatedBy = currentUser,
@@ -101,7 +107,7 @@ public class UserStoryService
                         ["Microsoft.VSTS.Common.Priority"] = GetAzurePriority(dto.Priority),
                         ["System.AreaPath"] = targetProject.Name,
                         ["System.IterationPath"] = targetProject.Name,
-                        ["Microsoft.VSTS.Common.AcceptanceCriteria"] = dto.AcceptanceCriteria ?? string.Empty
+                        ["Microsoft.VSTS.Common.AcceptanceCriteria"] = acceptanceCriteriaHtml
                     };
 
                     // Criar o work item no Azure DevOps
@@ -116,9 +122,9 @@ public class UserStoryService
                     );
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-
+                // Ignora erro na integração com Azure DevOps
             }
 
             return new ApiResponseDto<UserStoryDto>
@@ -257,5 +263,29 @@ public class UserStoryService
             Priority.Low => 4,
             _ => 3
         };
+    }
+
+    /// <summary>
+    /// Converte lista de critérios de aceite para string
+    /// </summary>
+    private static string ConvertAcceptanceCriteriaToString(List<AcceptanceCriteriaItemDto>? acceptanceCriteria)
+    {
+        if (acceptanceCriteria == null || !acceptanceCriteria.Any())
+            return string.Empty;
+
+        var validCriteria = acceptanceCriteria
+            .Where(c => !string.IsNullOrWhiteSpace(c.Content))
+            .Select(c => c.Content.Trim())
+            .ToList();
+
+        if (!validCriteria.Any())
+            return string.Empty;
+
+        // Se for apenas um critério, retornar como texto simples
+        if (validCriteria.Count == 1)
+            return validCriteria.First();
+
+        // Se forem múltiplos, juntar com quebras de linha
+        return string.Join(Environment.NewLine, validCriteria);
     }
 }

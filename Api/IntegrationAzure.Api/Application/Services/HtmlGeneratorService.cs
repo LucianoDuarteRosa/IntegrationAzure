@@ -19,6 +19,18 @@ public class HtmlGeneratorService
     }
 
     /// <summary>
+    /// Gera apenas o HTML dos critérios de aceite
+    /// </summary>
+    /// <param name="acceptanceCriteria">Lista de critérios de aceite</param>
+    /// <returns>HTML formatado dos critérios de aceite</returns>
+    public string GenerateAcceptanceCriteriaHtml(List<AcceptanceCriteriaItemDto>? acceptanceCriteria)
+    {
+        var html = new StringBuilder();
+        GenerateAcceptanceCriteriaSection(html, acceptanceCriteria);
+        return html.ToString().Trim();
+    }
+
+    /// <summary>
     /// Gera a descrição completa em HTML para uma história de usuário
     /// </summary>
     /// <param name="dto">DTO da história de usuário</param>
@@ -88,37 +100,35 @@ public class HtmlGeneratorService
         html.AppendLine("</br>");
     }
 
-    private void GenerateAcceptanceCriteriaSection(StringBuilder html, string? acceptanceCriteria)
+    private void GenerateAcceptanceCriteriaSection(StringBuilder html, List<AcceptanceCriteriaItemDto>? acceptanceCriteria)
     {
-        if (string.IsNullOrWhiteSpace(acceptanceCriteria)) return;
+        if (acceptanceCriteria == null || !acceptanceCriteria.Any()) return;
+
+        var validCriteria = acceptanceCriteria.Where(c => !string.IsNullOrWhiteSpace(c.Content)).ToList();
+        if (!validCriteria.Any()) return;
 
         html.AppendLine("<h1>✅ Critérios de Aceite</h1>");
 
-        // Dividir os critérios por linha e formatar como lista
-        var criteria = acceptanceCriteria.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-        if (criteria.Length > 1)
+        if (validCriteria.Count == 1)
         {
-            html.AppendLine("<ul>");
-            foreach (var criterion in criteria)
-            {
-                var trimmed = criterion.Trim();
-                if (!string.IsNullOrEmpty(trimmed))
-                {
-                    // Remove possível marcador de lista existente (-, *, •)
-                    if (trimmed.StartsWith("- ") || trimmed.StartsWith("* ") || trimmed.StartsWith("• "))
-                    {
-                        trimmed = trimmed.Substring(2).Trim();
-                    }
-                    html.AppendLine($"<li>{trimmed}</li>");
-                }
-            }
-            html.AppendLine("</ul>");
+            // Se for apenas um critério, mostrar como parágrafo
+            html.AppendLine($"<p>{validCriteria.First().Content.Trim()}</p>");
         }
         else
         {
-            // Se for apenas um critério, mostrar como parágrafo
-            html.AppendLine($"<p>{acceptanceCriteria}</p>");
+            // Múltiplos critérios como lista
+            html.AppendLine("<ul>");
+            foreach (var criterion in validCriteria)
+            {
+                var content = criterion.Content.Trim();
+                // Remove possível marcador de lista existente (-, *, •)
+                if (content.StartsWith("- ") || content.StartsWith("* ") || content.StartsWith("• "))
+                {
+                    content = content.Substring(2).Trim();
+                }
+                html.AppendLine($"<li>{content}</li>");
+            }
+            html.AppendLine("</ul>");
         }
         html.AppendLine("</br>");
         html.AppendLine("<hr/>");
