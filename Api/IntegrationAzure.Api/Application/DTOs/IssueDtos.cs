@@ -11,7 +11,7 @@ public class CreateIssueDto
     public Priority Priority { get; set; }
     public string? Activity { get; set; }
     public string? Environment { get; set; }
-    public int? UserStoryId { get; set; }
+    public int UserStoryId { get; set; } // Agora obrigatório
     public string? Observations { get; set; }
     public List<IssueScenarioDto>? Scenarios { get; set; } = new();
     public List<AttachmentWithContentDto>? Attachments { get; set; } = new();

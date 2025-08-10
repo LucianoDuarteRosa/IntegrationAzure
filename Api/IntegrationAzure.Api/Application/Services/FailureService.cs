@@ -123,7 +123,7 @@ public class FailureService
                         ["System.AreaPath"] = targetProject.Name,
                         ["System.IterationPath"] = targetProject.Name,
                         ["Microsoft.VSTS.TCM.ReproSteps"] = htmlDescription, // Passos para reproduzir
-                        ["Microsoft.VSTS.Common.Activity"] = failure.Activity ?? "Desenvolvimento" // Adicionar Activity
+                        ["Microsoft.VSTS.Common.Activity"] = failure.Activity ?? "Deployment" // Adicionar Activity
                     };
 
                     // Se a falha está associada a uma User Story, buscar no Azure DevOps e criar relacionamento

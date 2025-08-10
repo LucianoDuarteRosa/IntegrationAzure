@@ -35,16 +35,12 @@ public class IssueService
         // Converter anexos do DTO para formato binário se existirem
         List<(byte[] content, string fileName)>? attachments = null;
 
-        Console.WriteLine($"[DEBUG] Processando issue - Anexos recebidos: {dto.Attachments?.Count ?? 0}");
-
         if (dto.Attachments?.Any() == true)
         {
             attachments = new List<(byte[] content, string fileName)>();
 
             foreach (var attachment in dto.Attachments)
             {
-                Console.WriteLine($"[DEBUG] Processando anexo: {attachment.FileName} - Content null? {string.IsNullOrEmpty(attachment.Content)}");
-
                 if (!string.IsNullOrEmpty(attachment.Content))
                 {
                     try
@@ -52,23 +48,17 @@ public class IssueService
                         // Converter de base64 para bytes
                         var bytes = Convert.FromBase64String(attachment.Content);
                         attachments.Add((bytes, attachment.FileName));
-                        Console.WriteLine($"[DEBUG] Anexo convertido com sucesso: {attachment.FileName} - {bytes.Length} bytes");
                     }
                     catch (FormatException ex)
                     {
-                        Console.WriteLine($"[DEBUG] Erro ao converter base64 para {attachment.FileName}: {ex.Message}");
-                        // Se não conseguir converter base64, pular este anexo
                         continue;
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[DEBUG] Anexo {attachment.FileName} sem conteúdo, pulando...");
                 }
             }
         }
-
-        Console.WriteLine($"[DEBUG] Total de anexos processados: {attachments?.Count ?? 0}");
         return await CreateInternalAsync(dto, currentUser, attachments);
     }
 
@@ -117,77 +107,74 @@ public class IssueService
                         ["Microsoft.VSTS.Common.Priority"] = GetAzurePriorityValue(issue.Priority),
                         ["System.AreaPath"] = targetProject.Name,
                         ["System.IterationPath"] = targetProject.Name,
-                        ["Microsoft.VSTS.Common.Activity"] = issue.Activity ?? "Desenvolvimento" // Adicionar Activity
+                        ["Microsoft.VSTS.Common.Activity"] = issue.Activity ?? "Deployment" // Adicionar Activity
                     };
 
                     // Determinar o tipo de work item baseado no tipo da issue
-                    var workItemType = GetAzureWorkItemType(issue.Type);
+                    var workItemType = "Issue";
 
-                    // Se a issue está associada a uma User Story, buscar no Azure DevOps e criar relacionamento
-                    if (issue.UserStoryId.HasValue)
+                    // Como a issue sempre está associada a uma User Story (agora obrigatório), buscar no Azure DevOps e criar relacionamento
+                    try
                     {
-                        try
-                        {
-                            // Buscar work items User Stories para encontrar a correspondente
-                            var workItems = await _azureDevOpsService.GetWorkItemsAsync(targetProject.Name, "User Story");
-                            var relatedUserStory = workItems?.FirstOrDefault(wi =>
-                                wi.Title.Contains($"US-{issue.UserStoryId}") ||
-                                wi.Id == issue.UserStoryId.Value.ToString());
+                        // Buscar work items User Stories para encontrar a correspondente
+                        var workItems = await _azureDevOpsService.GetWorkItemsAsync(targetProject.Name, "User Story");
+                        var relatedUserStory = workItems?.FirstOrDefault(wi =>
+                            wi.Title.Contains($"US-{issue.UserStoryId}") ||
+                            wi.Id == issue.UserStoryId.ToString());
 
-                            if (relatedUserStory != null && int.TryParse(relatedUserStory.Id, out int userStoryWorkItemId))
-                            {
-                                // Criar Work Item relacionado à User Story
-                                var azureWorkItem = await _azureDevOpsService.CreateWorkItemWithRelationAsync(
-                                    targetProject.Name,
-                                    workItemType,
-                                    $"[{issue.IssueNumber}] {issue.Title}",
-                                    $"Issue registrada em {issue.Environment ?? "Não especificado"}",
-                                    userStoryWorkItemId,
-                                    "System.LinkTypes.Hierarchy-Reverse", // Work Item como child da User Story
-                                    additionalFields,
-                                    htmlDescription, // HTML vai para a discussão
-                                    attachments // Anexos enviados
-                                );
-                            }
-                            else
-                            {
-                                // Se não encontrar User Story relacionada, criar Work Item sem relacionamento
-                                var azureWorkItem = await _azureDevOpsService.CreateWorkItemAsync(
-                                    targetProject.Name,
-                                    workItemType,
-                                    $"[{issue.IssueNumber}] {issue.Title}",
-                                    $"Issue registrada em {issue.Environment ?? "Não especificado"}",
-                                    additionalFields,
-                                    htmlDescription,
-                                    attachments // Anexos enviados
-                                );
-                            }
-                        }
-                        catch (Exception ex)
+                        if (relatedUserStory != null && int.TryParse(relatedUserStory.Id, out int userStoryWorkItemId))
                         {
-                            // Log do erro, mas não quebra o processo
-                            Console.WriteLine($"Erro ao criar Work Item relacionado no Azure DevOps: {ex.Message}");
+                            // Criar Work Item relacionado à User Story
+                            var azureWorkItem = await _azureDevOpsService.CreateWorkItemWithRelationAsync(
+                                targetProject.Name,
+                                "Issue",
+                                $"[{issue.IssueNumber}] {issue.Title}",
+                                htmlDescription,
+                                userStoryWorkItemId,
+                                "System.LinkTypes.Hierarchy-Reverse", // Work Item como child da User Story
+                                additionalFields,
+                                null,
+                                attachments // Anexos enviados
+                            );
+                        }
+                        else
+                        {
+                            // Se não encontrar User Story relacionada, criar Work Item sem relacionamento como fallback
+                            var azureWorkItem = await _azureDevOpsService.CreateWorkItemAsync(
+                                targetProject.Name,
+                                workItemType,
+                                $"[{issue.IssueNumber}] {issue.Title}",
+                                $"Issue registrada em {issue.Environment ?? "Não especificado"} - User Story: {issue.UserStoryId}",
+                                additionalFields,
+                                htmlDescription,
+                                attachments // Anexos enviados
+                            );
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        // Criar Work Item sem relacionamento se não há UserStoryId
-                        var azureWorkItem = await _azureDevOpsService.CreateWorkItemAsync(
-                            targetProject.Name,
-                            workItemType,
-                            $"[{issue.IssueNumber}] {issue.Title}",
-                            $"Issue registrada em {issue.Environment ?? "Não especificado"}",
-                            additionalFields,
-                            htmlDescription,
-                            attachments // Anexos enviados
-                        );
+                        // Tentar criar sem relacionamento como fallback
+                        try
+                        {
+                            var azureWorkItem = await _azureDevOpsService.CreateWorkItemAsync(
+                                targetProject.Name,
+                                workItemType,
+                                $"[{issue.IssueNumber}] {issue.Title}",
+                                $"Issue registrada em {issue.Environment ?? "Não especificado"} - User Story: {issue.UserStoryId}",
+                                additionalFields,
+                                htmlDescription,
+                                attachments
+                            );
+                        }
+                        catch (Exception fallbackEx)
+                        {
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Log do erro, mas não quebra o processo principal
-                Console.WriteLine($"Erro ao integrar issue com Azure DevOps: {ex.Message}");
+
             }
 
             return new ApiResponseDto<IssueDto>
@@ -316,21 +303,6 @@ public class IssueService
                 CreatedAt = a.CreatedAt,
                 CreatedBy = a.CreatedBy
             }).ToList()
-        };
-    }
-
-    /// <summary>
-    /// Mapeia tipo de issue interna para tipo de work item do Azure DevOps
-    /// </summary>
-    private static string GetAzureWorkItemType(IssueType type)
-    {
-        return type switch
-        {
-            IssueType.Bug => "Bug",
-            IssueType.Feature => "Feature",
-            IssueType.Improvement => "Product Backlog Item",
-            IssueType.Task => "Task",
-            _ => "Bug"
         };
     }
 

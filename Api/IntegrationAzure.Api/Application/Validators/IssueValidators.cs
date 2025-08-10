@@ -42,10 +42,11 @@ public class CreateIssueDtoValidator : AbstractValidator<CreateIssueDto>
             .WithMessage("Ambiente deve ter no máximo 200 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Environment));
 
-        // Validação para UserStoryId - deve ser um inteiro válido se fornecido
+        // Validação para UserStoryId - obrigatório
         RuleFor(x => x.UserStoryId)
+            .NotEmpty()
+            .WithMessage("User Story é obrigatória")
             .GreaterThan(0)
-            .WithMessage("UserStoryId deve ser um número positivo")
-            .When(x => x.UserStoryId.HasValue);
+            .WithMessage("UserStoryId deve ser um número positivo");
     }
 }

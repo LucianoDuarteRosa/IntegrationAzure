@@ -40,7 +40,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 const schema = yup.object().shape({
     demandNumber: yup.string().required('Projeto é obrigatório'),
-    userStoryId: yup.string(), // Removendo validação GUID complexa temporariamente
+    userStoryId: yup.string().required('História do usuário é obrigatória'), // Agora obrigatório
     title: yup.string().required('Título é obrigatório'),
     type: yup.number().required('Tipo de issue é obrigatório'),
     priority: yup.number().required('Prioridade é obrigatória'),
@@ -57,10 +57,9 @@ const schema = yup.object().shape({
 });
 
 const issueTypes = [
-    { value: 1, label: 'Bug', color: '#f44336' },
+    { value: 1, label: 'Melhoria', color: '#2196f3' },
     { value: 2, label: 'Feature', color: '#4caf50' },
-    { value: 3, label: 'Melhoria', color: '#2196f3' },
-    { value: 4, label: 'Tarefa', color: '#ff9800' },
+    { value: 3, label: 'Tarefa', color: '#ff9800' },
 ];
 
 const priorities = [
@@ -211,7 +210,7 @@ export function IssueForm() {
     // Activities dinâmicas
     const [activities, setActivities] = useState([]);
     const [loadingActivities, setLoadingActivities] = useState(false);
-    
+
     // Modal de visualização de anexos
     const [modalOpen, setModalOpen] = useState(false);
     const [currentFile, setCurrentFile] = useState(null);
@@ -324,9 +323,9 @@ export function IssueForm() {
             console.error('Erro ao carregar work items:', error);
             // Verifica se é realmente um erro ou apenas não há dados
             if (error.response?.status === 404 || error.message?.includes('not found') || error.message?.includes('No work items')) {
-                // Não é um erro real, apenas não há histórias - mostrar como informação
+                // Não é um erro real, apenas não há histórias - mostrar como erro agora que é obrigatório
                 console.info('Projeto não possui histórias de usuário cadastradas.');
-                showInfo('Informação sobre histórias', 'Este projeto não possui histórias de usuário cadastradas. Como o campo "História do Usuário" é opcional para Issues, você pode continuar o registro sem selecionar uma história específica.');
+                showError('Histórias obrigatórias', 'Este projeto não possui histórias de usuário cadastradas. É necessário cadastrar pelo menos uma história antes de registrar issues.');
                 setAvailableStories([]);
             } else {
                 // Erro real de conectividade ou configuração
@@ -458,7 +457,7 @@ export function IssueForm() {
                 Priority: parseInt(data.priority), // Priority enum (1-4)
                 Activity: data.activity, // Atividade do Azure DevOps
                 Environment: data.environment,
-                UserStoryId: data.userStoryId && data.userStoryId.trim() && data.userStoryId !== " " ? parseInt(data.userStoryId) : null, // converter para int ou null
+                UserStoryId: parseInt(data.userStoryId), // Sempre obrigatório agora, converter para int
                 Scenarios: scenariosForApi, // Cenários estruturados para a API
                 Observations: data.description?.trim() || null, // Observações (usando o campo description)
                 Attachments: attachmentsWithContent // Anexos com conteúdo em base64
@@ -663,16 +662,15 @@ export function IssueForm() {
                                                 <FormControl
                                                     fullWidth
                                                     error={!!errors.userStoryId}
+                                                    required
                                                 >
                                                     <InputLabel>História do Usuário</InputLabel>
                                                     <Select
                                                         {...field}
                                                         label="História do Usuário"
                                                         disabled={isSubmitting || (!watchedDemand || availableStories.length === 0)}
+                                                        required
                                                     >
-                                                        <MenuItem value=" ">
-                                                            <em>Nenhuma história específica</em>
-                                                        </MenuItem>
                                                         {!watchedDemand ? (
                                                             <MenuItem disabled>
                                                                 <Box sx={{ textAlign: 'center', py: 1 }}>
@@ -688,7 +686,7 @@ export function IssueForm() {
                                                                         Não existem histórias associadas ao projeto
                                                                     </Typography>
                                                                     <Typography variant="caption" color="text.secondary">
-                                                                        Você pode continuar sem selecionar uma história específica
+                                                                        É necessário ter pelo menos uma história cadastrada para registrar issues
                                                                     </Typography>
                                                                 </Box>
                                                             </MenuItem>
