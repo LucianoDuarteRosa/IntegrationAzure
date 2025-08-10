@@ -1,3 +1,4 @@
+using System.Net;
 using IntegrationAzure.Api.Application.DTOs;
 using IntegrationAzure.Api.Domain.Entities;
 using IntegrationAzure.Api.Domain.Interfaces;
@@ -49,7 +50,7 @@ public class IssueService
                         var bytes = Convert.FromBase64String(attachment.Content);
                         attachments.Add((bytes, attachment.FileName));
                     }
-                    catch (FormatException ex)
+                    catch (Exception)
                     {
                         continue;
                     }
@@ -151,7 +152,7 @@ public class IssueService
                             );
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // Tentar criar sem relacionamento como fallback
                         try
@@ -166,13 +167,13 @@ public class IssueService
                                 attachments
                             );
                         }
-                        catch (Exception fallbackEx)
+                        catch (Exception)
                         {
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
