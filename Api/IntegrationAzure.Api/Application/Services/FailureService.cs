@@ -111,7 +111,8 @@ public class FailureService
                         ["Microsoft.VSTS.Common.Priority"] = GetAzurePriorityFromSeverity(failure.Severity),
                         ["System.AreaPath"] = targetProject.Name,
                         ["System.IterationPath"] = targetProject.Name,
-                        ["Microsoft.VSTS.TCM.ReproSteps"] = htmlDescription // Passos para reproduzir
+                        ["Microsoft.VSTS.TCM.ReproSteps"] = htmlDescription, // Passos para reproduzir
+                        ["Microsoft.VSTS.Common.Activity"] = failure.Activity ?? "Development" // Adicionar Activity
                     };
 
                     // Se a falha está associada a uma User Story, buscar no Azure DevOps e criar relacionamento
