@@ -21,13 +21,18 @@ import {
     Alert,
     CircularProgress,
     Chip,
+    Modal,
+    Backdrop,
+    Fade,
 } from '@mui/material';
 import {
     Delete as DeleteIcon,
     Add as AddIcon,
     AttachFile as AttachFileIcon,
     BugReport as BugReportIcon,
-    Info as InfoIcon
+    Info as InfoIcon,
+    Visibility as VisibilityIcon,
+    Close as CloseIcon
 } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
@@ -39,7 +44,7 @@ const schema = yup.object().shape({
     title: yup.string().required('Título é obrigatório'),
     type: yup.number().required('Tipo de issue é obrigatório'),
     priority: yup.number().required('Prioridade é obrigatória'),
-    occurrenceType: yup.number().required('Tipo de ocorrência é obrigatório'),
+    activity: yup.string().required('Atividade é obrigatória'),
     environment: yup.string().required('Ambiente é obrigatório'),
     description: yup.string(), // Opcional
     scenarioDetails: yup.array().of(
@@ -63,18 +68,6 @@ const priorities = [
     { value: 2, label: 'Média', color: '#ff9800' },
     { value: 3, label: 'Alta', color: '#f44336' },
     { value: 4, label: 'Crítica', color: '#d32f2f' },
-];
-
-const tiposOcorrencia = [
-    { value: 1, label: 'Apoio Operacional' },
-    { value: 2, label: 'Desempenho' },
-    { value: 3, label: 'Dúvida ou Erro de Procedimento' },
-    { value: 4, label: 'Erro de Migração de Dados' },
-    { value: 5, label: 'Erro de Sistema' },
-    { value: 6, label: 'Erro em Ambiente' },
-    { value: 7, label: 'Problema de Banco de Dados' },
-    { value: 8, label: 'Problema de Infraestrutura' },
-    { value: 9, label: 'Problema de Parametrizações' },
 ];
 
 const ambientes = [
@@ -215,6 +208,14 @@ export function IssueForm() {
     const [availableStories, setAvailableStories] = useState([]);
     const [azureProjects, setAzureProjects] = useState([]);
     const [loadingProjects, setLoadingProjects] = useState(false);
+    // Activities dinâmicas
+    const [activities, setActivities] = useState([]);
+    const [loadingActivities, setLoadingActivities] = useState(false);
+    
+    // Modal de visualização de anexos
+    const [modalOpen, setModalOpen] = useState(false);
+    const [currentFile, setCurrentFile] = useState(null);
+    const [fileUrl, setFileUrl] = useState('');
 
     const {
         control,
@@ -232,7 +233,7 @@ export function IssueForm() {
             title: '',
             type: 1, // Bug por padrão
             priority: 2, // Média por padrão
-            occurrenceType: 5, // Erro de Sistema por padrão
+            activity: '',
             environment: 'Production',
             description: '',
             scenarioDetails: [{ given: '', when: '', then: '' }],
@@ -248,7 +249,7 @@ export function IssueForm() {
             title: '',
             type: 1, // Bug por padrão
             priority: 2, // Média por padrão
-            occurrenceType: 5, // Erro de Sistema por padrão
+            activity: '',
             environment: 'Production',
             description: '',
             scenarioDetails: [{ given: '', when: '', then: '' }],
@@ -262,6 +263,15 @@ export function IssueForm() {
     };
 
     const watchedDemand = watch('demandNumber');
+
+    // Limpeza do modal quando o componente for desmontado
+    useEffect(() => {
+        return () => {
+            if (fileUrl) {
+                URL.revokeObjectURL(fileUrl);
+            }
+        };
+    }, [fileUrl]);
 
     // Carregar projetos do Azure DevOps ao inicializar o componente
     useEffect(() => {
@@ -298,8 +308,10 @@ export function IssueForm() {
     useEffect(() => {
         if (watchedDemand) {
             loadWorkItems(watchedDemand);
+            loadActivities(watchedDemand);
         } else {
             setAvailableStories([]);
+            setActivities([]);
         }
     }, [watchedDemand, setValue]);
 
@@ -321,6 +333,21 @@ export function IssueForm() {
                 showError('Erro ao carregar histórias', 'Não foi possível carregar as histórias do usuário. Verifique a conexão com o Azure DevOps.');
                 setAvailableStories([]);
             }
+        }
+    };
+
+    const loadActivities = async (projectId) => {
+        setLoadingActivities(true);
+        try {
+            const projectActivities = await azureDevOpsService.getActivities(projectId);
+            setActivities(projectActivities || []);
+            setValue('activity', ''); // Limpa a atividade selecionada
+        } catch (error) {
+            console.error('Erro ao carregar atividades:', error);
+            setActivities([]);
+            setValue('activity', '');
+        } finally {
+            setLoadingActivities(false);
         }
     };
 
@@ -366,6 +393,23 @@ export function IssueForm() {
         setAttachments(attachments.filter(att => att.id !== id));
     };
 
+    // Funções do modal de visualização
+    const handleOpenModal = (file) => {
+        const url = URL.createObjectURL(file);
+        setCurrentFile(file);
+        setFileUrl(url);
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        if (fileUrl) {
+            URL.revokeObjectURL(fileUrl);
+            setFileUrl('');
+        }
+        setCurrentFile(null);
+    };
+
     const onSubmit = async (data) => {
         setIsSubmitting(true);
 
@@ -387,6 +431,24 @@ export function IssueForm() {
                 Then: scenario.then.trim()
             }));
 
+            // Preparar anexos com conteúdo em base64 como no FailureForm
+            const attachmentPromises = attachments.map(att => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const base64Content = reader.result.split(',')[1]; // Remove 'data:xxx;base64,'
+                        resolve({
+                            FileName: att.name,
+                            Content: base64Content
+                        });
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(att.file);
+                });
+            });
+
+            const attachmentsWithContent = attachments.length > 0 ? await Promise.all(attachmentPromises) : [];
+
             // Preparar dados para envio seguindo o formato do CreateIssueDto
             const issueData = {
                 IssueNumber: `ISS-${String(Date.now()).slice(-6)}`, // Formato: ISS-XXXXXX
@@ -394,16 +456,12 @@ export function IssueForm() {
                 Description: description,
                 Type: parseInt(data.type), // IssueType enum (1-4)
                 Priority: parseInt(data.priority), // Priority enum (1-4)
-                OccurrenceType: parseInt(data.occurrenceType), // Tipo de ocorrência (1-9)
+                Activity: data.activity, // Atividade do Azure DevOps
                 Environment: data.environment,
-                UserStoryId: data.userStoryId && data.userStoryId.trim() && data.userStoryId !== " " ? data.userStoryId : null, // null se string vazia, espaço ou GUID válido
+                UserStoryId: data.userStoryId && data.userStoryId.trim() && data.userStoryId !== " " ? parseInt(data.userStoryId) : null, // converter para int ou null
                 Scenarios: scenariosForApi, // Cenários estruturados para a API
                 Observations: data.description?.trim() || null, // Observações (usando o campo description)
-                Attachments: attachments.map(att => ({ // Evidências
-                    Name: att.name,
-                    Size: att.size,
-                    Type: att.type
-                }))
+                Attachments: attachmentsWithContent // Anexos com conteúdo em base64
             };
 
             console.log('Enviando dados para API:', issueData); // Debug
@@ -775,26 +833,39 @@ export function IssueForm() {
                                         />
 
                                         <Controller
-                                            name="occurrenceType"
+                                            name="activity"
                                             control={control}
                                             render={({ field }) => (
-                                                <FormControl fullWidth error={!!errors.occurrenceType} required>
-                                                    <InputLabel>Tipo de Ocorrência</InputLabel>
+                                                <FormControl fullWidth error={!!errors.activity} required>
+                                                    <InputLabel>Atividade</InputLabel>
                                                     <Select
                                                         {...field}
-                                                        label="Tipo de Ocorrência"
-                                                        disabled={isSubmitting}
+                                                        label="Atividade"
+                                                        disabled={isSubmitting || loadingActivities}
                                                         required
                                                     >
-                                                        {tiposOcorrencia.map((tipo) => (
-                                                            <MenuItem key={tipo.value} value={tipo.value}>
-                                                                {tipo.label}
+                                                        {loadingActivities ? (
+                                                            <MenuItem disabled>
+                                                                <CircularProgress size={20} sx={{ mr: 1 }} />
+                                                                Carregando atividades...
                                                             </MenuItem>
-                                                        ))}
+                                                        ) : activities.length === 0 ? (
+                                                            <MenuItem disabled>
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    Nenhuma atividade disponível
+                                                                </Typography>
+                                                            </MenuItem>
+                                                        ) : (
+                                                            activities.map((activity) => (
+                                                                <MenuItem key={activity} value={activity}>
+                                                                    {activity}
+                                                                </MenuItem>
+                                                            ))
+                                                        )}
                                                     </Select>
-                                                    {errors.occurrenceType && (
+                                                    {errors.activity && (
                                                         <Typography variant="caption" color="error" sx={{ mt: 1 }}>
-                                                            {errors.occurrenceType.message}
+                                                            {errors.activity.message}
                                                         </Typography>
                                                     )}
                                                 </FormControl>
@@ -884,28 +955,33 @@ export function IssueForm() {
                                             variant="outlined"
                                             startIcon={<AttachFileIcon />}
                                             disabled={isSubmitting}
+                                            sx={{ minWidth: '200px' }}
                                         >
                                             Anexar Arquivos
                                         </Button>
                                     </label>
-                                    <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+                                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', marginTop: 2 }}>
                                         Anexe screenshots, logs, documentos relacionados à issue
                                     </Typography>
                                 </Box>
 
                                 {attachments.length > 0 && (
-                                    <Stack spacing={1}>
+                                    <Box sx={{ mt: 2 }}>
                                         {attachments.map((attachment) => (
-                                            <Paper
+                                            <Box
                                                 key={attachment.id}
                                                 sx={{
-                                                    p: 2,
                                                     display: 'flex',
+                                                    alignItems: 'center',
                                                     justifyContent: 'space-between',
-                                                    alignItems: 'center'
+                                                    p: 1,
+                                                    border: '1px solid',
+                                                    borderColor: 'divider',
+                                                    borderRadius: 1,
+                                                    mb: 1,
                                                 }}
                                             >
-                                                <Box>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                                     <Typography variant="body2" fontWeight="medium">
                                                         {attachment.name}
                                                     </Typography>
@@ -913,17 +989,27 @@ export function IssueForm() {
                                                         {(attachment.size / 1024).toFixed(1)} KB
                                                     </Typography>
                                                 </Box>
-                                                <IconButton
-                                                    onClick={() => handleRemoveAttachment(attachment.id)}
-                                                    disabled={isSubmitting}
-                                                    size="small"
-                                                    sx={{ color: '#d32f2f' }}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Paper>
+                                                <Box>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleOpenModal(attachment.file)}
+                                                        sx={{ mr: 1 }}
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        <VisibilityIcon />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleRemoveAttachment(attachment.id)}
+                                                        disabled={isSubmitting}
+                                                        sx={{ color: '#d32f2f' }}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Box>
+                                            </Box>
                                         ))}
-                                    </Stack>
+                                    </Box>
                                 )}
                             </Section>
 
@@ -960,6 +1046,121 @@ export function IssueForm() {
                     </Paper>
                 </Box>
             </Container>
+
+            {/* Modal de Visualização de Anexos */}
+            <Modal
+                open={modalOpen}
+                onClose={handleCloseModal}
+                closeAfterTransition
+                BackdropComponent={Backdrop}
+                BackdropProps={{
+                    timeout: 500,
+                }}
+            >
+                <Fade in={modalOpen}>
+                    <Box sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '90vw',
+                        height: '90vh',
+                        bgcolor: 'background.paper',
+                        borderRadius: 2,
+                        boxShadow: 24,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Header do Modal */}
+                        <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            p: 2,
+                            borderBottom: '1px solid',
+                            borderColor: 'divider'
+                        }}>
+                            <Typography variant="h6" component="h2">
+                                {currentFile?.name || 'Visualizar Arquivo'}
+                            </Typography>
+                            <IconButton
+                                onClick={handleCloseModal}
+                                size="small"
+                                sx={{ color: 'text.secondary' }}
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+
+                        {/* Conteúdo do Modal */}
+                        <Box sx={{
+                            flex: 1,
+                            overflow: 'auto',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            p: 2,
+                            backgroundColor: 'grey.50'
+                        }}>
+                            {currentFile && fileUrl && (
+                                currentFile.type.startsWith('image/') ? (
+                                    <img
+                                        src={fileUrl}
+                                        alt={currentFile.name}
+                                        style={{
+                                            maxWidth: '100%',
+                                            maxHeight: '100%',
+                                            objectFit: 'contain',
+                                            borderRadius: '4px'
+                                        }}
+                                    />
+                                ) : (
+                                    <Box sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                        p: 4
+                                    }}>
+                                        <Typography variant="h6" color="text.secondary">
+                                            Arquivo não pode ser visualizado
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Clique no botão abaixo para fazer o download
+                                        </Typography>
+                                        <Button
+                                            variant="contained"
+                                            href={fileUrl}
+                                            download={currentFile.name}
+                                            startIcon={<AttachFileIcon />}
+                                        >
+                                            Download
+                                        </Button>
+                                    </Box>
+                                )
+                            )}
+                        </Box>
+
+                        {/* Footer do Modal */}
+                        <Box sx={{
+                            p: 2,
+                            borderTop: '1px solid',
+                            borderColor: 'divider',
+                            display: 'flex',
+                            justifyContent: 'flex-end'
+                        }}>
+                            <Button
+                                onClick={handleCloseModal}
+                                variant="outlined"
+                                size="small"
+                            >
+                                Fechar
+                            </Button>
+                        </Box>
+                    </Box>
+                </Fade>
+            </Modal>
         </>
     );
 }

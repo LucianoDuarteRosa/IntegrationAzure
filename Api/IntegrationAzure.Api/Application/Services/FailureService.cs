@@ -152,7 +152,6 @@ public class FailureService
                                     attachments // Anexos enviados
                                 );
 
-                                // Você pode salvar o azureBug.Id na entidade se necessário
                             }
                             else
                             {

@@ -14,7 +14,7 @@ public class CreateIssueDto
     public int? UserStoryId { get; set; }
     public string? Observations { get; set; }
     public List<IssueScenarioDto>? Scenarios { get; set; } = new();
-    public List<AttachmentDto>? Attachments { get; set; } = new();
+    public List<AttachmentWithContentDto>? Attachments { get; set; } = new();
 }
 
 public class UpdateIssueDto
